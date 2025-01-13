@@ -1,0 +1,8 @@
+*.pyc
+__pycache__
+.env
+.dependencygraph
+.hintrc
+poetry.lock
+openaiGPT.log
+*.DS_Store
