@@ -1,7 +1,6 @@
 import uvicorn
 from dotenv import load_dotenv
 from app import app
-from entities.init_entities import init_sql_entities
 
 if __name__ == "__main__":
     load_dotenv()
