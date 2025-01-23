@@ -12,8 +12,10 @@ class ReservationS:
 
 class ReservationsSeller:
     open_house_id:int = None
-    reservation:ReservationS = None
+    reservations: list[ReservationS] = None
     
-    def __init__(self, open_house_id:int, reservation:ReservationS):
+    def __init__(self, open_house_id:int,reservations: list[ReservationS]):
         self.open_house_id = open_house_id
-        self.reservation = reservation
+        self.reservation = reservations
+
+ # count reservations by open house event
