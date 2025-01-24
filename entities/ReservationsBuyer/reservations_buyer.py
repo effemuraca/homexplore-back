@@ -1,12 +1,14 @@
-class ReservationB:
-    property_id: int = None
-    open_house_id: int = None
-    date: str = None
-    time: str = None
-    thumbnail: str = None
-    property_type: str = None
-    price: int = None
-    address: str = None
+from pydantic import BaseModel
+from typing import Optional, List
+class ReservationB(BaseModel):
+    property_id: Optional[int] = None
+    open_house_id: Optional[int] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+    thumbnail: Optional[str] = None
+    property_type: Optional[str] = None
+    price: Optional[int] = None
+    address: Optional[str] = None
 
     def __init__(
         self,
@@ -19,6 +21,7 @@ class ReservationB:
         price: int,
         address: str
     ):
+        super().__init__()
         self.property_id = property_id
         self.open_house_id = open_house_id
         self.date = date
@@ -28,11 +31,12 @@ class ReservationB:
         self.price = price
         self.address = address
 
-class ReservationsBuyer:
-    user_id: int = None
-    reservations: list[ReservationB] = None
+class ReservationsBuyer(BaseModel):
+    user_id: Optional[int] = None
+    reservations: Optional[List[ReservationB]] = None
 
-    def __init__(self, user_id: int, reservations: list[ReservationB]):
+    def __init__(self, user_id: int = None, reservations: list[ReservationB] = None):
+        super().__init__()
         self.user_id = user_id
         self.reservations = reservations
 
