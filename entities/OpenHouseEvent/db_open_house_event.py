@@ -63,5 +63,30 @@ class OpenHouseEventDB:
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
         return bool(result)
     
+    def increment_attendees(self, property_id:int) -> bool:
+        redis_client = get_redis_client()
+        raw_data = redis_client.get(f"property_id:{property_id}:open_house_info")
+        if not raw_data:
+            return False
+        data = json.loads(raw_data)
+        if data["attendees"] == data["max_attendees"]:
+            return False
+        data["attendees"] += 1
+        result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
+        return bool(result)
+    
+    # this method is used to decrement the number of attendees when a reservation is canceled or when an insert is not successful
+    def decrement_attendees(self, property_id:int) -> bool:
+        redis_client = get_redis_client()
+        raw_data = redis_client.get(f"property_id:{property_id}:open_house_info")
+        if not raw_data:
+            return False
+        data = json.loads(raw_data)
+        if data["attendees"] == 0:
+            return False
+        data["attendees"] -= 1
+        result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
+        return bool(result)
+     
     # when the ttl of the key expires, the event is considered closed and another dynamic event is created, updating the date of the previous event
-    # oss: open house event static is needed for the operation (time_schedule is needed)
+   
