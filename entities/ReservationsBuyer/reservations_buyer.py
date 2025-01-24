@@ -35,7 +35,11 @@ class ReservationsBuyer(BaseModel):
     user_id: Optional[int] = None
     reservations: Optional[List[ReservationB]] = None
 
-    def __init__(self, user_id: int = None, reservations: list[ReservationB] = None):
+    def __init__(
+        self, 
+        user_id: int = None, 
+        reservations: list[ReservationB] = None
+    ):
         super().__init__()
         self.user_id = user_id
         self.reservations = reservations

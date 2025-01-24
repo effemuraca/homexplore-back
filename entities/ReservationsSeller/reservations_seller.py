@@ -1,33 +1,40 @@
+from pydantic import BaseModel
+from typing import Optional, List
 import json
-class ReservationS:
-    user_id:int = None
-    full_name:str = None
-    email:str = None
-    phone:str = None
+class ReservationS(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
 
-    def __init__(self, user_id: int, full_name: str, email: str, phone: str):
-        self.user_id = user_id
+    def __init__(
+        self, 
+        full_name: str = None, 
+        email: str = None, 
+        phone: str = None
+    ):
+        super().__init__()
         self.full_name = full_name
         self.email = email
         self.phone = phone
 
-class ReservationsSeller:
-    property_id:int = None
-    reservations: list[ReservationS] = None
-    
-    def __init__(self, property_id: int, reservations: list[ReservationS]):
+class ReservationsSeller(BaseModel):
+    property_id: Optional[int] = None
+    reservations: Optional[List[ReservationS]] = None
+
+    def __init__(
+        self, 
+        property_id: int = None, 
+        reservations: List[ReservationS] = None
+    ):
+        super().__init__()
         self.property_id = property_id
         self.reservations = reservations
 
     def count_reservations_by_open_house(self) -> int:
-        return len(self.reservations)
-    
-    def check_limit_reservations(self) -> bool:
-        # to define if we want a static limit (such as this case) or a dynamic limit (based on the open house event)
-        return len(self.reservations) >= 10
-    
+        return len(self.reservations) if self.reservations else 0
+
     def get_attendees_json(self) -> str:
-        return json.dumps(self.reservations)
+        return json.dumps([r.model_dump() for r in self.reservations]) if self.reservations else "[]"
     
     # this entity is related to:
     # - A new reservation is made by a buyer -> I need to store his info in the reservations list

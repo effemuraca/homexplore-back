@@ -20,7 +20,6 @@ class ReservationsSellerDB:
         for item in data:
             reservations_list.append(
                 ReservationS(
-                    user_id=item["user_id"],
                     full_name=item["full_name"],
                     email=item["email"],
                     phone=item["phone"]
@@ -36,9 +35,7 @@ class ReservationsSellerDB:
         return bool(result)
     
     def create_reservations_seller(self, property_id:int, reservation:ReservationS) -> bool:
-        if not property_id:
-            return False
-        if not reservation:
+        if not property_id or not reservation:
             return False
         redis_client = get_redis_client()
         raw_data = redis_client.get(f"property_id:{property_id}:reservations")
@@ -47,7 +44,6 @@ class ReservationsSellerDB:
         else:
             data = json.loads(raw_data)
         data.append({
-            "user_id": reservation.user_id,
             "full_name": reservation.full_name,
             "email": reservation.email,
             "phone": reservation.phone
@@ -62,13 +58,12 @@ class ReservationsSellerDB:
             return False
         data = json.loads(raw_data)
         for item in data:
-            if item["user_id"] == reservation.user_id:
-                if reservation.full_name:
-                    item["full_name"] = reservation.full_name
-                if reservation.email:
-                    item["email"] = reservation.email
-                if reservation.phone:
-                    item["phone"] = reservation.phone
-                break
+            if reservation.full_name:
+                item["full_name"] = reservation.full_name
+            if reservation.email:
+                item["email"] = reservation.email
+            if reservation.phone:
+                item["phone"] = reservation.phone
+            break
         result = redis_client.set(f"property_id:{property_id}:reservations", json.dumps(data))
         return bool(result)
