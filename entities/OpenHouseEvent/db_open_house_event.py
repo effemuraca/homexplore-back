@@ -89,4 +89,4 @@ class OpenHouseEventDB:
         return bool(result)
      
     # when the ttl of the key expires, the event is considered closed and another dynamic event is created, updating the date of the previous event
-   
+    

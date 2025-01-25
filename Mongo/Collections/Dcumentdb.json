@@ -1,0 +1,98 @@
+/*Buyer*/
+
+{
+    "buyer_id": "unique_identifier",
+    "password": "string",               // Password del buyer
+    "email": "string",                  // Email del buyer
+    "phone_number": "string",           // Numero di telefono del buyer
+    "name": "string",                    // Nome del buyer
+    "surname": "string"                // Cognome del buyer
+  }
+
+
+/*seller*/
+{
+    "seller_id": "unique_identifier",
+    "password": "string",               // Password del seller
+    "email": "string",                  // Email del seller
+    "phone_number": "string",           // Numero di telefono del seller
+    "agency_name": "string",            // Nome dell'agenzia associata al seller
+    "house_online": [
+      {
+        "house_id": "unique_house_identifier",
+        "address": "string",            // Indirizzo della casa
+        "quartiere": "string",          // Quartiere in cui si trova
+        "city": "string",               // Città in cui si trova la casa
+        "price": "integer",             // Prezzo della casa
+        "thumbnail": "string",  //immagine casa
+        "disponibility":{
+          "lunedi": ["string"],  // primo elemento orario di inizio, secondo orario di fine
+          "martedi": ["string"],
+          //.... tutti giorni della settimana volendo
+          "person_limit": "integer"
+        }
+      }
+    ],
+    "house_sold": [
+      {
+        "house_id": "unique_house_identifier",
+        "type": "string",               // Tipo di casa (es. appartamento, villa)
+        "price": "integer",             // Prezzo della casa
+        "city": "string",               // Città in cui si trova la casa
+        "area": "integer",              // Superficie in metri quadrati
+        "quartiere": "string",          // Quartiere in cui si trova
+        "address": "string",
+        "thumbnail": "string",  //immagine casa
+        "date_registration": "ISO_8601_date", // Data di registrazione della casa
+        "sell_date": "ISO_8601_date"    // Data di vendita della casa
+      }
+    ]
+  }
+  
+
+  // house_online
+  {
+    "house_id": "unique_house_identifier",
+    "type": "string",               // Tipo di casa (es. appartamento, villa)
+    "price": "integer",             // Prezzo della casa
+    "quartiere": "string",          // Quartiere in cui si trova
+    "city": "string",               // Città in cui si trova la casa
+    "bed": "integer",               // Numero di stanze da letto
+    "bath": "integer",              // Numero di bagni
+    "area": "integer",              // Superficie in metri quadrati
+    "thumbnail": "string",  //immagine casa
+    "date_registration": "ISO_8601_date", // Data di registrazione della casa
+    "description": "string",        // Descrizione della casa
+    "photo": ["string"],            // Lista di URL delle foto della casa
+    "address": "string"   ,          // Indirizzo della casa
+    "agency":{
+      "name": "string",
+      "phone": "string",
+      "email": "string"
+    },
+    "disponibility":{
+         "lunedi": ["string"],  // primo elemento orario di inizio, secondo orario di fine
+         "martedi": ["string"],
+         //.... tutti giorni della settimana volendo
+         "person_limit": "integer"
+    }
+  }
+  
+
+  //house_sold
+
+  {
+    "house_id": "unique_house_identifier",
+    "type": "string",               // Tipo di casa (es. appartamento, villa)
+    "price": "integer",             // Prezzo della casa
+    "quartiere": "string",          // Quartiere in cui si trova la casa
+    "city": "string",               // Città in cui si trova la casa
+    "area": "integer",              // Superficie in metri quadrati
+    "sell_date": "ISO_8601_date",    // Data di vendita della casa
+    "agency_name": "string"
+  }
+  
+
+
+
+  // si possono pensare a delle ulteriori collection per velocizzare le analytics

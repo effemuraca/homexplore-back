@@ -1,0 +1,8 @@
+{
+    "password": "string",             
+    "email": "string",                  
+    "phone_number": "int64",           
+    "name": "string",                   
+    "surname": "string",
+    "age": "int32"             
+}

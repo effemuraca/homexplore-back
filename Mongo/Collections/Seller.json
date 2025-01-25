@@ -1,0 +1,37 @@
+{
+    "password": "string",               
+    "email": "string",                 
+    "phone_number": "string",           
+    "agency_name": "string",          
+    "property_on_sale": [
+      {
+        "house_id": "unique_house_identifier",
+        "address": "string",            
+        "quartiere": "string",          
+        "city": "string",              
+        "price": "integer",            
+        "thumbnail": "string",  
+        "disponibility":{
+            "giorno": "string",
+            "person_limit": "integer",
+            "start_houre": "date_houre",
+            "duration": "int"
+        }
+      }
+    ],
+    "house_sold": [
+      {
+        "house_id": "unique_house_identifier",
+        "type": "string",               
+        "price": "integer",             
+        "city": "string",               
+        "area": "integer",             
+        "quartiere": "string",         
+        "address": "string",
+        "thumbnail": "string", 
+        "date_registration": "ISO_8601_date", 
+        "sell_date": "ISO_8601_date"    
+      }
+    ]
+  }
+

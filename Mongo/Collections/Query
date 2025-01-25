@@ -1,0 +1,201 @@
+
+
+// Data una città elencare i quartieri che hanno avuto gli aumenti dei prezzi al metro quadro maggiori negli ultimi k mesi , l'aumento ottenuto ed il numero di case vendute   [ordinare per aumento di prezzo crescente] 
+
+db.SoldProperty.aggregate([
+  // 1. Proiezione iniziale per selezionare i campi utili e classificare gli intervalli temporali
+  {
+    $project: {
+      quartiere: 1,
+      price: 1,
+      area: 1,
+      data_vendita: 1,
+      intervallo: {
+        $cond: [
+          {
+            $gte: [
+              "$data_vendita",
+              {
+                $dateSubtract: {
+                  startDate: new Date(),
+                  unit: "month",
+                  amount: <k> // Intervallo più recente: ultimi k mesi
+                }
+              }
+            ]
+          },
+          "ultimo_k_mesi",
+          {
+            $cond: [
+              {
+                $and: [
+                  {
+                    $gte: [
+                      "$data_vendita",
+                      {
+                        $dateSubtract: {
+                          startDate: new Date(),
+                          unit: "month",
+                          amount: <k> * 2 // Limite superiore: 2k mesi fa
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    $lt: [
+                      "$data_vendita",
+                      {
+                        $dateSubtract: {
+                          startDate: new Date(),
+                          unit: "month",
+                          amount: <k> // Limite inferiore: k mesi fa
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "2k_a_k_mesi",
+              null
+            ]
+          }
+        ]
+      }
+    }
+  },
+  // 2. Filtrare i documenti per mantenere solo quelli con intervallo valido
+  {
+    $match: {
+      intervallo: { $ne: null }
+    }
+  },
+  // 3. Calcolare il prezzo al metro quadro
+  {
+    $addFields: {
+      prezzo_mq: { $divide: ["$price", "$area"] }
+    }
+  },
+  // 4. Raggruppare per quartiere e intervallo temporale
+  {
+    $group: {
+      _id: { quartiere: "$quartiere", intervallo: "$intervallo" },
+      prezzo_medio_mq: { $avg: "$prezzo_mq" },
+      numero_case: { $sum: 1 } // Contare il numero di case vendute
+    }
+  },
+  // 5. Raggruppare per quartiere, combinando i dati degli intervalli
+  {
+    $group: {
+      _id: "$_id.quartiere",
+      prezzi_intervalli: {
+        $push: {
+          intervallo: "$_id.intervallo",
+          prezzo_medio_mq: "$prezzo_medio_mq",
+          numero_case: "$numero_case"
+        }
+      }
+    }
+  },
+  // 6. Calcolare l'aumento percentuale e il numero di case vendute negli ultimi k mesi
+  {
+    $project: {
+      quartiere: "$_id",
+      aumento_percentuale: {
+        $cond: [
+          {
+            $and: [
+              { $eq: [{ $size: "$prezzi_intervalli" }, 2] } // Assicuriamoci di avere entrambi gli intervalli
+            ]
+          },
+          {
+            $multiply: [
+              {
+                $divide: [
+                  {
+                    $subtract: [
+                      {
+                        $arrayElemAt: [
+                          "$prezzi_intervalli.prezzo_medio_mq",
+                          1
+                        ]
+                      },
+                      {
+                        $arrayElemAt: [
+                          "$prezzi_intervalli.prezzo_medio_mq",
+                          0
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    $arrayElemAt: [
+                      "$prezzi_intervalli.prezzo_medio_mq",
+                      0
+                    ]
+                  }
+                ]
+              },
+              100
+            ]
+          },
+          null
+        ]
+      },
+      numero_case_ultimo_k_mesi: {
+        $arrayElemAt: [
+          {
+            $filter: {
+              input: "$prezzi_intervalli",
+              as: "intervallo",
+              cond: { $eq: ["$$intervallo.intervallo", "ultimo_k_mesi"] }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  // 7. Filtrare i quartieri con aumento percentuale definito
+  {
+    $match: {
+      aumento_percentuale: { $ne: null }
+    }
+  },
+  {
+    $sort: {
+        aumento_percentuale: 1
+    }
+  }
+])
+
+//Data una città ritornare la media del prezzo al metro quadro delle case in vendita per ogni quartiere [filtro per tipologia di appartamento, ordinare per prezzo decrescente] 
+db.SoldProperty.aggregate(
+[
+  {
+    $match: {
+      type: "condo",
+      city: "New York"
+    }
+  },
+  {
+    $project: {
+      quartiere: 1,
+      pricePerSquareMeter: {
+        $divide: ["$price", "$area"]
+      }
+    }
+  },
+  {
+    $group: {
+      _id: "$quartiere",
+      avgprice: {
+        $avg: "$pricePerSquareMeter"
+      }
+    }
+  },
+  {
+    $sort: {
+      avgprice: 1
+    }
+  }
+])
