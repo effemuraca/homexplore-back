@@ -1,0 +1,55 @@
+[
+
+{
+  "property_id": "unique_house_identifier",
+  "city": "string",   
+  "neighbourhood": "string",    
+  "address": "string", 
+  "price": "number", 
+  "thumbnail": "string",              
+  "type": "string",                  
+  "bed_number": "number",             
+  "bath_number": "number",             
+  "area": "number",              
+  "description": "string",        
+  "photoes": ["string"],   
+  "registration_date": "ISO_8601_date",              
+  "agency_info":{
+    "agency_name": "string",  
+    "phone_number": "string",
+    "email": "string"
+   },
+  "disponibility":{
+    "date": "ISO_8601_date",
+    "time": "string",
+    "max_attendees": "number"
+    }
+  },
+
+  {
+    "_id": "pns1",
+    "city": "New York",
+    "district": "Bronx",  
+    "type": "condo",               
+    "price": 270000,    
+    "area": 100,                              
+    "bed": 4,             
+    "bath": 1,                         
+    "thumbnail": "http:://fotocase.com",  
+    "date_registration": "2020-05-11T22:00:00.000+00:00", 
+    "description": "beautifull house",        
+    "photo": ["string"],           
+    "address": "string"   ,        
+    "agency":{
+      "name": "string",
+      "phone": "string",
+      "email": "string"
+    },
+    "disponibility":{
+      "date": "ISO_8601_date",
+      "time": "string",
+      "max_attendees": "number"
+    }
+  }
+
+]

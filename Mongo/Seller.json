@@ -1,0 +1,36 @@
+{
+    "agency_name": "string",  
+    "email": "string",    
+    "password": "string",               
+    "phone_number": "string",           
+            
+    "property_on_sale": [
+      {
+        "property_id": "unique_house_identifier",
+        "city": "string",   
+        "neighbourhood": "string",    
+        "address": "string",                        
+        "price": "number",            
+        "thumbnail": "string",  
+        "disponibility":{
+            "date": "ISO_8601_date",
+            "time": "string",
+            "max_attendees": "number"
+        }
+      }
+    ],
+    "sold_property": [
+      {
+        "property_id": "unique_house_identifier",
+        "city": "string",
+        "neighbourhood": "string",
+        "price": "number", 
+        "thumbnail": "string", 
+        "type": "string",                     
+        "area": "float",             
+        "registration_date": "ISO_8601_date", 
+        "sell_date": "ISO_8601_date"    
+      }
+    ]
+  }
+

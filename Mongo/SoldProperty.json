@@ -1,14 +1,16 @@
 
 [
 {
-  "type": "string",               
-  "price": "integer",             
-  "quartiere": "string",         
-  "city": "string",              
-  "area": "integer",              
-  "sell_date": "ISO_8601_date",    
-  "registration_date": "ISO_8601_date", 
-  "agency_name": "string"
+  "property_id": "unique_house_identifier",
+  "agency_name": "string",
+  "city": "string",
+  "neighbourhood": "string",
+  "price": "number",
+  "type": "string",                         
+  "area": "number",         
+  "registration_date": "ISO_8601_date",      
+  "sell_date": "ISO_8601_date"   
+
 },
 {
   "_id": "ps1",
