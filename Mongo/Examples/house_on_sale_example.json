@@ -2,7 +2,7 @@
     {
       "_id": "pns1",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "condo",
       "price": 270000,
       "area": 100
@@ -10,7 +10,7 @@
     {
       "_id": "pns2",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "apartment",
       "price": 320000,
       "area": 80
@@ -18,7 +18,7 @@
     {
       "_id": "pns3",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "villa",
       "price": 450000,
       "area": 150
@@ -26,7 +26,7 @@
     {
       "_id": "pns4",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "condo",
       "price": 290000,
       "area": 90
@@ -34,7 +34,7 @@
     {
       "_id": "pns5",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "apartment",
       "price": 260000,
       "area": 70
@@ -42,7 +42,7 @@
     {
       "_id": "pns6",
       "city": "New York",
-      "district": "Staten Island",
+      "neighbourhood": "Staten Island",
       "type": "villa",
       "price": 500000,
       "area": 200
@@ -50,7 +50,7 @@
     {
       "_id": "pns7",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "condo",
       "price": 340000,
       "area": 110
@@ -58,7 +58,7 @@
     {
       "_id": "pns8",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "apartment",
       "price": 310000,
       "area": 85
@@ -66,7 +66,7 @@
     {
       "_id": "pns9",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "condo",
       "price": 280000,
       "area": 95
@@ -74,7 +74,7 @@
     {
       "_id": "pns10",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "villa",
       "price": 470000,
       "area": 160
@@ -82,7 +82,7 @@
     {
       "_id": "pns11",
       "city": "New York",
-      "district": "Staten Island",
+      "neighbourhood": "Staten Island",
       "type": "condo",
       "price": 330000,
       "area": 105
@@ -90,7 +90,7 @@
     {
       "_id": "pns12",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "apartment",
       "price": 350000,
       "area": 90
@@ -98,7 +98,7 @@
     {
       "_id": "pns13",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "villa",
       "price": 460000,
       "area": 170
@@ -106,7 +106,7 @@
     {
       "_id": "pns14",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "apartment",
       "price": 270000,
       "area": 75
@@ -114,7 +114,7 @@
     {
       "_id": "pns15",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "condo",
       "price": 300000,
       "area": 120
@@ -122,7 +122,7 @@
     {
       "_id": "pns16",
       "city": "New York",
-      "district": "Staten Island",
+      "neighbourhood": "Staten Island",
       "type": "villa",
       "price": 480000,
       "area": 180
@@ -130,7 +130,7 @@
     {
       "_id": "pns17",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "condo",
       "price": 360000,
       "area": 115
@@ -138,7 +138,7 @@
     {
       "_id": "pns18",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "apartment",
       "price": 330000,
       "area": 100
@@ -146,7 +146,7 @@
     {
       "_id": "pns19",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "villa",
       "price": 490000,
       "area": 190
@@ -154,10 +154,9 @@
     {
       "_id": "pns20",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "apartment",
       "price": 310000,
       "area": 85
     }
   ]
-  

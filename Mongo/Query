@@ -1,61 +1,62 @@
+const k = 6; // Define the value for k
 
+// Analytics related to the buyers and sellers
 
-// Data una città elencare i quartieri che hanno avuto gli aumenti dei prezzi al metro quadro maggiori negli ultimi k mesi , l'aumento ottenuto ed il numero di case vendute   [ordinare per aumento di prezzo crescente] 
+// Given a city, list the neighborhoods that have had the highest increases in price per square meter in the last k months, the increase obtained, and the number of houses sold [sorted by increasing price increase]
 
 db.SoldProperty.aggregate([
-  // 1. Proiezione iniziale per selezionare i campi utili e classificare gli intervalli temporali
   {
     $project: {
-      quartiere: 1,
+      neighbourhood: 1,
       price: 1,
       area: 1,
-      data_vendita: 1,
-      intervallo: {
+      sell_date: 1,
+      time_interval: {
         $cond: [
           {
             $gte: [
-              "$data_vendita",
+              "$sell_date",
               {
                 $dateSubtract: {
                   startDate: new Date(),
                   unit: "month",
-                  amount: <k> // Intervallo più recente: ultimi k mesi
+                  amount: k
                 }
               }
             ]
           },
-          "ultimo_k_mesi",
+          "last_k_months",
           {
             $cond: [
               {
                 $and: [
                   {
                     $gte: [
-                      "$data_vendita",
+                      "$sell_date",
                       {
                         $dateSubtract: {
                           startDate: new Date(),
                           unit: "month",
-                          amount: <k> * 2 // Limite superiore: 2k mesi fa
+                          amount: k * 2
                         }
                       }
                     ]
                   },
                   {
                     $lt: [
-                      "$data_vendita",
+                      "$sell_date",
                       {
                         $dateSubtract: {
                           startDate: new Date(),
                           unit: "month",
-                          amount: <k> // Limite inferiore: k mesi fa
+                          amount: k
                         }
                       }
                     ]
                   }
                 ]
               },
-              "2k_a_k_mesi",
+              "2k_to_k_months",
               null
             ]
           }
@@ -63,48 +64,43 @@ db.SoldProperty.aggregate([
       }
     }
   },
-  // 2. Filtrare i documenti per mantenere solo quelli con intervallo valido
   {
     $match: {
-      intervallo: { $ne: null }
+      time_interval: { $ne: null }
     }
   },
-  // 3. Calcolare il prezzo al metro quadro
   {
     $addFields: {
-      prezzo_mq: { $divide: ["$price", "$area"] }
+      price_per_square_meter: { $divide: ["$price", "$area"] }
     }
   },
-  // 4. Raggruppare per quartiere e intervallo temporale
   {
     $group: {
-      _id: { quartiere: "$quartiere", intervallo: "$intervallo" },
-      prezzo_medio_mq: { $avg: "$prezzo_mq" },
-      numero_case: { $sum: 1 } // Contare il numero di case vendute
+      _id: { neighbourhood: "$neighbourhood", time_interval: "$time_interval" },
+      avg_price_per_square_meter: { $avg: "$price_per_square_meter" },
+      number_of_houses: { $sum: 1 }
     }
   },
-  // 5. Raggruppare per quartiere, combinando i dati degli intervalli
   {
     $group: {
-      _id: "$_id.quartiere",
-      prezzi_intervalli: {
+      _id: "$_id.neighbourhood",
+      interval_prices: {
         $push: {
-          intervallo: "$_id.intervallo",
-          prezzo_medio_mq: "$prezzo_medio_mq",
-          numero_case: "$numero_case"
+          time_interval: "$_id.time_interval",
+          avg_price_per_square_meter: "$avg_price_per_square_meter",
+          number_of_houses: "$number_of_houses"
         }
       }
     }
   },
-  // 6. Calcolare l'aumento percentuale e il numero di case vendute negli ultimi k mesi
   {
     $project: {
-      quartiere: "$_id",
-      aumento_percentuale: {
+      neighbourhood: "$_id",
+      percentage_increase: {
         $cond: [
           {
             $and: [
-              { $eq: [{ $size: "$prezzi_intervalli" }, 2] } // Assicuriamoci di avere entrambi gli intervalli
+              { $eq: [{ $size: "$interval_prices" }, 2] }
             ]
           },
           {
@@ -115,13 +111,25 @@ db.SoldProperty.aggregate([
                     $subtract: [
                       {
                         $arrayElemAt: [
-                          "$prezzi_intervalli.prezzo_medio_mq",
+                          {
+                            $map: {
+                              input: "$interval_prices",
+                              as: "interval",
+                              in: "$$interval.avg_price_per_square_meter"
+                            }
+                          },
                           1
                         ]
                       },
                       {
                         $arrayElemAt: [
-                          "$prezzi_intervalli.prezzo_medio_mq",
+                          {
+                            $map: {
+                              input: "$interval_prices",
+                              as: "interval",
+                              in: "$$interval.avg_price_per_square_meter"
+                            }
+                          },
                           0
                         ]
                       }
@@ -129,7 +137,13 @@ db.SoldProperty.aggregate([
                   },
                   {
                     $arrayElemAt: [
-                      "$prezzi_intervalli.prezzo_medio_mq",
+                      {
+                        $map: {
+                          input: "$interval_prices",
+                          as: "interval",
+                          in: "$$interval.avg_price_per_square_meter"
+                        }
+                      },
                       0
                     ]
                   }
@@ -141,13 +155,19 @@ db.SoldProperty.aggregate([
           null
         ]
       },
-      numero_case_ultimo_k_mesi: {
+      number_of_houses_last_k_months: {
         $arrayElemAt: [
           {
-            $filter: {
-              input: "$prezzi_intervalli",
-              as: "intervallo",
-              cond: { $eq: ["$$intervallo.intervallo", "ultimo_k_mesi"] }
+            $map: {
+              input: {
+                $filter: {
+                  input: "$interval_prices",
+                  as: "interval",
+                  cond: { $eq: ["$$interval.time_interval", "last_k_months"] }
+                }
+              },
+              as: "interval",
+              in: "$$interval.number_of_houses"
             }
           },
           0
@@ -155,22 +175,20 @@ db.SoldProperty.aggregate([
       }
     }
   },
-  // 7. Filtrare i quartieri con aumento percentuale definito
   {
     $match: {
-      aumento_percentuale: { $ne: null }
+      percentage_increase: { $ne: null }
     }
   },
   {
     $sort: {
-        aumento_percentuale: 1
+      percentage_increase: 1
     }
   }
 ])
 
-//Data una città ritornare la media del prezzo al metro quadro delle case in vendita per ogni quartiere [filtro per tipologia di appartamento, ordinare per prezzo decrescente] 
-db.SoldProperty.aggregate(
-[
+// Given a city, return the average price per square meter of houses for sale for each neighborhood [filter by apartment type, sort by descending price]
+db.PropertyOnSale.aggregate([
   {
     $match: {
       type: "condo",
@@ -179,23 +197,63 @@ db.SoldProperty.aggregate(
   },
   {
     $project: {
-      quartiere: 1,
-      pricePerSquareMeter: {
-        $divide: ["$price", "$area"]
+      neighbourhood: 1,
+      price_per_square_meter: { $divide: ["$price", "$area"] }
+    }
+  },
+  {
+    $group: {
+      _id: "$neighbourhood",
+      avg_price: { $avg: "$price_per_square_meter" }
+    }
+  },
+  {
+    $sort: {
+      avg_price: -1
+    }
+  }
+])
+
+// Analytics for the sellers
+
+// Given an agency and a city, return the number of houses sold and the revenue obtained in a given time period for each neighborhood  
+
+
+// Given an agency and a city, return the average time to sell a house for each neighborhood
+
+
+// Analytic for the superuser 
+
+// Obtain the list of agencies sorted by revenue / number of houses sold in a given time period
+db.SoldProperty.aggregate([
+  {
+    $match: {
+      sell_date: {
+        $gte: {
+          $dateSubtract: {
+            startDate: new Date(),
+            unit: "month",
+            amount: k
+          }
+        }
       }
     }
   },
   {
     $group: {
-      _id: "$quartiere",
-      avgprice: {
-        $avg: "$pricePerSquareMeter"
-      }
+      _id: "$agency_name",
+      revenue: { $sum: "$price" },
+      number_of_houses: { $sum: 1 }
+    }
+  },
+  {
+    $addFields: {
+      revenue_per_house: { $divide: ["$revenue", "$number_of_houses"] }
     }
   },
   {
     $sort: {
-      avgprice: 1
+      revenue_per_house: -1
     }
   }
 ])

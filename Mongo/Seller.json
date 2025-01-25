@@ -1,5 +1,5 @@
 {
-    "agency_name": "string",  
+    "agency_name": "Blackrock",  
     "email": "string",    
     "password": "string",               
     "phone_number": "string",           
@@ -12,7 +12,7 @@
         "address": "string",                        
         "price": "number",            
         "thumbnail": "string",  
-        "disponibility":{
+        "disponibility": {
             "date": "ISO_8601_date",
             "time": "string",
             "max_attendees": "number"
@@ -27,7 +27,7 @@
         "price": "number", 
         "thumbnail": "string", 
         "type": "string",                     
-        "area": "float",             
+        "area": "number",             
         "registration_date": "ISO_8601_date", 
         "sell_date": "ISO_8601_date"    
       }

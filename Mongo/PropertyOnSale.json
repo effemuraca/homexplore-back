@@ -12,7 +12,7 @@
   "bath_number": "number",             
   "area": "number",              
   "description": "string",        
-  "photoes": ["string"],   
+  "photos": ["string"],   
   "registration_date": "ISO_8601_date",              
   "agency_info":{
     "agency_name": "string",  
@@ -27,22 +27,22 @@
   },
 
   {
-    "_id": "pns1",
+    "property_id": "ps1",
     "city": "New York",
-    "district": "Bronx",  
+    "neighbourhood": "Bronx",  
     "type": "condo",               
     "price": 270000,    
     "area": 100,                              
-    "bed": 4,             
-    "bath": 1,                         
-    "thumbnail": "http:://fotocase.com",  
-    "date_registration": "2020-05-11T22:00:00.000+00:00", 
+    "bed_number": 4,             
+    "bath_number": 1,                         
+    "thumbnail": "http://fotocase.com",  
+    "registration_date": "2020-05-11T22:00:00.000+00:00", 
     "description": "beautifull house",        
-    "photo": ["string"],           
+    "photos": ["string"],           
     "address": "string"   ,        
-    "agency":{
-      "name": "string",
-      "phone": "string",
+    "agency_info":{
+      "agency_name": "string",
+      "phone_number": "string",
       "email": "string"
     },
     "disponibility":{
