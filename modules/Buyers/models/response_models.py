@@ -62,6 +62,17 @@ CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
             }
         }
     },  
+    400: {
+        "model": ErrorModel,
+        "description": "Missing buyer info.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Missing buyer info"
+                }
+            }
+        }
+    },
     401: {
         "model": ErrorModel,
         "description": "User not authenticated.",

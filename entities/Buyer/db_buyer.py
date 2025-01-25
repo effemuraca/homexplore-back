@@ -33,24 +33,22 @@ class BuyerDB:
         result = mongo_client.buyers.delete_one({"_id": ObjectId(buyer_id)})
         return bool(result.deleted_count)
     
+
+
     def create_buyer(self) -> bool:
         if not self.buyer:
             return False
         mongo_client = get_default_mongo_db()
-        data = {
-            "password": self.buyer.password,
-            "email": self.buyer.email,
-            "phone_number": self.buyer.phone_number,
-            "name": self.buyer.name,
-            "surname": self.buyer.surname,
-            "age": self.buyer.age
-        }
-        result = mongo_client.buyers.insert_one(data)
+        result = mongo_client.buyers.insert_one(self.buyer.get_buyer_info())
         if not result.inserted_id:
             return False
         self.buyer.buyer_id = str(result.inserted_id)
         return bool(result.inserted_id)
     
+
+
+
+
     def update_buyer(self, buyer: Buyer = None) -> bool:
         mongo_client = get_default_mongo_db()
         # get the current data

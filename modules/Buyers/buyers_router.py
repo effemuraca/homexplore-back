@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 from entities.Buyer.buyer import Buyer
+from entities.Buyer.buyer import BuyerInfo
 from entities.Buyer.db_buyer import BuyerDB
 from modules.Buyers.models import response_models as ResponseModels
 
@@ -18,15 +19,28 @@ def get_buyer(buyer_id: str):
         raise HTTPException(status_code=404, detail="Buyer not found")
     return found_buyer
 
+
+
+
+
+
 @buyers_router.post("/", response_model=Buyer, responses=ResponseModels.CreateBuyerResponseModelResponses)    #response_model=Buyer (return type of the function), responses=ResponseModels.CreateBuyerResponseModelResponses(cose carine nella pagina)
-def create_buyer(buyer: Buyer):
+def create_buyer(buyer_info: BuyerInfo):
     """
     Creates a new buyer.
     """
+    if not buyer_info.check_buyer_info():
+        raise HTTPException(status_code=400, detail="Missing buyer info")
+    buyer = Buyer(buyer_info)
     buyer_db = BuyerDB(buyer)
     if not buyer_db.create_buyer():
         raise HTTPException(status_code=400, detail="Failed to create buyer")
-    return buyer_db.buyer
+    return JSONResponse(status_code=201, content=buyer_db.buyer.dict(exclude_none=True))
+
+
+
+
+
 
 @buyers_router.put("/", response_model=Buyer, responses=ResponseModels.UpdateBuyerResponseModelResponses)
 def update_buyer(buyer: Buyer):
