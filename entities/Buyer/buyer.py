@@ -5,7 +5,7 @@ class Buyer(BaseModel):
     buyer_id: Optional[str] = None
     password: Optional[str] = None
     email: Optional[str] = None
-    phone_number: Optional[int] = None
+    phone_number: Optional[str] = None
     name: Optional[str] = None
     surname: Optional[str] = None
     age: Optional[int] = None
@@ -15,7 +15,7 @@ class Buyer(BaseModel):
         buyer_id: str = None,
         password: str = None,
         email: str = None,
-        phone_number: int = None,
+        phone_number: str = None,
         name: str = None,
         surname: str = None,
         age: int = None

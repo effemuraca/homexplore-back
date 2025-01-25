@@ -18,15 +18,15 @@ def get_buyer(buyer_id: str):
         raise HTTPException(status_code=404, detail="Buyer not found")
     return found_buyer
 
-@buyers_router.post("/", response_model=Buyer, responses=ResponseModels.CreateBuyerResponseModelResponses)
+@buyers_router.post("/", response_model=Buyer, responses=ResponseModels.CreateBuyerResponseModelResponses)    #response_model=Buyer (return type of the function), responses=ResponseModels.CreateBuyerResponseModelResponses(cose carine nella pagina)
 def create_buyer(buyer: Buyer):
     """
     Creates a new buyer.
     """
     buyer_db = BuyerDB(buyer)
-    if not buyer_db.create_buyer(buyer):
+    if not buyer_db.create_buyer():
         raise HTTPException(status_code=400, detail="Failed to create buyer")
-    return {"detail": "Buyer created"}
+    return buyer_db.buyer
 
 @buyers_router.put("/", response_model=Buyer, responses=ResponseModels.UpdateBuyerResponseModelResponses)
 def update_buyer(buyer: Buyer):
