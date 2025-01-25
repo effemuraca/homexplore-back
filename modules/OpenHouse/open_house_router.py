@@ -22,12 +22,11 @@ def get_reservations_by_user(user_id:int):
     
     @param user_id: the id of the user to retrieve reservations.
     """
-    reservations_buyer = ReservationsBuyer(None, None)
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    reservations = reservations_buyer_db.get_reservations_by_user(user_id)
+    reservations_buyer_db = ReservationsBuyerDB(ReservationsBuyer())
+    reservations_buyer_db.get_reservations_by_user(user_id)
     if reservations is None:
         raise HTTPException(status_code=404, detail="Reservations not found")
-    return reservations  
+    return reservations_buyer_db.reservations_buyer  
 
 
 @open_house_router.post("/reservations_buyer", response_model=ResponseModels.SuccessModel, responses=ResponseModels.CreateReservationsBuyerResponseModelResponses)
@@ -37,8 +36,7 @@ def create_reservations_buyer(user_id:int, reservation_info: ReservationB):
     
     @param reservation_info: the information of the reservation to create.
     """
-    reservations_buyer = ReservationsBuyer(None, None)
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+    reservations_buyer_db = ReservationsBuyerDB(ReservationsBuyer())
     try:
         check = reservations_buyer_db.create_reservation(user_id, reservation_info)
     except Exception as e:
