@@ -54,8 +54,7 @@ def delete_reservations_by_user(user_id:int):
     
     @param user_id: the id of the user to delete reservations.
     """
-    reservations_buyer = ReservationsBuyer(None, None)
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+    reservations_buyer_db = ReservationsBuyerDB(ReservationsBuyer())
     check = reservations_buyer_db.delete_reservations_by_user(user_id)
     if not check:
         raise HTTPException(status_code=500, detail="Error deleting reservations")
@@ -69,9 +68,8 @@ def update_reservations_by_user(user_id:int, reservation_info: ReservationB):
     
     @param reservation_info: the information of the reservation to update.
     """
-    reservations_buyer = ReservationsBuyer(None, None)
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    check = reservations_buyer_db.delete_reservations_by_user(user_id)
+    reservations_buyer_db = ReservationsBuyerDB(ReservationsBuyer())
+    check = reservations_buyer_db.update_reservation(user_id, reservation_info)
     if not check:
         raise HTTPException(status_code=500, detail="Error updating reservation")
     check = reservations_buyer_db.create_reservation(user_id, reservation_info)
@@ -87,18 +85,18 @@ def get_reservations_seller(property_id: int):
     """
     Retrieve reservations for a specific property.
     """
-    reservations_seller = ReservationsSellerDB(ReservationsSeller(None, None))
-    reservations = reservations_seller.get_reservations_seller_by_property_id(property_id)
-    if reservations is None:
+    reservations_seller_db = ReservationsSellerDB(ReservationsSeller())
+    result = reservations_seller.get_reservations_seller_by_property_id(property_id)
+    if result is None:
         raise HTTPException(status_code=404, detail="Reservations not found")
-    return reservations
+    return reservations_seller_db.reservations_seller
 
 @open_house_router.post("/reservations_seller", response_model=ResponseModels.SuccessModel, responses=ResponseModels.CreateReservationsSellerResponseModelResponses)
 def create_reservations_seller(property_id: int, reservation_info: ReservationS):
     """
     Create a reservation for a property.
     """
-    reservations_seller_db = ReservationsSellerDB(ReservationsSeller(None, None))
+    reservations_seller_db = ReservationsSellerDB(ReservationsSeller())
     try:
         check = reservations_seller_db.create_reservations_seller(property_id, reservation_info)
     except Exception as e:
@@ -114,7 +112,7 @@ def delete_reservations_seller(property_id: int):
     """
     Delete all reservations for a property.
     """
-    reservations_seller_db = ReservationsSellerDB(ReservationsSeller(None, None))
+    reservations_seller_db = ReservationsSellerDB(ReservationsSeller())
     check = reservations_seller_db.delete_reservations_seller_by_property_id(property_id)
     if not check:
         raise HTTPException(status_code=500, detail="Error deleting reservations")
@@ -126,7 +124,7 @@ def update_reservations_seller(property_id: int, reservation_info: ReservationS)
     """
     Update a reservation for a property.
     """
-    reservations_seller_db = ReservationsSellerDB(ReservationsSeller(None, None))
+    reservations_seller_db = ReservationsSellerDB(ReservationsSeller())
     try:
         check = reservations_seller_db.update_reservations_seller(property_id, reservation_info)
     except Exception as e:
@@ -143,18 +141,18 @@ def get_open_house_event(property_id: int):
     """
     Retrieve open house event details for a specific property.
     """
-    open_house_db = OpenHouseEventDB(OpenHouseEvent(None, None))
-    open_house_event = open_house_db.get_open_house_event_by_property(property_id)
-    if open_house_event is None:
+    open_house_db = OpenHouseEventDB(OpenHouseEvent())
+    result = open_house_db.get_open_house_event_by_property(property_id)
+    if result is None:
         raise HTTPException(status_code=404, detail="Open house event not found")
-    return open_house_event
+    return open_house_db.open_house_event
 
 @open_house_router.post("/open_house_event", response_model=ResponseModels.SuccessModel, responses=ResponseModels.CreateOpenHouseEventResponseModelResponses)
 def create_open_house_event(property_id: int, open_house_info: OpenHouseInfo):
     """
     Create an open house event for a property.
     """
-    open_house_db = OpenHouseEventDB(OpenHouseEvent(None, None))
+    open_house_db = OpenHouseEventDB(OpenHouseEvent())
     try:
         success = open_house_db.create_open_house_event(property_id, open_house_info)
     except Exception as e:
@@ -170,7 +168,7 @@ def delete_open_house_event(property_id: int):
     """
     Delete the open house event for a property.
     """
-    open_house_db = OpenHouseEventDB(OpenHouseEvent(None, None))
+    open_house_db = OpenHouseEventDB(OpenHouseEvent())
     success = open_house_db.delete_open_house_event_by_property(property_id)
     if not success:
         raise HTTPException(status_code=500, detail="Error deleting open house event")
@@ -182,7 +180,7 @@ def update_open_house_event(property_id: int, open_house_info: OpenHouseInfo):
     """
     Update the open house event for a property.
     """
-    open_house_db = OpenHouseEventDB(OpenHouseEvent(None, None))
+    open_house_db = OpenHouseEventDB(OpenHouseEvent())
     try:
         success = open_house_db.update_open_house_event(property_id, open_house_info)
     except Exception as e:
