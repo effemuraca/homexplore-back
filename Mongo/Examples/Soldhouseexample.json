@@ -2,7 +2,7 @@
     {
       "_id": "ps1",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "condo",
       "price": 270000,
       "area": 140,
@@ -13,7 +13,7 @@
     {
       "_id": "ps2",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "apartment",
       "price": 320000,
       "area": 160,
@@ -24,7 +24,7 @@
     {
       "_id": "ps3",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "townhouse",
       "price": 450000,
       "area": 200,
@@ -35,7 +35,7 @@
     {
       "_id": "ps4",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "condo",
       "price": 290000,
       "area": 130,
@@ -46,7 +46,7 @@
     {
       "_id": "ps5",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "apartment",
       "price": 310000,
       "area": 150,
@@ -57,7 +57,7 @@
     {
       "_id": "ps6",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "house",
       "price": 500000,
       "area": 240,
@@ -68,7 +68,7 @@
     {
       "_id": "ps7",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "condo",
       "price": 280000,
       "area": 125,
@@ -79,7 +79,7 @@
     {
       "_id": "ps8",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "apartment",
       "price": 200000,
       "area": 110,
@@ -90,7 +90,7 @@
     {
       "_id": "ps9",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "townhouse",
       "price": 470000,
       "area": 220,
@@ -101,7 +101,7 @@
     {
       "_id": "ps10",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "apartment",
       "price": 330000,
       "area": 155,
@@ -112,7 +112,7 @@
     {
       "_id": "ps11",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "penthouse",
       "price": 800000,
       "area": 300,
@@ -123,7 +123,7 @@
     {
       "_id": "ps12",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "house",
       "price": 220000,
       "area": 180,
@@ -134,7 +134,7 @@
     {
       "_id": "ps13",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "condo",
       "price": 280000,
       "area": 135,
@@ -145,7 +145,7 @@
     {
       "_id": "ps14",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "apartment",
       "price": 310000,
       "area": 140,
@@ -156,7 +156,7 @@
     {
       "_id": "ps15",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "house",
       "price": 460000,
       "area": 210,
@@ -167,7 +167,7 @@
     {
       "_id": "ps16",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "apartment",
       "price": 210000,
       "area": 120,
@@ -178,7 +178,7 @@
     {
       "_id": "ps17",
       "city": "New York",
-      "district": "Manhattan",
+      "neighbourhood": "Manhattan",
       "type": "penthouse",
       "price": 900000,
       "area": 350,
@@ -189,7 +189,7 @@
     {
       "_id": "ps18",
       "city": "New York",
-      "district": "Brooklyn",
+      "neighbourhood": "Brooklyn",
       "type": "condo",
       "price": 295000,
       "area": 140,
@@ -200,7 +200,7 @@
     {
       "_id": "ps19",
       "city": "New York",
-      "district": "Queens",
+      "neighbourhood": "Queens",
       "type": "townhouse",
       "price": 500000,
       "area": 230,
@@ -211,7 +211,7 @@
     {
       "_id": "ps20",
       "city": "New York",
-      "district": "Bronx",
+      "neighbourhood": "Bronx",
       "type": "apartment",
       "price": 220000,
       "area": 110,
@@ -220,4 +220,3 @@
       "agency_name": "HomeFirst"
     }
   ]
-  

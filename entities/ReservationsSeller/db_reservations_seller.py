@@ -25,7 +25,8 @@ class ReservationsSellerDB:
                     phone=item["phone"]
                 )
             )
-        return ReservationsSeller(property_id=property_id, reservations=reservations_list)
+        self.reservations_seller = ReservationsSeller(property_id=property_id, reservations=reservations_list)
+        return True
 
     def delete_reservations_seller_by_property_id(self, property_id: int) -> bool:
         if not property_id:

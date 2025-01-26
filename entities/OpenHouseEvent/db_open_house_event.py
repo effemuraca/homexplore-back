@@ -22,7 +22,8 @@ class OpenHouseEventDB:
             max_attendees=data["max_attendees"],
             attendees=data["attendees"]
         )
-        return OpenHouseEvent(property_id=property_id, open_house_info=open_house_info)
+        self.open_house_event = OpenHouseEvent(property_id=property_id, open_house_info=open_house_info)
+        return True
     
     def delete_open_house_event_by_property(self, property_id: int) -> bool:
         if not property_id:

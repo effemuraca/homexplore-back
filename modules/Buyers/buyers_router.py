@@ -34,7 +34,7 @@ def create_buyer(buyer_info: BuyerInfo):
     buyer = Buyer(buyer_info)
     buyer_db = BuyerDB(buyer)
     if not buyer_db.create_buyer():
-        raise HTTPException(status_code=400, detail="Failed to create buyer")
+        raise HTTPException(status_code=500, detail="Failed to create buyer")
     return JSONResponse(status_code=201, content=buyer_db.buyer.dict(exclude_none=True))
 
 

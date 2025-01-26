@@ -2,7 +2,7 @@
 #     this file contains the response models for this module, that are also shown in the API documentation.
 
 from pydantic import BaseModel
-from entities.OpenHouseEvent.open_house_event import OpenHouseEvent
+from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer
 
 class SuccessModel(BaseModel):
     detail: str
@@ -10,20 +10,26 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
     
-OpenHouseEventResponseModelResponses = {
+ReservationsBuyerResponseModelResponses = {
     200: {
-        "model": OpenHouseEvent,
-        "description": "Successful operation, returns the open house event details.",
+        "model": ReservationsBuyer,
+        "description": "Successful operation, returns the reservations list.",
         "content": {
             "application/json": {
                 "example": {
-                    "property_id": 1,
-                    "open_house_info": {
-                        "date": "2023-10-01",
-                        "time": "14:00",
-                        "max_attendees": 50,
-                        "attendees": 30
-                    }
+                    "user_id": 1,
+                    "reservations": [
+                        {
+                            "property_id": 1,
+                            "open_house_id": 1,
+                            "date": "2021-09-01",
+                            "time": "10:00",
+                            "thumbnail": "https://www.example.com/image.jpg",
+                            "property_type": "House",
+                            "price": 1000000,
+                            "address": "1234 Example St."
+                        }
+                    ]
                 }
             }
         }
@@ -41,25 +47,26 @@ OpenHouseEventResponseModelResponses = {
     },
     404: {
         "model": ErrorModel,
-        "description": "Open house event not found.",
+        "description": "No reservations found for this user.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Open house event not found"
+                    "detail": "No reservations found"
                 }
             }
         }
     }
 }
 
-CreateOpenHouseEventResponseModelResponses = {
+
+CreateReservationsBuyerResponseModelResponses = {
     201: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the created open house event.",
+        "description": "Successful operation, returns the created reservation.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Open house event created"
+                   "detail": "Reservation created"
                 }
             }
         }
@@ -77,25 +84,25 @@ CreateOpenHouseEventResponseModelResponses = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Error creating open house event.",
+        "description": "Error creating reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error creating open house event"
+                    "detail": "Error creating reservation"
                 }
             }
         }
     }
 }
 
-DeleteOpenHouseEventResponseModelResponses = {
+DeleteReservationsBuyerResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the deleted open house event.",
+        "description": "Successful operation, returns the deleted reservations.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Open house event deleted"
+                   "detail": "Reservations deleted"
                 }
             }
         }
@@ -113,25 +120,25 @@ DeleteOpenHouseEventResponseModelResponses = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Error deleting open house event.",
+        "description": "Error deleting reservations.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error deleting open house event"
+                    "detail": "Error deleting reservations"
                 }
             }
         }
     }
 }
 
-UpdateOpenHouseEventResponseModelResponses = {
+UpdateReservationsBuyerResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the updated open house event.",
+        "description": "Successful operation, returns the updated reservation.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Open house event updated"
+                   "detail": "Reservation updated"
                 }
             }
         }
@@ -149,13 +156,14 @@ UpdateOpenHouseEventResponseModelResponses = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Error updating open house event.",
+        "description": "Error updating reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error updating open house event"
+                    "detail": "Error updating reservation"
                 }
             }
         }
     }
 }
+

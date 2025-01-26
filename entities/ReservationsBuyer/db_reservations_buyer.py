@@ -31,7 +31,7 @@ class ReservationsBuyerDB:
                 )
             )
         self.reservations_buyer = ReservationsBuyer(user_id=user_id, reservations=reservation_list)
-        return self.reservations_buyer
+        return True
 
     def delete_reservations_by_user(self, user_id: int) -> bool:
         if not user_id:
