@@ -29,11 +29,3 @@ class ReservationsSeller(BaseModel):
         super().__init__()
         self.property_id = property_id
         self.reservations = reservations
- 
-    # this entity is related to:
-    # - A new reservation is made by a buyer -> I need to store his info in the reservations list
-    # - A reservation is canceled by a buyer -> I need to remove his info from the reservations list
-    # - View reservations clicked by a seller (mongoID known) -> I need to return the reservations list
-    # - A property is sold -> I need to remove all reservations related to this property
-    # - A property is removed -> I need to remove all reservations related to this property
-    # - A buyer changes his contact info -> I need to update his info in the reservations list

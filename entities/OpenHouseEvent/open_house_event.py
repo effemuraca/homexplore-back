@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 class OpenHouseInfo(BaseModel):
     date: Optional[str] = None
     time: Optional[str] = None
@@ -10,14 +11,15 @@ class OpenHouseInfo(BaseModel):
         self, 
         date:str = None, 
         time:str = None, 
-        max_attendees:int = None, 
-        attendees:int = None
+        area:int = None, 
     ):
         super().__init__()
         self.date = date
         self.time = time
-        self.max_attendees = max_attendees
-        self.attendees = attendees
+        # the area of the property determines the max number of attendees
+        # 10 sqft per attendee, with respect to american fire prevention standards
+        self.max_attendees = area / 10 if area else 0
+        self.attendees = 0
 
         
 
@@ -33,10 +35,9 @@ class OpenHouseEvent(BaseModel):
         super().__init__()
         self.property_id = property_id
         self.open_house_info = open_house_info
-        
-    # this entity is related to:
-    # - A property is created -> I need to create a new open house event
-    # - A property is updated -> I need to update the open house event
-    # - A property is removed -> I need to remove the open house event
-    # - A new reservation is made by a buyer -> I need to store his info in the reservations list
-    # - A reservation is canceled by a buyer -> I need to remove his info from the reservations list
+
+    def date_and_time_to_seconds(self) -> int:
+        date = self.open_house_info.date
+        time = self.open_house_info.time
+        date_time = f"{date} {time}"
+        return int(datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S").timestamp())

@@ -42,9 +42,11 @@ class OpenHouseEventDB:
             "date": open_house_info.date,
             "time": open_house_info.time,
             "max_attendees": open_house_info.max_attendees,
-            "attendees": open_house_info.attendees
+            "attendees": 0
         }
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
+        time_sec = self.open_house_event.date_and_time_to_seconds()
+        redis_client.expire(f"property_id:{property_id}:open_house_info", time_sec)
         return bool(result)
     
     def update_open_house_event(self, property_id:int = None, open_house_info:OpenHouseInfo = None) -> bool:
@@ -89,5 +91,3 @@ class OpenHouseEventDB:
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
         return bool(result)
      
-    # when the ttl of the key expires, the event is considered closed and another dynamic event is created, updating the date of the previous event
-    
