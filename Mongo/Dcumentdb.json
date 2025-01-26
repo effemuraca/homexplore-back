@@ -1,7 +1,7 @@
 /*Buyer*/
 
 {
-    "buyer_id": "unique_identifier",
+    "_id": "unique_identifier",
     "password": "string",               // Password del buyer
     "email": "string",                  // Email del buyer
     "phone_number": "string",           // Numero di telefono del buyer
@@ -12,7 +12,7 @@
 
 /*seller*/
 {
-    "seller_id": "unique_identifier",
+    "_id": "unique_identifier",
     "password": "string",               // Password del seller
     "email": "string",                  // Email del seller
     "phone_number": "string",           // Numero di telefono del seller
@@ -35,7 +35,7 @@
     ],
     "house_sold": [
       {
-        "house_id": "unique_house_identifier",
+        "_id": "unique_house_identifier",
         "type": "string",               // Tipo di casa (es. appartamento, villa)
         "price": "integer",             // Prezzo della casa
         "city": "string",               // Città in cui si trova la casa
@@ -52,7 +52,7 @@
 
   // house_online
   {
-    "house_id": "unique_house_identifier",
+    "_id": "unique_house_identifier",
     "type": "string",               // Tipo di casa (es. appartamento, villa)
     "price": "integer",             // Prezzo della casa
     "quartiere": "string",          // Quartiere in cui si trova
@@ -66,6 +66,7 @@
     "photo": ["string"],            // Lista di URL delle foto della casa
     "address": "string"   ,          // Indirizzo della casa
     "agency":{
+      "id": "unique_agency_identifier",
       "name": "string",
       "phone": "string",
       "email": "string"
@@ -82,7 +83,7 @@
   //house_sold
 
   {
-    "house_id": "unique_house_identifier",
+    "_id": "unique_house_identifier",
     "type": "string",               // Tipo di casa (es. appartamento, villa)
     "price": "integer",             // Prezzo della casa
     "quartiere": "string",          // Quartiere in cui si trova la casa

@@ -1,12 +1,13 @@
 {
-    "agency_name": "Blackrock",  
+  "_id": "unique_seller_identifier", 
+  "agency_name": "Blackrock",  
     "email": "string",    
     "password": "string",               
     "phone_number": "string",           
             
     "property_on_sale": [
       {
-        "property_id": "unique_house_identifier",
+        "_id": "unique_house_identifier",
         "city": "string",   
         "neighbourhood": "string",    
         "address": "string",                        
@@ -21,7 +22,7 @@
     ],
     "sold_property": [
       {
-        "property_id": "unique_house_identifier",
+        "_id": "unique_house_identifier",
         "city": "string",
         "neighbourhood": "string",
         "price": "number", 
