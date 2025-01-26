@@ -1,7 +1,7 @@
 [
 
 {
-  "property_id": "unique_house_identifier",
+  "_id": "unique_house_identifier",
   "city": "string",   
   "neighbourhood": "string",    
   "address": "string", 
@@ -15,6 +15,7 @@
   "photos": ["string"],   
   "registration_date": "ISO_8601_date",              
   "agency_info":{
+    "_id": "unique_agency_identifier",
     "agency_name": "string",  
     "phone_number": "string",
     "email": "string"
@@ -27,7 +28,7 @@
   },
 
   {
-    "property_id": "ps1",
+    "_id": "unique_house_identifier",
     "city": "New York",
     "neighbourhood": "Bronx",  
     "type": "condo",               
@@ -41,6 +42,7 @@
     "photos": ["string"],           
     "address": "string"   ,        
     "agency_info":{
+      "_id": "unique_agency_identifier",
       "agency_name": "string",
       "phone_number": "string",
       "email": "string"

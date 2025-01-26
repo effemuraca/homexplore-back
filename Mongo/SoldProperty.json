@@ -3,6 +3,7 @@
     "_id": "string", 
     "property_id": "unique_house_identifier",
     "agency_name": "string",
+    "agency_id": "unique_agency_identifier",
     "city": "string",
     "neighbourhood": "string",
     "price": "number",
@@ -20,6 +21,7 @@
     "area": 140,     
     "registration_date": "2022-12-09",          
     "sell_date": "2022-06-01",    
-    "agency_name": "Cool Kid"
+    "agency_name": "Cool Kid",
+    "agency_id": "unique_agency_identifier"
   }
 ]
