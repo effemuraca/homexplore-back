@@ -3,7 +3,6 @@ const k = 6; // Define the value for k
 // Analytics related to the buyers and sellers
 
 // Given a city, list the neighborhoods that have had the highest increases in price per square meter in the last k months, the increase obtained, and the number of houses sold [sorted by increasing price increase]
-
 db.SoldProperty.aggregate([
   {
     $project: {
@@ -18,7 +17,7 @@ db.SoldProperty.aggregate([
               "$sell_date",
               {
                 $dateSubtract: {
-                  startDate: "$$NOW",
+                  startDate: new Date(),
                   unit: "month",
                   amount: k
                 }
@@ -35,7 +34,7 @@ db.SoldProperty.aggregate([
                       "$sell_date",
                       {
                         $dateSubtract: {
-                          startDate: "$$NOW",
+                          startDate: new Date(),
                           unit: "month",
                           amount: k * 2
                         }
@@ -47,7 +46,7 @@ db.SoldProperty.aggregate([
                       "$sell_date",
                       {
                         $dateSubtract: {
-                          startDate: "$$NOW",
+                          startDate: new Date(),
                           unit: "month",
                           amount: k
                         }
@@ -191,22 +190,8 @@ db.SoldProperty.aggregate([
 db.PropertyOnSale.aggregate([
   {
     $match: {
-      _id: "sel1"
-    }
-  },
-  {
-    $project: {
-      sold_property: 1
-    }
-  },
-  {
-    $unwind: {
-      path: "$sold_property"
-    }
-  },
-  {
-    $match: {
-      "sold_property.city": "New York"
+      type: "condo",
+      city: "New York"
     }
   },
   {
@@ -231,83 +216,53 @@ db.PropertyOnSale.aggregate([
 // Analytics for the sellers
 
 // Given an agency and a city, return the number of houses sold and the revenue obtained in a given time period for each neighborhood  
-[
+db.SoldProperty.aggregate([
   {
     $match: {
-      _id: "sel1"
-    }
-  },
-  {
-    $project: {
-      sold_property: 1
-    }
-  },
-  {
-    $unwind: {
-      path: "$sold_property"
-    }
-  },
-  {
-    $match: {
-      "sold_property.sell_date": {
+      sell_date: {
         $gte: ISODate("2020-08-01"),
-        $lte: ISODate("2023-12-31") // Data di fine
+        $lte: ISODate("2023-12-31") // End date
       },
-      "sold_property.city": "New York"
+      city: "New York",
+      agency_name: "sel1" // Assuming 'sel1' is the agency name
     }
   },
   {
     $group: {
-      _id: "$sold_property.district",
+      _id: "$neighbourhood",
       num_house: {
         $sum: 1
       },
-      // Conta le case vendute
-      tot_house: {
-        $sum: "$sold_property.price"
-      } // Somma i prezzi delle case vendute
+      tot_revenue: {
+        $sum: "$price"
+      }
     }
   }
-]
+])
 
 // Given an agency and a city, return the average time to sell a house for each neighborhood
-[
+db.SoldProperty.aggregate([
   {
     $match: {
-      _id: "sel1"
-    }
-  },
-  {
-    $project: {
-      sold_property: 1
-    }
-  },
-  {
-    $unwind: {
-      path: "$sold_property"
-    }
-  },
-  {
-    $match: {
-      "sold_property.city": "New York"
+      city: "New York",
+      agency_name: "sel1" // Assuming 'sel1' is the agency name
     }
   },
   {
     $project: {
       time_to_sell: {
         $dateDiff: {
-          startDate:
-            "$sold_property.registration_date",
-          endDate: "$sold_property.sell_date",
+          startDate: "$registration_date",
+          endDate: "$sell_date",
           unit: "day"
         }
       },
-      district: "$sold_property.district"
+      neighbourhood: 1
     }
   },
   {
     $group: {
-      _id: "$district",
+      _id: "$neighbourhood",
       avg_time_to_sell: {
         $avg: "$time_to_sell"
       },
@@ -316,44 +271,7 @@ db.PropertyOnSale.aggregate([
       }
     }
   }
-]
-
-// Analytics 5
-[
-  {
-    $match: {
-      _id: "sel1"
-    }
-  },
-  {
-    $project: {
-      property_on_sale: 1
-    }
-  },
-  {
-    $unwind: {
-      path: "$property_on_sale"
-    }
-  },
-  {
-    $match: {
-      "property_on_sale.city": "New York"
-    }
-  },
-  {
-    $group: {
-      _id: "$property_on_sale.district",
-      prop_under_man: {
-        $sum: 1
-      },
-      money_under_man: {
-        $sum: "$property_on_sale.price"
-      }
-    }
-  }
-]
-
-// Analytic for the superuser 
+])
 
 // Obtain the list of agencies sorted by revenue / number of houses sold in a given time period
 db.SoldProperty.aggregate([
