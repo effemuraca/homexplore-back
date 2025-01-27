@@ -3,6 +3,7 @@
 
 from os import environ
 import redis
+from redis import exceptions
 from config.config import settings
 
 REDIS_HOST = environ.get('REDIS_HOST')
@@ -36,3 +37,6 @@ def get_redis_keys(pattern: str = '*'):
     @param pattern: the pattern to match keys (default is '*').
     """
     return redis_client.keys(pattern)
+
+RedisError = exceptions.RedisError
+WatchError = exceptions.WatchError

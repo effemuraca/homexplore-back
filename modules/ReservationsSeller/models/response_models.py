@@ -57,7 +57,7 @@ CreateReservationsSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation created"
+                   "detail": "Reservation created"
                 }
             }
         }
@@ -89,11 +89,11 @@ CreateReservationsSellerResponseModelResponses = {
 DeleteReservationsSellerResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the deleted reservations.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservations deleted"
+                   "detail": "Reservations deleted"
                 }
             }
         }
@@ -105,6 +105,17 @@ DeleteReservationsSellerResponseModelResponses = {
             "application/json": {
                 "example": {
                     "detail": "User not authenticated"
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Reservation not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation not found"
                 }
             }
         }
@@ -125,11 +136,11 @@ DeleteReservationsSellerResponseModelResponses = {
 UpdateReservationsSellerResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the updated reservation.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation updated"
+                   "detail": "Reservation updated"
                 }
             }
         }
@@ -141,6 +152,17 @@ UpdateReservationsSellerResponseModelResponses = {
             "application/json": {
                 "example": {
                     "detail": "User not authenticated"
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Reservation not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation not found"
                 }
             }
         }

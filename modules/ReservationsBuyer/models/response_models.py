@@ -55,7 +55,7 @@ ReservationsBuyerResponseModelResponses = {
 CreateReservationsBuyerResponseModelResponses = {
     201: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the created reservation.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
@@ -91,7 +91,7 @@ CreateReservationsBuyerResponseModelResponses = {
 DeleteReservationsBuyerResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the deleted reservations.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
@@ -107,6 +107,17 @@ DeleteReservationsBuyerResponseModelResponses = {
             "application/json": {
                 "example": {
                     "detail": "User not authenticated"
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "No reservations found for this user.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "No reservations found"
                 }
             }
         }
@@ -127,7 +138,7 @@ DeleteReservationsBuyerResponseModelResponses = {
 UpdateReservationsBuyerResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the updated reservation.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
@@ -143,6 +154,17 @@ UpdateReservationsBuyerResponseModelResponses = {
             "application/json": {
                 "example": {
                     "detail": "User not authenticated"
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Reservation not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation not found"
                 }
             }
         }
