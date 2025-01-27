@@ -3,12 +3,12 @@ from entities.ReservationsSeller.reservations_seller import ReservationsSeller, 
 from setup.redis_setup.redis_setup import get_redis_client
 
 class ReservationsSellerDB:
-    reservations_seller:ReservationsSeller = None
+    reservations_seller: ReservationsSeller = None
     
-    def __init__(self, reservations_seller:ReservationsSeller):
+    def __init__(self, reservations_seller: ReservationsSeller):
         self.reservations_seller = reservations_seller
-        
-    def get_reservations_seller_by_property_id(self, property_id:int) -> ReservationsSeller:
+
+    def get_reservations_seller_by_property_id(self, property_id: int) -> ReservationsSeller:
         if not property_id:
             return None
         redis_client = get_redis_client()
@@ -16,17 +16,17 @@ class ReservationsSellerDB:
         if not raw_data:
             return None
         data = json.loads(raw_data)
-        reservations_list = []
+        reservation_list = []
         for item in data:
-            reservations_list.append(
+            reservation_list.append(
                 ReservationS(
-                    full_name=item["full_name"],
-                    email=item["email"],
-                    phone=item["phone"]
+                    full_name=item.get("full_name"),
+                    email=item.get("email"),
+                    phone=item.get("phone")
                 )
             )
-        self.reservations_seller = ReservationsSeller(property_id=property_id, reservations=reservations_list)
-        return True
+        self.reservations_seller = ReservationsSeller(property_id=property_id, reservations=reservation_list)
+        return self.reservations_seller
 
     def delete_reservations_seller_by_property_id(self, property_id: int) -> bool:
         if not property_id:
@@ -34,8 +34,8 @@ class ReservationsSellerDB:
         redis_client = get_redis_client()
         result = redis_client.delete(f"property_id:{property_id}:reservations")
         return bool(result)
-    
-    def create_reservations_seller(self, property_id:int, expire_time:int, reservation:ReservationS) -> bool:
+
+    def create_reservations_seller(self, property_id: int, reservation: ReservationS) -> bool:
         if not property_id or not reservation:
             return False
         redis_client = get_redis_client()
@@ -44,29 +44,36 @@ class ReservationsSellerDB:
             data = []
         else:
             data = json.loads(raw_data)
+
         data.append({
             "full_name": reservation.full_name,
             "email": reservation.email,
             "phone": reservation.phone
         })
         result = redis_client.set(f"property_id:{property_id}:reservations", json.dumps(data))
-        redis_client.expire(f"property_id:{property_id}:reservations", expire_time)
         return bool(result)
-    
-    def update_reservations_seller(self, property_id:int = None, reservation:ReservationS = None) -> bool:
+
+    def update_reservations_seller(self, property_id: int, reservation: ReservationS) -> bool:
+        if not property_id or not reservation:
+            return False
         redis_client = get_redis_client()
         raw_data = redis_client.get(f"property_id:{property_id}:reservations")
         if not raw_data:
             return False
         data = json.loads(raw_data)
-        for item in data:
-            if reservation.full_name:
-                item["full_name"] = reservation.full_name
-            if reservation.email:
-                item["email"] = reservation.email
-            if reservation.phone:
-                item["phone"] = reservation.phone
-            break
+        if not data:
+            return False
+
+        # Aggiorna il primo match o l'intera lista a piacere
+        item = data[0]
+        if reservation.full_name is not None:
+            item["full_name"] = reservation.full_name
+        if reservation.email is not None:
+            item["email"] = reservation.email
+        if reservation.phone is not None:
+            item["phone"] = reservation.phone
+
+        data[0] = item
         result = redis_client.set(f"property_id:{property_id}:reservations", json.dumps(data))
         return bool(result)
     

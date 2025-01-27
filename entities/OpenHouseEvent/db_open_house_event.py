@@ -3,12 +3,12 @@ from entities.OpenHouseEvent.open_house_event import OpenHouseEvent, OpenHouseIn
 from setup.redis_setup.redis_setup import get_redis_client
 
 class OpenHouseEventDB:
-    open_house_event:OpenHouseEvent = None
+    open_house_event: OpenHouseEvent = None
     
-    def __init__(self, open_house_event:OpenHouseEvent):
+    def __init__(self, open_house_event: OpenHouseEvent):
         self.open_house_event = open_house_event
     
-    def get_open_house_event_by_property(self, property_id:int) -> OpenHouseEvent:
+    def get_open_house_event_by_property(self, property_id: int) -> OpenHouseEvent:
         if not property_id:
             return None
         redis_client = get_redis_client()
@@ -23,7 +23,7 @@ class OpenHouseEventDB:
             attendees=data["attendees"]
         )
         self.open_house_event = OpenHouseEvent(property_id=property_id, open_house_info=open_house_info)
-        return True
+        return self.open_house_event
     
     def delete_open_house_event_by_property(self, property_id: int) -> bool:
         if not property_id:
@@ -32,54 +32,58 @@ class OpenHouseEventDB:
         result = redis_client.delete(f"property_id:{property_id}:open_house_info")
         return bool(result)
     
-    def create_open_house_event(self, property_id:int, open_house_info:OpenHouseInfo) -> bool:
-        if not property_id:
-            return False
-        if not open_house_info:
+    def create_open_house_event(self, property_id: int, open_house_info: OpenHouseInfo) -> bool:
+        if not property_id or not open_house_info:
             return False
         redis_client = get_redis_client()
         data = {
             "date": open_house_info.date,
             "time": open_house_info.time,
             "max_attendees": open_house_info.max_attendees,
-            "attendees": 0
+            "attendees": open_house_info.attendees
         }
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
+        # Impostiamo la scadenza basata su date e time
+        self.open_house_event = OpenHouseEvent(property_id=property_id, open_house_info=open_house_info)
         time_sec = self.open_house_event.date_and_time_to_seconds()
-        redis_client.expire(f"property_id:{property_id}:open_house_info", time_sec)
+        if time_sec > 0:
+            redis_client.expire(f"property_id:{property_id}:open_house_info", time_sec)
         return bool(result)
     
-    def update_open_house_event(self, property_id:int = None, open_house_info:OpenHouseInfo = None) -> bool:
+    def update_open_house_event(self, property_id: int, open_house_info: OpenHouseInfo) -> bool:
+        if not property_id or not open_house_info:
+            return False
         redis_client = get_redis_client()
         raw_data = redis_client.get(f"property_id:{property_id}:open_house_info")
         if not raw_data:
             return False
         data = json.loads(raw_data)
-        if open_house_info.date:
+        if open_house_info.date is not None:
             data["date"] = open_house_info.date
-        if open_house_info.time:
+        if open_house_info.time is not None:
             data["time"] = open_house_info.time
-        if open_house_info.max_attendees:
+        if open_house_info.max_attendees is not None:
             data["max_attendees"] = open_house_info.max_attendees
-        if open_house_info.attendees:
+        if open_house_info.attendees is not None:
             data["attendees"] = open_house_info.attendees
+        
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
+        self.open_house_event = OpenHouseEvent(property_id=property_id, open_house_info=open_house_info)
         return bool(result)
     
-    def increment_attendees(self, property_id:int) -> bool:
+    def increment_attendees(self, property_id: int) -> bool:
         redis_client = get_redis_client()
         raw_data = redis_client.get(f"property_id:{property_id}:open_house_info")
         if not raw_data:
             return False
         data = json.loads(raw_data)
-        if data["attendees"] == data["max_attendees"]:
+        if data["attendees"] >= data["max_attendees"]:
             return False
         data["attendees"] += 1
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
         return bool(result)
     
-    # this method is used to decrement the number of attendees when a reservation is canceled or when an insert is not successful
-    def decrement_attendees(self, property_id:int) -> bool:
+    def decrement_attendees(self, property_id: int) -> bool:
         redis_client = get_redis_client()
         raw_data = redis_client.get(f"property_id:{property_id}:open_house_info")
         if not raw_data:
@@ -90,4 +94,3 @@ class OpenHouseEventDB:
         data["attendees"] -= 1
         result = redis_client.set(f"property_id:{property_id}:open_house_info", json.dumps(data))
         return bool(result)
-     

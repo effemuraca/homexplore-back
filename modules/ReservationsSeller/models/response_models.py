@@ -1,6 +1,3 @@
-# purpose:
-#     this file contains the response models for this module, that are also shown in the API documentation.
-
 from pydantic import BaseModel
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller
 
@@ -9,7 +6,7 @@ class SuccessModel(BaseModel):
 
 class ErrorModel(BaseModel):
     detail: str
-    
+
 ReservationsSellerResponseModelResponses = {
     200: {
         "model": ReservationsSeller,
@@ -60,7 +57,7 @@ CreateReservationsSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservation created"
+                    "detail": "Reservation created"
                 }
             }
         }
@@ -96,7 +93,7 @@ DeleteReservationsSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservations deleted"
+                    "detail": "Reservations deleted"
                 }
             }
         }
@@ -132,7 +129,7 @@ UpdateReservationsSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservation updated"
+                    "detail": "Reservation updated"
                 }
             }
         }

@@ -1,6 +1,3 @@
-# purpose:
-#     this file contains the response models for this module, that are also shown in the API documentation.
-
 from pydantic import BaseModel
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer
 
@@ -9,7 +6,7 @@ class SuccessModel(BaseModel):
 
 class ErrorModel(BaseModel):
     detail: str
-    
+
 ReservationsBuyerResponseModelResponses = {
     200: {
         "model": ReservationsBuyer,
@@ -17,16 +14,13 @@ ReservationsBuyerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "user_id": 1,
+                    "buyer_id": 1,
                     "reservations": [
                         {
                             "property_id": 1,
-                            "open_house_id": 1,
                             "date": "2021-09-01",
                             "time": "10:00",
                             "thumbnail": "https://www.example.com/image.jpg",
-                            "property_type": "House",
-                            "price": 1000000,
                             "address": "1234 Example St."
                         }
                     ]
@@ -57,7 +51,6 @@ ReservationsBuyerResponseModelResponses = {
         }
     }
 }
-
 
 CreateReservationsBuyerResponseModelResponses = {
     201: {
@@ -166,4 +159,3 @@ UpdateReservationsBuyerResponseModelResponses = {
         }
     }
 }
-

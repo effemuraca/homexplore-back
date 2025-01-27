@@ -1,43 +1,40 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
+
 class OpenHouseInfo(BaseModel):
     date: Optional[str] = None
     time: Optional[str] = None
-    max_attendees: Optional[int] = None
-    attendees: Optional[int] = None
+    max_attendees: Optional[int] = 0
+    attendees: Optional[int] = 0
 
     def __init__(
-        self, 
-        date:str = None, 
-        time:str = None, 
-        area:int = None, 
+        __pydantic_self__,
+        date: Optional[str] = None,
+        time: Optional[str] = None,
+        max_attendees: Optional[int] = 0,
+        attendees: Optional[int] = 0,
+        area: Optional[int] = None
     ):
-        super().__init__()
-        self.date = date
-        self.time = time
-        # the area of the property determines the max number of attendees
-        # 10 sqft per attendee, with respect to american fire prevention standards
-        self.max_attendees = area / 10 if area else 0
-        self.attendees = 0
-
-        
+        # Se 'area' è presente, calcoliamo automaticamente max_attendees
+        if area is not None:
+            max_attendees = area // 10
+        super().__init__(
+            date=date,
+            time=time,
+            max_attendees=max_attendees,
+            attendees=attendees
+        )
 
 class OpenHouseEvent(BaseModel):
     property_id: Optional[int] = None
     open_house_info: Optional[OpenHouseInfo] = None
-    
-    def __init__(
-        self, 
-        property_id:int = None, 
-        open_house_info:OpenHouseInfo = None
-    ):
-        super().__init__()
-        self.property_id = property_id
-        self.open_house_info = open_house_info
 
     def date_and_time_to_seconds(self) -> int:
-        date = self.open_house_info.date
-        time = self.open_house_info.time
-        date_time = f"{date} {time}"
+        """
+        Converte date + time in secondi. Formato atteso: YYYY-MM-DD HH:MM:SS.
+        """
+        if not self.open_house_info or not self.open_house_info.date or not self.open_house_info.time:
+            return 0
+        date_time = f"{self.open_house_info.date} {self.open_house_info.time}"
         return int(datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S").timestamp())

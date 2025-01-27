@@ -1,6 +1,3 @@
-# purpose:
-#     this file contains the response models for this module, that are also shown in the API documentation.
-
 from pydantic import BaseModel
 from entities.OpenHouseEvent.open_house_event import OpenHouseEvent
 
@@ -9,7 +6,7 @@ class SuccessModel(BaseModel):
 
 class ErrorModel(BaseModel):
     detail: str
-    
+
 OpenHouseEventResponseModelResponses = {
     200: {
         "model": OpenHouseEvent,
@@ -20,7 +17,7 @@ OpenHouseEventResponseModelResponses = {
                     "property_id": 1,
                     "open_house_info": {
                         "date": "2023-10-01",
-                        "time": "14:00",
+                        "time": "14:00:00",
                         "max_attendees": 50,
                         "attendees": 30
                     }
@@ -55,7 +52,7 @@ OpenHouseEventResponseModelResponses = {
 CreateOpenHouseEventResponseModelResponses = {
     201: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the created open house event.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
@@ -91,7 +88,7 @@ CreateOpenHouseEventResponseModelResponses = {
 DeleteOpenHouseEventResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the deleted open house event.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
@@ -127,7 +124,7 @@ DeleteOpenHouseEventResponseModelResponses = {
 UpdateOpenHouseEventResponseModelResponses = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the updated open house event.",
+        "description": "Successful operation, returns a success message.",
         "content": {
             "application/json": {
                 "example": {
