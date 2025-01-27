@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-
+from modules.OpenHouse.models import open_house_models as OpenHouseModels
 from modules.OpenHouse.models import response_models as ResponseModels
-from modules.OpenHouse.models.open_house_models import OpenHouseInfo
-from entities.OpenHouseEvent.open_house_event import OpenHouseEvent
+from entities.OpenHouseEvent.open_house_event import OpenHouseEvent, OpenHouseInfo
 from entities.OpenHouseEvent.db_open_house_event import OpenHouseEventDB
 
 open_house_router = APIRouter(prefix="/open_house", tags=["open_house"])

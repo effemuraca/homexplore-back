@@ -16,8 +16,8 @@ class OpenHouseInfo(BaseModel):
         attendees: Optional[int] = 0,
         area: Optional[int] = None
     ):
-        # Se 'area' è presente, calcoliamo automaticamente max_attendees
         if area is not None:
+            # max_attendees is calculated followning the fire regulation of 1 person every 10 sqft
             max_attendees = area // 10
         super().__init__(
             date=date,

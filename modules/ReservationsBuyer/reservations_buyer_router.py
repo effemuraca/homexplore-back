@@ -6,10 +6,10 @@ from modules.ReservationsBuyer.models import reservations_buyer_models as Reserv
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from entities.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 
-open_house_router = APIRouter(prefix="/open_house", tags=["open_house"])
+reservations_buyer_router = APIRouter(prefix="/reservations_buyer", tags=["reservations_buyer"])
 
-@open_house_router.get(
-    "/reservations_buyer",
+@reservations_buyer_router.get(
+    "/reservations_buyer_router",
     response_model=ReservationsBuyer,
     responses=ResponseModels.ReservationsBuyerResponseModelResponses
 )
@@ -23,12 +23,12 @@ def get_reservations_by_user(user_id: int):
         raise HTTPException(status_code=404, detail="Reservations not found")
     return db.reservations_buyer
 
-@open_house_router.post(
-    "/reservations_buyer",
+@reservations_buyer_router.post(
+    "/reservations_buyer_router",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.CreateReservationsBuyerResponseModelResponses
 )
-def create_reservations_buyer(user_id: int, reservation_info: ReservationB):
+def create_reservations_buyer_router(user_id: int, reservation_info: ReservationB):
     """
     Create a new reservation for a given user.
     """
@@ -42,8 +42,8 @@ def create_reservations_buyer(user_id: int, reservation_info: ReservationB):
         raise HTTPException(status_code=500, detail="Error creating reservation")
     return JSONResponse(status_code=201, content={"detail": "Reservation created"})
 
-@open_house_router.delete(
-    "/reservations_buyer",
+@reservations_buyer_router.delete(
+    "/reservations_buyer_router",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
@@ -57,8 +57,8 @@ def delete_reservations_by_user(user_id: int):
         raise HTTPException(status_code=500, detail="Error deleting reservations")
     return JSONResponse(status_code=200, content={"detail": "Reservations deleted"})
 
-@open_house_router.put(
-    "/reservations_buyer",
+@reservations_buyer_router.put(
+    "/reservations_buyer_router",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.UpdateReservationsBuyerResponseModelResponses
 )
