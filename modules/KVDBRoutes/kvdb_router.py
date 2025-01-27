@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from setup.redis_setup.redis_setup import get_redis_client, WatchError
+from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from modules.KVDBRoutes.models import response_models as ResponseModels
 from modules.KVDBRoutes.models import kvdb_models as KVDBModels
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
@@ -9,8 +10,11 @@ from entities.ReservationsSeller.reservations_seller import ReservationsSeller, 
 from entities.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from entities.OpenHouseEvent.open_house_event import OpenHouseEvent, OpenHouseInfo
 from entities.OpenHouseEvent.db_open_house_event import OpenHouseEventDB
+from entities.Buyer.buyer import Buyer
+from entities.Buyer.db_buyer import BuyerDB
 import json
 import logging
+from bson.objectid import ObjectId
 
 kvdb_router = APIRouter(prefix="/kvdb", tags=["kvdb"])
 
@@ -19,9 +23,9 @@ logger = logging.getLogger(__name__)
 
 # Reservation deleted by buyer
 @kvdb_router.delete(
-    "/reservations_buyer_router",
+    "/delete_reservation_by_user_and_property/{user_id}/{property_id}",
     response_model=KVDBModels.SuccessModel,
-    responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
+    responses=ResponseModels.ReservationDeletedResponses
 )
 def delete_reservation_by_user_and_property(user_id: int, property_id: int):
     """
@@ -62,7 +66,6 @@ def delete_reservation_by_user_and_property(user_id: int, property_id: int):
                     logger.warning(f"No attendees left to decrement for property_id={property_id}")
                     raise HTTPException(status_code=404, detail="No attendees left to decrement")
 
-
                 # Begin transaction
                 pipe.multi()
                 # Remove buyer reservation
@@ -91,3 +94,151 @@ def delete_reservation_by_user_and_property(user_id: int, property_id: int):
     # If no exceptions, operation was successful
     logger.info(f"Reservation deleted successfully for user_id={user_id}, property_id={property_id}")
     return KVDBModels.SuccessModel(detail="Reservation deleted successfully")
+
+@kvdb_router.post(
+    "/book_now",
+    response_model=KVDBModels.SuccessModel,
+    responses=ResponseModels.BookNowResponses
+)
+def book_now(buyer_id: int, property_id: int, date: str, time: str, thumbnail: str, address: str):
+    """
+    Book an open house event for a given user_id and property_id,
+    handling the case where the open house event is not present,
+    the case where the open house event is present,
+    and the case where the reservation is already present.
+    This is done atomically using Redis transactions (WATCH/MULTI/EXEC).
+    """
+    buyer_key = f"buyer_id:{buyer_id}:reservations"
+    oh_key = f"property_id:{property_id}:open_house_info"
+    seller_key = f"property_id:{property_id}:reservations_seller"
+    
+    redis = get_redis_client()
+    mongo_client = get_default_mongo_db()
+
+    new_reservation = {
+        "property_id": property_id,
+        "date": date,
+        "time": time,
+        "thumbnail": thumbnail,
+        "address": address
+    }
+
+    contact_info = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)})
+    if not contact_info:
+        logger.warning(f"Buyer not found for buyer_id={buyer_id}")
+        raise HTTPException(status_code=404, detail="Buyer not found")
+    
+    # Create ReservationS object
+    reservation = ReservationS(
+        user_id=buyer_id,
+        full_name=f"{contact_info.get('name', '')} {contact_info.get('surname', '')}",
+        email=contact_info.get('email', ''),
+        phone=contact_info.get('phone_number', '')
+    )
+
+    with redis.pipeline() as pipe:
+        while True:
+            try:
+                pipe.watch(buyer_key, oh_key, seller_key)
+
+                buyer_data = pipe.get(buyer_key)
+                oh_data = pipe.get(oh_key)
+                seller_data = pipe.get(seller_key)
+
+                # Initialize reservations list if buyer_data is None
+                if buyer_data:
+                    buyer_reservations = json.loads(buyer_data)
+                    # Check if reservation already exists
+                    if any(res.get("property_id") == property_id for res in buyer_reservations):
+                        logger.warning(f"Reservation already exists for buyer_id={buyer_id}, property_id={property_id}")
+                        raise HTTPException(status_code=400, detail="Reservation already exists")
+                else:
+                    buyer_reservations = []
+
+                # Begin transaction
+                pipe.multi()
+
+                if not oh_data:
+                    # OpenHouseEvent not present (first reservation)
+                    open_house_info = OpenHouseInfo(date=date, time=time, max_attendees=50, attendees=1)
+                    open_house_event = OpenHouseEvent(property_id=property_id, open_house_info=open_house_info)
+                    pipe.set(oh_key, open_house_event.model_dump_json())
+
+                    # Create ReservationsSeller
+                    reservations_seller = reservation
+                    pipe.set(seller_key, reservations_seller.model_dump_json())
+
+                    # Insert reservation in ReservationsBuyer
+                    buyer_reservations.append(new_reservation)
+                    pipe.set(buyer_key, json.dumps(buyer_reservations))
+                else:
+                    # OpenHouseEvent present (subsequent reservations)
+                    open_house_event = json.loads(oh_data)
+                    max_attendees = open_house_event.get("max_attendees", 50)
+                    attendees = open_house_event.get("attendees", 0)
+
+                    if attendees >= max_attendees:
+                        logger.warning(f"Attendees limit reached for property_id={property_id}")
+                        raise HTTPException(status_code=400, detail="Attendees limit reached")
+
+                    
+                    # Update ReservationsSeller
+                    if seller_data:
+                        reservations_seller = json.loads(seller_data)
+                        # Check if seller reservation exists
+                        if not any(res.get("user_id") == buyer_id for res in reservations_seller):
+                            reservations_seller.append(reservation)
+                            pipe.set(seller_key, json.dumps(reservations_seller))
+                    else:
+                        # If seller reservations do not exist, create them
+                        reservations_seller = [reservation]
+                        pipe.set(seller_key, json.dumps(reservations_seller))
+
+                    # Update ReservationsBuyer
+                    buyer_reservations.append(new_reservation)
+                    pipe.set(buyer_key, json.dumps(buyer_reservations))
+
+                    # Increment attendees
+                    open_house_event["attendees"] = attendees + 1
+                    pipe.set(oh_key, json.dumps(open_house_event))
+
+                pipe.execute()
+                break
+            except WatchError:
+                logger.error("WatchError occurred, data changed during transaction.")
+                raise HTTPException(status_code=409, detail="Conflict: data changed, please retry.")
+            except HTTPException as he:
+                raise he
+            except Exception as e:
+                logger.error(f"Unexpected error during booking: {e}")
+                raise HTTPException(status_code=500, detail="Internal server error.")
+
+    # If no exceptions, operation was successful
+    logger.info(f"Reservation created successfully for user_id={buyer_id}, property_id={property_id}")
+    return KVDBModels.SuccessModel(detail="Reservation created successfully")
+
+    # Done:
+    # Si aggiunge una nuova casa in vendita -> nessun cambiamento (si risparmia spazio facendo in modo i record esistano solo se ci sono prenotazioni)
+    # Si cambiano i dati di contatto di un utente -> si tollera che i dati siano vecchi, tanto sono dati volatili
+    # Cliccato view reservation dal buyer -> mostra le sue prenotazioni (gestione del caso in cui non ci siano prenotazioni)
+    # Cliccato view reservation dal seller -> mostra le prenotazioni per una sua casa (gestione del caso in cui non ci siano prenotazioni)
+    # Si cancella una prenotazione -> va cancellata in reservationsseller e reservationsbuyer e diminuito attendees in openhouseevent
+    
+    # Done (anche Mongo):
+    # Book Now cliccato (nuova prenotazione in genere):
+    # OpenHouseEvent non presente (prima reservation) -> creazione openhouseevent, reservationseller e inserimento prenotazione in reservationsbuyer
+    # OpenHouseEvent presente (prenotazione successiva) -> aggiornamento reservationseller e reservationsbuyer e attendees in openhouseevent
+    # Reservation gia presente -> la scrittura fallisce e si notifica l'utente che è già prenotato
+    
+    # To do:
+    # Arriva l'open house event -> il ttl di openhouseevent scade e si cancella, allo stesso modo si elimina la reservationsseller, mentre si aggiorna reservationbuyer, eliminando la specifica prenotazione
+  
+    # To do (necessario Mongo):
+    # Si aggiorna l'open house time -> va aggiornato openhouseevent e reservationsbuyer e possibilmente notificato l'utente
+    # Si aggiorna thumbnail, prezzo, indirizzo -> va aggiornato reservationsbuyer
+    # Si cancella una casa in vendita -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer
+    # Si vende una casa -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer
+    # Si cancella un'utente dalla piattaforma:
+    #   Caso buyer: non si verifica mai (le aziende sono verificate)
+    #   Caso seller: va cancellato reservationsseller, diminuito attendees in openhouseevent e cancellate le prenotazioni di quell'utente in reservationsbuyer
+# oss: bisogna stare attenti all'atomicità delle operazioni

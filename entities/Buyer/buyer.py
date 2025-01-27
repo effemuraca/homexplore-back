@@ -1,84 +1,55 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 import re
+import logging
+
+# Configura il logger
+logger = logging.getLogger(__name__)
 
 class BuyerInfo(BaseModel):
-    password: Optional[str] = None
-    email: Optional[str] = None
-    phone_number: Optional[str] = None
-    name: Optional[str] = None
-    surname: Optional[str] = None
-    age: Optional[int] = None
+    password: Optional[str] = Field(None, example="SecureP@ssw0rd")
+    email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
+    phone_number: Optional[str] = Field(None, example="+1 1234567890")
+    name: Optional[str] = Field(None, example="John")
+    surname: Optional[str] = Field(None, example="Doe")
+    age: Optional[int] = Field(None, example=30)
 
-    def __init__(
-        self,
-        password: str = None,
-        email: str = None,
-        phone_number: str = None,
-        name: str = None,
-        surname: str = None,
-        age: int = None
-    ):
-        super().__init__()
-        self.password = password
-        self.email = email
-        self.phone_number = phone_number
-        self.name = name
-        self.surname = surname
-        self.age = age
-
-    def check_buyer_info(self):
+    def is_valid(self) -> bool:
         """
-        Checks if the minimum buyer infos required are inserted (age optional).
+        Verifica se le informazioni del buyer sono valide.
         """
-        if not self.password or not self.email or not self.phone_number or not self.name or not self.surname:
+        if not all([self.password, self.email, self.phone_number, self.name, self.surname]):
+            logger.debug("Informazioni mancanti nel buyer_info.")
             return False
         phone_pattern = re.compile(r'^\+\d{1,3}\s?\d{7,14}$')
         email_pattern = re.compile(r'^[^@]+@[^@]+\.[^@]+$')
-        if not phone_pattern.match(self.phone_number) or not email_pattern.match(self.email):
+        if not phone_pattern.match(self.phone_number):
+            logger.debug(f"Numero di telefono non valido: {self.phone_number}")
+            return False
+        if not email_pattern.match(self.email):
+            logger.debug(f"Email non valida: {self.email}")
             return False
         return True
 
 class Buyer(BaseModel):
-    buyer_id: Optional[str] = None
-    password: Optional[str] = None
-    email: Optional[str] = None
-    phone_number: Optional[str] = None
-    name: Optional[str] = None
-    surname: Optional[str] = None
-    age: Optional[int] = None
+    buyer_id: Optional[str] = Field(None, example="60d5ec49f8d2e30b8c8b4567")
+    password: Optional[str] = Field(None, example="SecureP@ssw0rd")
+    email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
+    phone_number: Optional[str] = Field(None, example="+1 1234567890")
+    name: Optional[str] = Field(None, example="John")
+    surname: Optional[str] = Field(None, example="Doe")
+    age: Optional[int] = Field(None, example=30)
 
-    def __init__(
-        self,
-        buyer_id: str = None,
-        password: str = None,
-        email: str = None,
-        phone_number: str = None,
-        name: str = None,
-        surname: str = None,
-        age: int = None
-    ):
-        super().__init__()
-        self.buyer_id = buyer_id
-        self.password = password
-        self.email = email
-        self.phone_number = phone_number
-        self.name = name
-        self.surname = surname
-        self.age = age
-   
-    def __init__(self, buyer_info: BuyerInfo):
-        super().__init__()
-        self.password = buyer_info.password
-        self.email = buyer_info.email
-        self.phone_number = buyer_info.phone_number
-        self.name = buyer_info.name
-        self.surname = buyer_info.surname
-        self.age = buyer_info.age
-
-    def get_buyer_info(self):
+    def update_info(self, buyer_info: BuyerInfo):
         """
-        Returns the information not null of the buyer except the buyer_id.
+        Aggiorna le informazioni del buyer con i dati forniti in buyer_info.
+        """
+        for field, value in buyer_info.dict().items():
+            if value is not None:
+                setattr(self, field, value)
+
+    def get_buyer_info(self) -> dict:
+        """
+        Restituisce le informazioni del buyer, escludendo buyer_id.
         """
         return {k: v for k, v in self.dict().items() if k != "buyer_id" and v is not None}
-    

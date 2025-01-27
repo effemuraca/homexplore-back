@@ -100,7 +100,7 @@ CreateReservationsBuyerResponseModelResponses = {
     }
 }
 
-DeleteReservationsBuyerResponseModelResponses = {
+ReservationDeletedResponses = {
     200: {
         "model": SuccessModel,
         "description": "Successful operation, returns the deleted reservation.",
@@ -285,3 +285,60 @@ DeleteReservationsSellerResponseModelResponses = {
     }
 }
 
+BookNowResponses = {
+    201: {
+        "model": SuccessModel,
+        "description": "Reservation created successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation created successfully."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid input or reservation already exists.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation already exists."
+                }
+            }
+        }
+    },
+    401: {
+        "model": ErrorModel,
+        "description": "User not authenticated.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "User not authenticated."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Buyer not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Buyer not found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Error creating reservation.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Error creating reservation."
+                }
+            }
+        }
+    }
+}
