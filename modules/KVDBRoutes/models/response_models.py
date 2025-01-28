@@ -342,3 +342,50 @@ BookNowResponses = {
         }
     }
 }
+
+DeleteUserResponses = {
+    200: {
+        "model": SuccessModel,
+        "description": "User deleted successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "User deleted successfully."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Buyer not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Buyer not found."
+                }
+            }
+        }
+    },
+    409: {
+        "model": ErrorModel,
+        "description": "Conflict: data changed, please retry.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Conflict: data changed, please retry."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Internal server error.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Internal server error."
+                }
+            }
+        }
+    }
+}

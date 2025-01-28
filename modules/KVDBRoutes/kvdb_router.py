@@ -217,6 +217,78 @@ def book_now(buyer_id: int, property_id: int, date: str, time: str, thumbnail: s
     logger.info(f"Reservation created successfully for user_id={buyer_id}, property_id={property_id}")
     return KVDBModels.SuccessModel(detail="Reservation created successfully")
 
+@kvdb_router.delete(
+    "/delete_user/{user_id}",
+    response_model=KVDBModels.SuccessModel,
+    responses=ResponseModels.DeleteUserResponses
+)
+def delete_user(user_id: int):
+    """
+    Delete a user by user_id, removing all their reservations and updating the open house events.
+    This is done atomically using Redis transactions (WATCH/MULTI/EXEC).
+    """
+    buyer_key = f"buyer_id:{user_id}:reservations"
+    redis = get_redis_client()
+    mongo_client = get_default_mongo_db()
+
+    result = mongo_client.buyers.delete_one({"_id": ObjectId(user_id)})
+    if not result.deleted_count:
+        logger.warning(f"Buyer not found for user_id={user_id}")
+        raise HTTPException(status_code=404, detail="Buyer not found")
+
+    with redis.pipeline() as pipe:
+        while True:
+            try:
+                pipe.watch(buyer_key)
+                reservationsbuyer_data = pipe.get(buyer_key)
+
+                if not reservationsbuyer_data:
+                    logger.warning(f"No reservations found for user_id={user_id}")
+                    raise HTTPException(status_code=404, detail="No reservations found for user.")
+
+                # Begin transaction
+                pipe.multi()
+                # Delete reservationsbuyer
+                pipe.delete(buyer_key)
+
+                # Fetch all reservations to update reservationsseller and openhouseevent
+                reservationsbuyer = json.loads(reservationsbuyer_data)
+                for reservation in reservationsbuyer:
+                    property_id = reservation.get("property_id")
+                    oh_key = f"property_id:{property_id}:open_house_info"
+                    seller_key = f"property_id:{property_id}:reservations_seller"
+
+                    # Decrement attendees in openhouseevent
+                    oh_data = pipe.get(oh_key)
+                    if oh_data:
+                        open_house_event = json.loads(oh_data)
+                        open_house_event["attendees"] -= 1
+                        pipe.set(oh_key, json.dumps(open_house_event))
+
+                    # Delete reservation from reservationsseller
+                    seller_data = pipe.get(seller_key)
+                    if seller_data:
+                        seller_reservations = json.loads(seller_data)
+                        updated_seller_reservations = [
+                            res for res in seller_reservations if res.get("user_id") != user_id
+                        ]
+                        pipe.set(seller_key, json.dumps(updated_seller_reservations))
+
+                pipe.execute()
+                break
+            except WatchError:
+                logger.error("WatchError occurred, data changed during transaction.")
+                raise HTTPException(status_code=409, detail="Conflict: data changed, please retry.")
+            except HTTPException as he:
+                raise he
+            except Exception as e:
+                logger.error(f"Unexpected error: {e}")
+                raise HTTPException(status_code=500, detail="Internal server error.")
+
+    # If no exceptions, operation was successful
+    logger.info(f"User deleted successfully for user_id={user_id}")
+    return KVDBModels.SuccessModel(detail="User deleted successfully")
+
     # Done:
     # Si aggiunge una nuova casa in vendita -> nessun cambiamento (si risparmia spazio facendo in modo i record esistano solo se ci sono prenotazioni)
     # Si cambiano i dati di contatto di un utente -> si tollera che i dati siano vecchi, tanto sono dati volatili
@@ -228,17 +300,18 @@ def book_now(buyer_id: int, property_id: int, date: str, time: str, thumbnail: s
     # Book Now cliccato (nuova prenotazione in genere):
     # OpenHouseEvent non presente (prima reservation) -> creazione openhouseevent, reservationseller e inserimento prenotazione in reservationsbuyer
     # OpenHouseEvent presente (prenotazione successiva) -> aggiornamento reservationseller e reservationsbuyer e attendees in openhouseevent
-    # Reservation gia presente -> la scrittura fallisce e si notifica l'utente che è già prenotato
-    
+    # Reservation gia presente -> la scrittura fallisce e si notifica l'utente che è già prenotato 
+    # Si cancella un'utente dalla piattaforma:
+    #   Caso seller: non si verifica mai (le aziende sono verificate)
+    #   Caso buyer: va cancellato reservationsseller, diminuito attendees in openhouseevent e cancellate le prenotazioni di quell'utente in reservationsbuyer
+
+
     # To do:
     # Arriva l'open house event -> il ttl di openhouseevent scade e si cancella, allo stesso modo si elimina la reservationsseller, mentre si aggiorna reservationbuyer, eliminando la specifica prenotazione
   
     # To do (necessario Mongo):
-    # Si aggiorna l'open house time -> va aggiornato openhouseevent e reservationsbuyer e possibilmente notificato l'utente
-    # Si aggiorna thumbnail, prezzo, indirizzo -> va aggiornato reservationsbuyer
-    # Si cancella una casa in vendita -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer
-    # Si vende una casa -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer
-    # Si cancella un'utente dalla piattaforma:
-    #   Caso buyer: non si verifica mai (le aziende sono verificate)
-    #   Caso seller: va cancellato reservationsseller, diminuito attendees in openhouseevent e cancellate le prenotazioni di quell'utente in reservationsbuyer
+    # Si aggiorna l'open house time -> va aggiornato openhouseevent e reservationsbuyer e possibilmente notificato l'utente (necessario PropertyOnSale)
+    # Si aggiorna thumbnail, prezzo, indirizzo -> va aggiornato reservationsbuyer (necessario PropertyOnSale)
+    # Si cancella una casa in vendita -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer (necessario PropertyOnSale)
+    # Si vende una casa -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer (necessario PropertyOnSale)
 # oss: bisogna stare attenti all'atomicità delle operazioni
