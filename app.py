@@ -5,6 +5,7 @@ from modules.ReservationsSeller.reservations_seller_router import reservations_s
 from modules.ReservationsBuyer.reservations_buyer_router import reservations_buyer_router
 from modules.OpenHouse.open_house_router import open_house_router
 from modules.Buyers.buyers_router import buyers_router
+from modules.PropertyOnSale.property_on_sale_router import property_on_sale_router
 from modules.KVDBRoutes.kvdb_router import kvdb_router
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -33,6 +34,7 @@ app.add_middleware(
 #app.include_router(auth_router)
 app.include_router(open_house_router)
 app.include_router(buyers_router)
+app.include_router(property_on_sale_router)
 app.include_router(reservations_seller_router)
 app.include_router(reservations_buyer_router)
 app.include_router(kvdb_router)
