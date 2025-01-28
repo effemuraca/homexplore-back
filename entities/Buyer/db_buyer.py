@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 from bson.objectid import ObjectId
-from entities.Buyer.buyer import Buyer, BuyerInfo
+from entities.Buyer.buyer import Buyer  # Removed BuyerInfo
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 import logging
 
@@ -59,15 +59,15 @@ class BuyerDB:
         logger.error("Creazione del buyer fallita.")
         return False
 
-    def update_buyer(self, buyer_info: BuyerInfo) -> bool:
+    def update_buyer(self, buyer: Buyer) -> bool:  # Changed BuyerInfo to Buyer
         if not self.buyer or not self.buyer.buyer_id:
             logger.error("Buyer non inizializzato o buyer_id mancante per l'aggiornamento.")
             return False
-        if not buyer_info.is_valid():
-            logger.error("BuyerInfo non valido per l'aggiornamento.")
+        if not buyer.is_valid():
+            logger.error("Buyer non valido per l'aggiornamento.")
             return False
         mongo_client = get_default_mongo_db()
-        update_data = buyer_info.get_buyer_info()
+        update_data = buyer.get_buyer_info()
         if not update_data:
             logger.warning("Nessun dato da aggiornare.")
             return False
@@ -76,7 +76,7 @@ class BuyerDB:
             {"$set": update_data}
         )
         if result.modified_count:
-            self.buyer.update_info(buyer_info)
+            self.buyer.update_info(buyer)
             logger.info(f"Buyer aggiornato con buyer_id={self.buyer.buyer_id}.")
             return True
         logger.warning(f"Nessuna modifica effettuata per buyer_id={self.buyer.buyer_id}.")
