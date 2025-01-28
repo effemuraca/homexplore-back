@@ -18,7 +18,7 @@ GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
                     "buyer_id": "615c44fdf641be001f0c1111",
                     "password": "hashed_password",
                     "email": "user@example.com",
-                    "phone_number": 1234567890,
+                    "phone_number": "1234567890",
                     "name": "John",
                     "surname": "Doe",
                     "age": 30
@@ -57,40 +57,29 @@ CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer created"
-                }
-            }
-        }
-    },  
-    400: {
-        "model": ErrorModel,
-        "description": "Missing buyer info.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Missing buyer info"
+                    "detail": "Buyer created successfully."
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid input or missing buyer info.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid buyer info."
                 }
             }
         }
     },
     500: {
         "model": ErrorModel,
-        "description": "Error creating buyer.",
+        "description": "Failed to create buyer.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error creating buyer"
+                    "detail": "Failed to create buyer."
                 }
             }
         }
@@ -99,34 +88,51 @@ CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
 
 UpdateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
-        "model": SuccessModel,
+        "model": Buyer,
         "description": "Buyer updated successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer updated"
+                    "buyer_id": "60d5ec49f8d2e30b8c8b4567",
+                    "password": "NewSecureP@ssw0rd",
+                    "email": "john.new@example.com",
+                    "phone_number": "0987654321",
+                    "name": "John",
+                    "surname": "Doe",
+                    "age": 31
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid input or missing buyer ID.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Buyer ID is required."
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "Buyer not found.",
+        "description": "Buyer not found or update failed.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer not found"
+                    "detail": "Buyer not found or update failed."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to update buyer.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to update buyer."
                 }
             }
         }
@@ -140,29 +146,18 @@ DeleteBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer deleted"
-                }
-            }
-        }
-    },
-    401: {
-        "model": ErrorModel,
-        "description": "User not authenticated.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Buyer deleted successfully."
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "Buyer not found.",
+        "description": "Buyer not found or delete failed.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer not found"
+                    "detail": "Buyer not found or delete failed."
                 }
             }
         }

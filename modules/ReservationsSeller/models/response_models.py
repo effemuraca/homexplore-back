@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Dict, Any
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller
 
 class SuccessModel(BaseModel):
@@ -7,7 +8,7 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-ReservationsSellerResponseModelResponses = {
+ReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": ReservationsSeller,
         "description": "Successful operation, returns the reservations list.",
@@ -17,6 +18,7 @@ ReservationsSellerResponseModelResponses = {
                     "property_id": 1,
                     "reservations": [
                         {
+                            "user_id": 1,
                             "full_name": "John Doe",
                             "email": "john@example.com",
                             "phone": "1234567890"
@@ -50,130 +52,116 @@ ReservationsSellerResponseModelResponses = {
     }
 }
 
-CreateReservationsSellerResponseModelResponses = {
+CreateReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     201: {
         "model": SuccessModel,
-        "description": "Successful operation, returns the created reservation.",
+        "description": "Reservation created successfully.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservation created"
+                    "detail": "Reservation created successfully."
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid input or missing reservation info.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid reservation info."
                 }
             }
         }
     },
     500: {
         "model": ErrorModel,
-        "description": "Error creating reservation.",
+        "description": "Failed to create reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error creating reservation"
+                    "detail": "Failed to create reservation."
                 }
             }
         }
     }
 }
 
-DeleteReservationsSellerResponseModelResponses = {
+DeleteReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns a success message.",
+        "description": "Reservation deleted successfully.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservations deleted"
-                }
-            }
-        }
-    },
-    401: {
-        "model": ErrorModel,
-        "description": "User not authenticated.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Reservation deleted successfully."
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "Reservation not found.",
+        "description": "Reservation not found or delete failed.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation not found"
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Error deleting reservations.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Error deleting reservations"
+                    "detail": "Reservation not found or delete failed."
                 }
             }
         }
     }
 }
 
-UpdateReservationsSellerResponseModelResponses = {
+UpdateReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
-        "model": SuccessModel,
-        "description": "Successful operation, returns a success message.",
+        "model": ReservationsSeller,
+        "description": "Reservation updated successfully.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservation updated"
+                    "property_id": 1,
+                    "reservations": [
+                        {
+                            "user_id": 1,
+                            "full_name": "John Doe",
+                            "email": "john.new@example.com",
+                            "phone": "0987654321"
+                        }
+                    ]
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid input or missing reservation info.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid reservation info."
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "Reservation not found.",
+        "description": "Reservation not found or update failed.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation not found"
+                    "detail": "Reservation not found or update failed."
                 }
             }
         }
     },
     500: {
         "model": ErrorModel,
-        "description": "Error updating reservation.",
+        "description": "Failed to update reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error updating reservation"
+                    "detail": "Failed to update reservation."
                 }
             }
         }

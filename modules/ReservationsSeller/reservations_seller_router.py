@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from modules.ReservationsSeller.models import response_models as ResponseModels
-from modules.ReservationsSeller.models import reservations_seller_models as ReservationsSellerModels
+from typing import List
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
 from entities.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
-import logging
+from modules.ReservationsSeller.models import response_models as ResponseModels
 
 reservations_seller_router = APIRouter(prefix="/reservations_seller", tags=["reservations_seller"])
 
 # Configure the logger
+import logging
 logger = logging.getLogger(__name__)
 
 @reservations_seller_router.get(
-    "/reservations_seller",
+    "/{property_id}",
     response_model=ReservationsSeller,
     responses=ResponseModels.ReservationsSellerResponseModelResponses
 )
@@ -20,72 +20,61 @@ def get_reservations_seller(property_id: int):
     """
     Recupera tutte le prenotazioni del seller per un dato property_id.
     """
-    db = ReservationsSellerDB(ReservationsSeller())
+    db = ReservationsSellerDB(ReservationsSeller(property_id=property_id))
     result = db.get_reservations_seller_by_property_id(property_id)
     if not result:
-        logger.warning(f"No seller reservations found for property_id={property_id}.")
-        raise HTTPException(status_code=404, detail="No reservations found")
-    return db.reservations_seller
+        raise HTTPException(status_code=404, detail="No reservations found for this property.")
+    return result
 
 @reservations_seller_router.post(
-    "/reservations_seller",
+    "/",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.CreateReservationsSellerResponseModelResponses
 )
 def create_reservations_seller(property_id: int, reservation_info: ReservationS):
     """
-    Crea una nuova prenotazione per un dato property_id.
+    Crea una nuova prenotazione per un seller.
     """
-    db = ReservationsSellerDB(ReservationsSeller())
-    try:
-        check = db.create_reservation_seller(property_id, reservation_info)
-    except Exception as e:
-        logger.error(f"Error creating seller reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error creating reservation")
-    if not check:
-        logger.warning(f"Reservation already exists or failed to create for property_id={property_id}, user_id={reservation_info.user_id}.")
-        raise HTTPException(status_code=500, detail="Reservation already exists or failed to create")
-    logger.info(f"Reservation created successfully for property_id={property_id}, user_id={reservation_info.user_id}.")
-    return JSONResponse(status_code=201, content={"detail": "Reservation created"})
+    if not property_id or not reservation_info:
+        raise HTTPException(status_code=400, detail="Property ID and reservation info are required.")
+    
+    db = ReservationsSellerDB(ReservationsSeller(property_id=property_id))
+    success = db.create_reservation_seller(property_id, reservation_info)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to create reservation.")
+    
+    return {"detail": "Reservation created successfully."}
 
 @reservations_seller_router.delete(
-    "/reservations_seller",
+    "/{property_id}/{user_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
 def delete_reservations_seller(property_id: int, user_id: int):
     """
-    Elimina una prenotazione specifica per un dato property_id e user_id.
+    Cancella una prenotazione per un seller specifico.
     """
-    db = ReservationsSellerDB(ReservationsSeller())
-    try:
-        check = db.delete_reservations_seller_by_property_id_and_user_id(property_id, user_id)
-    except Exception as e:
-        logger.error(f"Error deleting seller reservations: {e}")
-        raise HTTPException(status_code=500, detail="Error deleting reservations")
-    if not check:
-        logger.warning(f"Failed to delete reservation for property_id={property_id}, user_id={user_id}.")
-        raise HTTPException(status_code=404, detail="Reservation not found")
-    logger.info(f"Reservation deleted successfully for property_id={property_id}, user_id={user_id}.")
-    return JSONResponse(status_code=200, content={"detail": "Reservations deleted"})
+    db = ReservationsSellerDB(ReservationsSeller(property_id=property_id))
+    success = db.delete_reservation_seller(property_id, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Reservation not found or delete failed.")
+    return {"detail": "Reservation deleted successfully."}
 
 @reservations_seller_router.put(
-    "/reservations_seller",
+    "/{property_id}/{user_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
 )
 def update_reservation_seller(property_id: int, user_id: int, reservation_info: ReservationS):
     """
-    Aggiorna una prenotazione esistente per un dato property_id e user_id.
+    Aggiorna una prenotazione esistente per un seller.
     """
-    db = ReservationsSellerDB(ReservationsSeller())
-    try:
-        check = db.update_reservation_seller(property_id, user_id, reservation_info)
-    except Exception as e:
-        logger.error(f"Error updating seller reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error updating reservation")
-    if not check:
-        logger.warning(f"Reservation not found or failed to update for property_id={property_id}, user_id={user_id}.")
-        raise HTTPException(status_code=404, detail="Reservation not found or failed to update")
-    logger.info(f"Reservation updated successfully for property_id={property_id}, user_id={user_id}.")
-    return JSONResponse(status_code=200, content={"detail": "Reservation updated"})
+    if not reservation_info:
+        raise HTTPException(status_code=400, detail="Reservation info is required.")
+    
+    db = ReservationsSellerDB(ReservationsSeller(property_id=property_id))
+    success = db.update_reservation_seller(property_id, user_id, reservation_info)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update reservation.")
+    
+    return {"detail": "Reservation updated successfully."}

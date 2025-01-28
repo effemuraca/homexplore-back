@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Dict, Any
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer
 
 class SuccessModel(BaseModel):
@@ -7,7 +8,7 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-ReservationsBuyerResponseModelResponses = {
+ReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": ReservationsBuyer,
         "description": "Successful operation, returns the reservations list.",
@@ -52,130 +53,117 @@ ReservationsBuyerResponseModelResponses = {
     }
 }
 
-CreateReservationsBuyerResponseModelResponses = {
+CreateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     201: {
         "model": SuccessModel,
-        "description": "Successful operation, returns a success message.",
+        "description": "Reservation created successfully.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservation created"
+                    "detail": "Reservation created successfully."
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid input or missing reservation info.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid reservation info."
                 }
             }
         }
     },
     500: {
         "model": ErrorModel,
-        "description": "Error creating reservation.",
+        "description": "Failed to create reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error creating reservation"
+                    "detail": "Failed to create reservation."
                 }
             }
         }
     }
 }
 
-DeleteReservationsBuyerResponseModelResponses = {
+DeleteReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": SuccessModel,
-        "description": "Successful operation, returns a success message.",
+        "description": "Reservation deleted successfully.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservations deleted"
-                }
-            }
-        }
-    },
-    401: {
-        "model": ErrorModel,
-        "description": "User not authenticated.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Reservation deleted successfully."
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "No reservations found for this user.",
+        "description": "Reservation not found or delete failed.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "No reservations found"
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Error deleting reservations.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Error deleting reservations"
+                    "detail": "Reservation not found or delete failed."
                 }
             }
         }
     }
 }
 
-UpdateReservationsBuyerResponseModelResponses = {
+UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
-        "model": SuccessModel,
-        "description": "Successful operation, returns a success message.",
+        "model": ReservationsBuyer,
+        "description": "Reservation updated successfully.",
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Reservation updated"
+                    "buyer_id": 1,
+                    "reservations": [
+                        {
+                            "property_id": 1,
+                            "date": "2021-09-02",
+                            "time": "11:00",
+                            "thumbnail": "https://www.example.com/new_image.jpg",
+                            "address": "5678 Example Ave."
+                        }
+                    ]
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid input or missing reservation info.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid reservation info."
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "Reservation not found.",
+        "description": "Reservation not found or update failed.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation not found"
+                    "detail": "Reservation not found or update failed."
                 }
             }
         }
     },
     500: {
         "model": ErrorModel,
-        "description": "Error updating reservation.",
+        "description": "Failed to update reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Error updating reservation"
+                    "detail": "Failed to update reservation."
                 }
             }
         }
