@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse 
 from typing import List
 from entities.Buyer.buyer import Buyer  # Removed BuyerInfo
 from entities.Buyer.db_buyer import BuyerDB

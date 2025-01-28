@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 from bson.objectid import ObjectId
-from entities.Buyer.buyer import Buyer  # Removed BuyerInfo
+from entities.Buyer.buyer import Buyer  
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 import logging
 
@@ -28,7 +28,7 @@ class BuyerDB:
             phone_number=data["phone_number"],
             name=data["name"],
             surname=data["surname"],
-            age=data.get("age")
+            age=data.get("age")  #non capito
         )
         logger.debug(f"Buyer recuperato: {self.buyer}")
         return self.buyer

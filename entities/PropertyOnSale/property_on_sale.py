@@ -1,33 +1,46 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, Date
 from typing import List, Optional, Dict, Any, Set
-from datetime import datetime
+import re
 
 
 class Disponibility(BaseModel):
-    date: Optional[str] = Field(None, example="Monday")
-    time: Optional[str] = Field(None, example="10:00-11:00 AM")
-    max_attendees: Optional[int] = Field(None, example=5)
+    day: str = Field(example="Monday")
+    time: str = Field(example="10:00-11:00 AM")
+    max_attendees: int = Field(example=5)
+
+    #Valide day field and time field
+    def validate_day_time(self):
+        if self.day not in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]:
+            return False
+        time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9]-(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
+        if not time_pattern.match(self.time):
+            return False
+        return True
 
 class PropertyOnSale(BaseModel):
-    property_on_sale_id : Optional[str] = Field(None, example="unique_house_identifier")
-    city: Optional[str] = Field(None, example="New York")
-    neighbourhood: Optional[str] = Field(None, example="Bronx")
-    address: Optional[str] = Field(None, example="123 Main St")
-    price: Optional[float] = Field(None, example=270000)
-    thumbnail: Optional[str] = Field(None, example="http://example.com/photo.jpg")
-    type: Optional[str] = Field(None, example="condo")
-    area: Optional[int] = Field(None, example=100)
-    registration_date: Optional[datetime] = Field(None, example="2020-05-11T22:00:00Z")
-    bed_number: Optional[int] = Field(None, example=3) #Optional field
-    bath_number: Optional[int] = Field(None, example=2) #Optional field
-    description: Optional[str] = Field(None, example="Beautiful home") #Optional field
-    photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) #Optional field
-    disponibility: Optional[Disponibility] = None   #Optional field
+    property_on_sale_id: Optional[str] = None
+    city: Optional[str] = None
+    neighbourhood: Optional[str] = None
+    address: Optional[str] = None
+    price: Optional[int] = None
+    thumbnail: Optional[str] = None
+    type: Optional[str] = None
+    area: Optional[int] = None
+    registration_date: Optional[Date] = None
+    bed_number: Optional[int] = None
+    bath_number: Optional[int] = None
+    description: Optional[str] = None
+    photos: Optional[List[str]] = None
+    disponibility: Optional[Disponibility] = None
 
 
-    #Control that the minimum info is present
+    #Control that the minimum info is present for inserting a property
     def check_min_info(self):
-        if not all([self.city, self.neighbourhood, self.address, self.price, self.thumbnail, self.type, self.area]):
+        if not self.city or not self.neighbourhood or not self.address or not self.price or not self.thumbnail or not self.type or not self.area:
+            return False
+        if self.disponibility and not self.disponibility.validate_day_time():
+            return False
+        if self.type not in ["condo", "house", "apartment", "townhouse"]:
             return False
         return True
 

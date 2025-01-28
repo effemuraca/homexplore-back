@@ -13,7 +13,7 @@ class Buyer(BaseModel):
     phone_number: Optional[str] = Field(None, example="+1 1234567890")
     name: Optional[str] = Field(None, example="John")
     surname: Optional[str] = Field(None, example="Doe")
-    age: Optional[int] = Field(None, example=30)
+    age: Optional[int] = Field(None, example=30)  #campo opzionale
 
     def update_info(self, buyer_info: 'Buyer'):
         """
@@ -29,7 +29,7 @@ class Buyer(BaseModel):
 
     def is_valid(self) -> bool:
         """
-        Verifica se le informazioni del buyer sono valide.
+        Verifica se le informazioni minime del buyer richieste sono valide.
         """
         if not all([self.password, self.email, self.phone_number, self.name, self.surname]):
             return False
@@ -40,3 +40,4 @@ class Buyer(BaseModel):
         if not email_pattern.match(self.email):
             return False
         return True
+    

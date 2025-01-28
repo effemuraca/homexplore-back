@@ -10,8 +10,8 @@ class CreatePropertyOnSale(BaseModel):
     thumbnail: str = Field(example="http://example.com/photo.jpg")
     type: str = Field(example="condo")
     area: int = Field(example=100)
-    bed_number: Optional[int] = Field(None, example=3) #Optional field
-    bath_number: Optional[int] = Field(None, example=2) #Optional field
-    description: Optional[str] = Field(None, example="Beautiful home") #Optional field
-    photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) #Optional field
-    disponibility: Optional[Disponibility] = None   #Optional field
+    bed_number: Optional[int] = Field(None, example=3) 
+    bath_number: Optional[int] = Field(None, example=2) 
+    description: Optional[str] = Field(None, example="Beautiful home") 
+    photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
+    disponibility: Optional[Disponibility] = None   
