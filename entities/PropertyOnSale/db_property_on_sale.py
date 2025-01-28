@@ -2,7 +2,7 @@ from typing import Optional
 from bson.objectid import ObjectId
 from entities.PropertyOnSale.property_on_sale import PropertyOnSale
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
-from datetime import date
+from datetime import datetime
 
 
 
@@ -16,7 +16,7 @@ class PropertyOnSaleDB:
             return 400
         if not self.property_on_sale.check_min_info():
             return 400
-        self.property_on_sale.registration_date = date.today()
+        self.property_on_sale.registration_date = datetime.now()
         mongo_client = get_default_mongo_db()
         result = mongo_client.PropertyOnSale.insert_one(self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"}))
         if result.inserted_id:
@@ -25,11 +25,37 @@ class PropertyOnSaleDB:
         return 500
     
     def get_property_on_sale_by_id(self) -> int:
+        try:
+            id=ObjectId(self.property_on_sale.property_on_sale_id)
+        except:
+            return 400
         mongo_client = get_default_mongo_db()
-        result = mongo_client.PropertyOnSale.find_one({"_id": ObjectId(self.property_on_sale.property_on_sale_id)})
+        result = mongo_client.PropertyOnSale.find_one({"_id": id})
         if not result:
             return 400
         self.property_on_sale = PropertyOnSale(**result)
+        return 201
+    
+    def delete_property_on_sale_by_id(self) -> int:
+        try:
+            id=ObjectId(self.property_on_sale.property_on_sale_id)
+        except:
+            return 400
+        mongo_client = get_default_mongo_db()
+        result = mongo_client.PropertyOnSale.delete_one({"_id": id})
+        if result.deleted_count == 0:
+            return 400
+        return 201
+    
+    def update_property_on_sale_by_id(self) -> int:
+        try:
+            id=ObjectId(self.property_on_sale.property_on_sale_id)
+        except:
+            return 400
+        mongo_client = get_default_mongo_db()
+        result = mongo_client.PropertyOnSale.update_one({"_id": id}, {"$set": self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"})})
+        if result.matched_count == 0:
+            return 400
         return 201
     
     

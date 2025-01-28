@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, EmailStr, Date
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any, Set
+from datetime import datetime
 import re
 
 
@@ -26,7 +27,7 @@ class PropertyOnSale(BaseModel):
     thumbnail: Optional[str] = None
     type: Optional[str] = None
     area: Optional[int] = None
-    registration_date: Optional[Date] = None
+    registration_date: Optional[datetime] = None
     bed_number: Optional[int] = None
     bath_number: Optional[int] = None
     description: Optional[str] = None

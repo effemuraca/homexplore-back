@@ -15,3 +15,18 @@ class CreatePropertyOnSale(BaseModel):
     description: Optional[str] = Field(None, example="Beautiful home") 
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
     disponibility: Optional[Disponibility] = None   
+
+class UpdatePropertyOnSale(BaseModel):
+    property_on_sale_id: Optional[str] = Field(None, example="5f4f4f4f4f4f4f4f4f4f4f4f")
+    city: Optional[str] = Field(None, example="New York")
+    neighbourhood: Optional[str] = Field(None, example="Bronx")
+    address: Optional[str] = Field(None, example="123 Main St")
+    price: Optional[int] = Field(None, example=270000)
+    thumbnail: Optional[str] = Field(None, example="http://example.com/photo.jpg")
+    type: Optional[str] = Field(None, example="condo")
+    area: Optional[int] = Field(None, example=100)
+    bed_number: Optional[int] = Field(None, example=3) 
+    bath_number: Optional[int] = Field(None, example=2) 
+    description: Optional[str] = Field(None, example="Beautiful home") 
+    photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
+    disponibility: Optional[Disponibility] = None   
