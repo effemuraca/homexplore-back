@@ -38,18 +38,6 @@ class PropertyOnSale(BaseModel):
     description: Optional[str] = None
     photos: Optional[List[str]] = None
     disponibility: Optional[Disponibility] = None
-
-
-    #Control that the minimum info is present for inserting a property
-    def check_min_info(self):
-        if not self.city or not self.neighbourhood or not self.address or not self.price or not self.thumbnail or not self.type or not self.area:
-            return False
-        if self.disponibility and not self.disponibility.validate_day_time():
-            return False
-        if self.type not in ["condo", "house", "apartment", "townhouse"]:
-            return False
-        return True
-
     
     
 

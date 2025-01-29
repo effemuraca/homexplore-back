@@ -14,8 +14,6 @@ class PropertyOnSaleDB:
         # check users information
         if not self.property_on_sale:
             return 400
-        if not self.property_on_sale.check_min_info():
-            return 400
         self.property_on_sale.registration_date = datetime.now()
         mongo_client = get_default_mongo_db()
         result = mongo_client.PropertyOnSale.insert_one(self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"}))
