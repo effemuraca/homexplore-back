@@ -108,8 +108,3 @@ open_house_info = OpenHouseInfo(
     start_time="10:00 AM",
     area=1000
 )
-
-# Convert the day and time to seconds
-seconds = convert_to_seconds(open_house_info)
-print(f"Seconds to event: {seconds}")
-# Output: Seconds to event: 604800
