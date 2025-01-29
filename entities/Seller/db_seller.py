@@ -28,7 +28,7 @@ class DBSeller:
         mongo_client = get_default_mongo_db()
         result = mongo_client.Seller.find_one({"_id": id})
         if not result:
-            return 400
+            return 404
         self.seller = Seller(**result)
         return 200
 
@@ -43,7 +43,7 @@ class DBSeller:
             {"$set": self.seller.model_dump(exclude_none=True, exclude={"seller_id"})}
         )
         if result.matched_count == 0:
-            return 400
+            return 404
         return 200
 
     def delete_seller_by_id(self) -> int:
@@ -54,6 +54,8 @@ class DBSeller:
         mongo_client = get_default_mongo_db()
         result = mongo_client.Seller.delete_one({"_id": id})
         if result.deleted_count == 0:
-            return 400
+            return 404
         return 200
+
+
     

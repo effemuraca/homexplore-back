@@ -20,9 +20,8 @@ def create_property_on_sale(property_on_sale: CreatePropertyOnSale):
 
 @property_on_sale_router.get("/", response_model=ResponseModels.PropertyOnSale, responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_properties_on_sale(property_on_sale_id: str):
-    property_on_sale=PropertyOnSale(property_on_sale_id=property_on_sale_id)
-    db_property_on_sale = PropertyOnSaleDB(property_on_sale)
-    response = db_property_on_sale.get_property_on_sale_by_id()
+    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
+    response = db_property_on_sale.get_property_on_sale_by_id(property_on_sale_id)
     if response == 400:
         raise HTTPException(status_code=response, detail="Invalid property id.")
     if response == 404:
@@ -31,9 +30,8 @@ def get_properties_on_sale(property_on_sale_id: str):
 
 @property_on_sale_router.delete("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeletePropertyOnSaleResponses)
 def delete_property_on_sale(property_on_sale_id: str):
-    property_on_sale=PropertyOnSale(property_on_sale_id=property_on_sale_id)
-    db_property_on_sale = PropertyOnSaleDB(property_on_sale)
-    response = db_property_on_sale.delete_property_on_sale_by_id()
+    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
+    response = db_property_on_sale.delete_property_on_sale_by_id(property_on_sale_id)
     if response == 400:
         raise HTTPException(status_code=response, detail="Invalid property id.")
     if response == 404:
@@ -50,6 +48,7 @@ def update_property_on_sale(property_on_sale: UpdatePropertyOnSale):
     if response == 404:
         raise HTTPException(status_code=response, detail="Property not found.")
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
+    
 
     
 
