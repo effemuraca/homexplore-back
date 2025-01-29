@@ -31,9 +31,6 @@ class PropertyOnSaleDB:
             if self.property_on_sale.disponibility:
                 data["disponibility"] = self.property_on_sale.disponibility.model_dump()
             result = mongo_client.Seller.update_one({"_id": ObjectId("679a41fa777bc4a7eb04807a")}, {"$push": {"properties_on_sale": data}})
-            if result.matched_count == 0:
-                mongo_client.PropertyOnSale.delete_one({"_id": ObjectId(self.property_on_sale.property_on_sale_id)})
-                return 500
             return 201
         return 500
     
