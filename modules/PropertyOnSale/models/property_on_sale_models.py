@@ -17,7 +17,7 @@ class CreatePropertyOnSale(BaseModel):
     disponibility: Optional[Disponibility] = None   
 
 class UpdatePropertyOnSale(BaseModel):
-    property_on_sale_id: Optional[str] = Field(None, example="5f4f4f4f4f4f4f4f4f4f4f4f")
+    property_on_sale_id: str = Field(None, example="5f4f4f4f4f4f4f4f4f4f4f4f")
     city: Optional[str] = Field(None, example="New York")
     neighbourhood: Optional[str] = Field(None, example="Bronx")
     address: Optional[str] = Field(None, example="123 Main St")
