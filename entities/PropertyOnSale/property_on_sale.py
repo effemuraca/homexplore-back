@@ -9,14 +9,19 @@ class Disponibility(BaseModel):
     time: str = Field(example="10:00-11:00 AM")
     max_attendees: int = Field(example=5)
 
-    #Valide day field and time field
-    def validate_day_time(self):
-        if self.day not in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]:
-            return False
+    @validator("day")
+    def validate_day(cls, value):
+        valid_days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+        if value not in valid_days:
+            raise ValueError("Invalid day. Must be one of: " + ", ".join(valid_days))
+        return value
+
+    @validator("time")
+    def validate_time(cls, value):
         time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9]-(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
-        if not time_pattern.match(self.time):
-            return False
-        return True
+        if not time_pattern.match(value):
+            raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
+        return value
 
 class PropertyOnSale(BaseModel):
     property_on_sale_id: Optional[str] = None
