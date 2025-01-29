@@ -11,7 +11,6 @@ class PropertyOnSaleDB:
         self.property_on_sale = property_on_sale
     
     def create_property_on_sale(self) -> int:
-        # check users information
         if not self.property_on_sale:
             return 400
         self.property_on_sale.registration_date = datetime.now()
