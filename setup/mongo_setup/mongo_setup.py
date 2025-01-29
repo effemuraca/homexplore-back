@@ -33,7 +33,7 @@ def get_default_mongo_db():
     """
     This function returns the database instance, which is the default database specified in the environment variables.
     """
-    return MongoClient(MONGO_URL)[DEFAULT_MONGO_DB]
+    return client[DEFAULT_MONGO_DB]
     
 def convert_object_id(result: Union[Dict[str, Any], List[Dict[str, Any]]]):
     """
