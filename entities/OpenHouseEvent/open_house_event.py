@@ -99,12 +99,3 @@ def convert_to_seconds(self) -> Optional[int]:
 class OpenHouseEvent(BaseModel):
     property_id: Optional[int] = Field(None, example=1)
     open_house_info: Optional[OpenHouseInfo] = None
-
-# Test the convert_to_seconds method
-
-# Create an OpenHouseInfo object
-open_house_info = OpenHouseInfo(
-    day="Monday",
-    start_time="10:00 AM",
-    area=1000
-)
