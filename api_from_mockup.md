@@ -88,3 +88,5 @@
 
 - Viene venduta una casa
 - Arriva l'open house event
+
+RIMUOVERE IL SESSO DAI MOCKUP E DALL'UML (che va riguardato tutto)
