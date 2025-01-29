@@ -48,6 +48,8 @@ def update_property_on_sale(property_on_sale: UpdatePropertyOnSale):
     if response == 404:
         raise HTTPException(status_code=response, detail="Property not found.")
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
+
+
     
 
     

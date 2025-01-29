@@ -29,5 +29,5 @@ class Seller(BaseModel):
     email: Optional[str]=None
     password: Optional[str] = None
     phone_number: Optional[str] = None
-    property_on_sale: List[SellerPropertyOnSale] = []
-    sold_property: List[SoldProperty] = []
+    property_on_sale: Optional[List[SellerPropertyOnSale]] = None
+    sold_property: Optional[List[SoldProperty]] = None

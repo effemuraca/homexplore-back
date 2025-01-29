@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, validator
 from typing import Optional
 import re
 
+
 class CreateSeller(BaseModel):
     agency_name: str = Field(example="Agency Name")
     email: str = Field(example="email@example.com")
@@ -11,9 +12,8 @@ class CreateSeller(BaseModel):
     @validator("email")
     def validate_email(cls, value):
         email_pattern = re.compile(
-            r"^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|"
-            r"([-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+(?:\.[-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+)*)"
-            r")@((?:[A-Z0-9-]+\.)+[A-Z]{2,})$", re.IGNORECASE)
+            r'^[\w\.-]+@[\w\.-]+\.\w{2,}$'
+        )
         if not email_pattern.match(value):
             raise ValueError("Invalid email format. Expected format: email@example.com")
         return value

@@ -1,0 +1,2 @@
+new property on sale -> add property info to seller logged
+sell a property -> delete sold property from all collection where it is and put in seller sold property
