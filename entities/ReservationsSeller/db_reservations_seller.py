@@ -1,5 +1,6 @@
 from typing import Optional, List
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
+import redis
 from setup.redis_setup.redis_setup import get_redis_client
 import json
 import logging
@@ -22,32 +23,15 @@ class ReservationsSellerDB:
             logger.error("Failed to connect to Redis.")
             return 500
         try:
-            raw_data = redis_client.get(f"property_id:{self.reservations_seller.property_id}:reservations_seller")
-            if not raw_data:
-                data = []
-            else:
-                data = json.loads(raw_data)
-            
-             #Verifica se la prenotazione esiste già
-                for res in data:
-                    existing_reservation = ReservationS(**res)
-                    if existing_reservation.buyer_id == reservation.buyer_id:
-                        logger.info(f"Reservation already exists for property_id={self.reservations_seller.property_id}, buyer_id={existing_reservation.buyer_id}.")
-                        return 409
-
-                # Utilizza la classe ReservationS invece del dizionario
-                reservation = self.reservations_seller.reservations[0]
-                reservation_data = reservation.dict()
-                data.append(reservation_data)
-                result = redis_client.set(f"property_id:{self.reservations_seller.property_id}:reservations_seller", json.dumps([res.dict() for res in data]))
-                logger.info(f"Seller reservation created for property_id={self.reservations_seller.property_id}, buyer_id={self.reservations_seller.reservations[0].buyer_id}.")
-                if not result:
-                    return 500
-                result = redis_client.expire(f"property_id:{self.reservations_seller.property_id}:reservations_seller", seconds)
-                if not result:
-                    logger.error(f"Failed to set expiration for reservations_seller of property_id={self.reservations_seller.property_id}.")
-                    return 500
-                return 201
+            key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+            raw_data = redis_client.get(key)
+            if raw_data:
+                logger.info("Reservation already exists.")
+                return 409
+            data = [r.dict() for r in self.reservations_seller.reservations or []]
+            redis_client.setex(key, seconds, json.dumps(data))
+            logger.info("Seller reservation created.")
+            return 201
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
             logger.error(f"Error creating seller reservation: {e}")
             return 500
@@ -57,21 +41,14 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        raw_data = redis_client.get(f"property_id:{self.reservations_seller.property_id}:reservations_seller")
+        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        raw_data = redis_client.get(key)
         if not raw_data:
             logger.info(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
             return 404
         try:
             data = json.loads(raw_data)
-            reservation_list = []
-            for item in data:
-                reservation = ReservationS(
-                    buyer_id=item.get("buyer_id"),
-                    full_name=item.get("full_name"),
-                    email=item.get("email"),
-                    phone=item.get("phone")
-                )
-                reservation_list.append(reservation)
+            reservation_list = [ReservationS(**item) for item in data]
             self.reservations_seller = ReservationsSeller(property_id=self.reservations_seller.property_id, reservations=reservation_list)
             return 200
         except (json.JSONDecodeError, TypeError) as e:
@@ -110,32 +87,19 @@ class ReservationsSellerDB:
             logger.error(f"Error updating seller reservation: {e}")
             return 500
 
-    def delete_reservation_seller(self) -> int:
+    def delete_reservations_seller(self) -> int:
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        raw_data = redis_client.get(f"property_id:{self.reservations_seller.property_id}:reservations_seller")
-        if not raw_data:
-            logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id} to delete.")
-            return 404
-        try:
-            data = json.loads(raw_data)
-            buyer_id = self.reservations_seller.reservations[0].buyer_id
-            new_data = [res for res in data if res.get("buyer_id") != buyer_id]
-            if len(new_data) == len(data):
-                logger.info(f"Seller reservation not found for property_id={self.reservations_seller.property_id}, buyer_id={buyer_id}.")
-                return 404
-            result = redis_client.set(f"property_id:{self.reservations_seller.property_id}:reservations_seller", json.dumps(new_data))
-            logger.info(f"Seller reservation deleted for property_id={self.reservations_seller.property_id}, buyer_id={buyer_id}.")
-            if result:
-                return 200
-            return 500
-        except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
-            logger.error(f"Error deleting seller reservation: {e}")
-            return 500
+        result = redis_client.delete(f"property_id:{self.reservations_seller.property_id}:reservations_seller")
+        if result:
+            logger.info(f"Reservations deleted for property_id={self.reservations_seller.property_id}.")
+            return 200
+        logger.warning(f"No reservations found for property_id={self.reservations_seller.property_id} or delete failed.")
+        return 404
             
-    def delete_reservations_seller_by_property_id_and_buyer_id(self, buyer_id: str) -> int:
+    def delete_reservation_seller_by_property_id_and_buyer_id(self, buyer_id: str) -> int:
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
