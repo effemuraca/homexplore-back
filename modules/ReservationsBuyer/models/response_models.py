@@ -8,70 +8,25 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-ReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
-    200: {
-        "model": ReservationsBuyer,
-        "description": "Successful operation, returns the reservations list.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "buyer_id": 1,
-                    "reservations": [
-                        {
-                            "property_id": 1,
-                            "date": "2021-09-01",
-                            "time": "10:00",
-                            "thumbnail": "https://www.example.com/image.jpg",
-                            "address": "1234 Example St."
-                        }
-                    ]
-                }
-            }
-        }
-    },
-    401: {
-        "model": ErrorModel,
-        "description": "User not authenticated.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not authenticated"
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "No reservations found for this user.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "No reservations found"
-                }
-            }
-        }
-    }
-}
-
-CreateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+CreateReservationBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     201: {
         "model": SuccessModel,
         "description": "Reservation created successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation created successfully."
+                    "detail": "Buyer reservation created successfully."
                 }
             }
         }
     },
-    400: {
+    409: {
         "model": ErrorModel,
-        "description": "Invalid input or missing reservation info.",
+        "description": "Reservation already exists.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Invalid reservation info."
+                    "detail": "Reservation already exists."
                 }
             }
         }
@@ -89,31 +44,6 @@ CreateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     }
 }
 
-DeleteReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
-    200: {
-        "model": SuccessModel,
-        "description": "Reservation deleted successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Reservation deleted successfully."
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "Reservation not found or delete failed.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Reservation not found or delete failed."
-                }
-            }
-        }
-    }
-}
-
 UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": ReservationsBuyer,
@@ -121,38 +51,30 @@ UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
         "content": {
             "application/json": {
                 "example": {
-                    "buyer_id": 1,
-                    "reservations": [
-                        {
-                            "property_id": 1,
-                            "date": "2021-09-02",
-                            "time": "11:00",
-                            "thumbnail": "https://www.example.com/new_image.jpg",
-                            "address": "5678 Example Ave."
-                        }
-                    ]
-                }
-            }
-        }
-    },
-    400: {
-        "model": ErrorModel,
-        "description": "Invalid input or missing reservation info.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Invalid reservation info."
+                    "buyer_id": "615c44fdf641be001f0c1111",
+                    "reservations": []
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "Reservation not found or update failed.",
+        "description": "Reservation not found.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation not found or update failed."
+                    "detail": "Reservation not found."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid input data.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid input data."
                 }
             }
         }
@@ -164,6 +86,79 @@ UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
             "application/json": {
                 "example": {
                     "detail": "Failed to update reservation."
+                }
+            }
+        }
+    }
+}
+
+DeleteReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": SuccessModel,
+        "description": "Reservations deleted successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Buyer reservations deleted successfully."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "No reservations found or delete failed.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "No reservations found or delete failed."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to delete reservation.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to delete reservation."
+                }
+            }
+        }
+    }
+}
+
+GetReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": ReservationsBuyer,
+        "description": "Reservations retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "buyer_id": "615c44fdf641be001f0c1111",
+                    "reservations": []
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "No reservations found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "No reservations found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to retrieve reservations.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to retrieve reservations."
                 }
             }
         }

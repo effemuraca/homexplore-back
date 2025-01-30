@@ -1,91 +1,142 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from modules.ReservationsBuyer.models import response_models as ResponseModels
-from modules.ReservationsBuyer.models import reservations_buyer_models as ReservationsBuyerModels
+from typing import List
+import logging
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from entities.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
-import logging
+from modules.ReservationsBuyer.models import response_models as ResponseModels
+from modules.ReservationsBuyer.models.reservations_buyer_models import CreateReservationBuyer, UpdateReservationBuyer
 
 reservations_buyer_router = APIRouter(prefix="/reservations_buyer", tags=["reservations_buyer"])
 
-# Configure the logger
+# Configura il logger
 logger = logging.getLogger(__name__)
 
-@reservations_buyer_router.get(
-    "/reservations_buyer",
-    response_model=ReservationsBuyer,
-    responses=ResponseModels.ReservationsBuyerResponseModelResponses
-)
-def get_reservations_by_user(user_id: int):
-    """
-    Recupera tutte le prenotazioni del buyer per un dato user_id.
-    """
-    db = ReservationsBuyerDB(ReservationsBuyer())
-    reservations = db.get_reservations_by_user(user_id)
-    if reservations is None:
-        logger.warning(f"No reservations found for user_id={user_id}.")
-        raise HTTPException(status_code=404, detail="No reservations found")
-    return db.reservations_buyer
-
 @reservations_buyer_router.post(
-    "/reservations_buyer",
+    "/create_reservation_buyer",
     response_model=ResponseModels.SuccessModel,
-    responses=ResponseModels.CreateReservationsBuyerResponseModelResponses
+    responses=ResponseModels.CreateReservationBuyerResponseModelResponses
 )
-def create_reservations_buyer(user_id: int, reservation_info: ReservationB):
-    """
-    Crea una nuova prenotazione per un dato utente.
-    """
-    db = ReservationsBuyerDB(ReservationsBuyer())
+def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer):
+    reservations_buyer = ReservationsBuyer(
+        buyer_id=reservations_buyer_info.buyer_id,
+        reservations=[
+            ReservationB(
+                property_id=reservations_buyer_info.property_id,
+                date=reservations_buyer_info.date,
+                time=reservations_buyer_info.time,
+                thumbnail=reservations_buyer_info.thumbnail,
+                address=reservations_buyer_info.address
+            )
+        ]
+    )
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        check = db.create_reservation_buyer(user_id, reservation_info)
+        status = reservations_buyer_db.create_reservation_buyer()
     except Exception as e:
         logger.error(f"Error creating buyer reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error creating reservation")
-    if not check:
-        logger.warning(f"Reservation already exists or failed to create for user_id={user_id}, property_id={reservation_info.property_id}.")
-        raise HTTPException(status_code=500, detail="Reservation already exists or failed to create")
-    logger.info(f"Reservation created successfully for user_id={user_id}, property_id={reservation_info.property_id}.")
-    return ResponseModels.SuccessModel(detail="Reservation created")
+        raise HTTPException(status_code=500, detail="Error creating buyer reservation")
+    
+    if status == 409:
+        raise HTTPException(status_code=409, detail="Reservation already exists.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to create reservation.")
+    
+    return JSONResponse(status_code=201, content={"detail": "Buyer reservation created successfully."})
+
+@reservations_buyer_router.get(
+    "/get_reservations_buyer/{buyer_id}",
+    response_model=ReservationsBuyer,
+    responses=ResponseModels.GetReservationsBuyerResponseModelResponses
+)
+def get_reservations_buyer(buyer_id: str):
+    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+    try:
+        status = reservations_buyer_db.get_reservations_by_user()
+    except Exception as e:
+        logger.error(f"Error retrieving buyer reservations: {e}")
+        raise HTTPException(status_code=500, detail="Error retrieving buyer reservations")
+
+    if status == 404:
+        raise HTTPException(status_code=404, detail="No reservations found.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to retrieve reservations.")
+    
+    return reservations_buyer_db.reservations_buyer
+
+@reservations_buyer_router.put(
+    "/update_reservations_buyer",
+    response_model=ReservationsBuyer,
+    responses=ResponseModels.UpdateReservationsBuyerResponseModelResponses
+)
+def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer):
+    reservations_buyer = ReservationsBuyer(
+        buyer_id=reservations_buyer_info.buyer_id,
+        reservations=[
+            ReservationB(
+                property_id=reservations_buyer_info.property_id,
+                date=reservations_buyer_info.date,
+                time=reservations_buyer_info.time,
+                thumbnail=reservations_buyer_info.thumbnail,
+                address=reservations_buyer_info.address
+            )
+        ]
+    )
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+    try:
+        status = reservations_buyer_db.update_reservation_buyer()
+    except Exception as e:
+        logger.error(f"Error updating buyer reservations: {e}")
+        raise HTTPException(status_code=500, detail="Error updating buyer reservations")
+
+    if status == 404:
+        raise HTTPException(status_code=404, detail="Reservation not found.")
+    if status == 400:
+        raise HTTPException(status_code=400, detail="Invalid input data.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to update reservation.")
+    
+    return reservations_buyer_db.reservations_buyer
 
 @reservations_buyer_router.delete(
-    "/reservations_buyer",
+    "/delete_reservations_buyer/{buyer_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
-def delete_reservations_by_user(user_id: int):
-    """
-    Elimina tutte le prenotazioni per un dato utente.
-    """
-    db = ReservationsBuyerDB(ReservationsBuyer())
+def delete_reservations_buyer(buyer_id: str):
+    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        check = db.delete_reservations_by_user(user_id)
+        status = reservations_buyer_db.delete_reservations_buyer()
     except Exception as e:
         logger.error(f"Error deleting buyer reservations: {e}")
-        raise HTTPException(status_code=500, detail="Error deleting reservations")
-    if not check:
-        logger.warning(f"Failed to delete reservations for user_id={user_id}.")
-        raise HTTPException(status_code=500, detail="Error deleting reservations")
-    logger.info(f"Reservations deleted successfully for user_id={user_id}.")
-    return ResponseModels.SuccessModel(detail="Reservations deleted")
+        raise HTTPException(status_code=500, detail="Error deleting buyer reservations")
 
-@reservations_buyer_router.put(
-    "/reservations_buyer",
+    if status == 404:
+        raise HTTPException(status_code=404, detail="No reservations found or delete failed.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to delete reservation.")
+    
+    return JSONResponse(status_code=200, content={"detail": "Buyer reservations deleted successfully."})
+
+@reservations_buyer_router.delete(
+    "/delete_reservation_buyer/{buyer_id}/{property_id}",
     response_model=ResponseModels.SuccessModel,
-    responses=ResponseModels.UpdateReservationsBuyerResponseModelResponses
+    responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
-def update_reservation_buyer(user_id: int, property_id: int, reservation_info: ReservationB):
-    """
-    Aggiorna una prenotazione esistente per un dato utente e property_id.
-    """
-    db = ReservationsBuyerDB(ReservationsBuyer())
+def delete_reservation_buyer(buyer_id: str, property_id: str):
+    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        check = db.update_reservation_buyer(user_id, property_id, reservation_info)
+        status = reservations_buyer_db.delete_reservation_by_property_id(property_id)
     except Exception as e:
-        logger.error(f"Error updating buyer reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error updating reservation")
-    if not check:
-        logger.warning(f"Reservation not found or failed to update for user_id={user_id}, property_id={property_id}.")
-        raise HTTPException(status_code=404, detail="Reservation not found or failed to update")
-    logger.info(f"Reservation updated successfully for user_id={user_id}, property_id={property_id}.")
-    return ResponseModels.SuccessModel(detail="Reservation updated")
+        logger.error(f"Error deleting buyer reservation: {e}")
+        raise HTTPException(status_code=500, detail="Error deleting buyer reservation")
+
+    if status == 404:
+        raise HTTPException(status_code=404, detail="Reservation not found or delete failed.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to delete reservation.")
+    
+    return JSONResponse(status_code=200, content={"detail": "Buyer reservation deleted successfully."})

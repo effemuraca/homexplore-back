@@ -104,11 +104,11 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        raw_data = redis_client.get(f"property_id:{self.reservations_seller.property_id}:reservations_seller")
-        if not raw_data:
-            logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
-            return 404
         try:
+            raw_data = redis_client.get(f"property_id:{self.reservations_seller.property_id}:reservations_seller")
+            if not raw_data:
+                logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
+                return 404
             data = json.loads(raw_data)
             new_data = [res for res in data if res.get("buyer_id") != buyer_id]
             if len(new_data) == len(data):
