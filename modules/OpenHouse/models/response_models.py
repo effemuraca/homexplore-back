@@ -7,31 +7,20 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-OpenHouseEventResponseModelResponses = {
+GetOpenHouseEventResponseModelResponses = {
     200: {
         "model": OpenHouseEvent,
-        "description": "Successful operation, returns the open house event details.",
+        "description": "Open house event data retrieved successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "property_id": 1,
+                    "property_id": "615c44fdf641be001f0c1111",
                     "open_house_info": {
-                        "date": "2023-10-01",
-                        "time": "14:00:00",
+                        "day": "Monday",
+                        "start_time": "10:00 AM",
                         "max_attendees": 50,
-                        "attendees": 30
+                        "attendees": 0
                     }
-                }
-            }
-        }
-    },
-    401: {
-        "model": ErrorModel,
-        "description": "User not authenticated.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not authenticated"
                 }
             }
         }
@@ -46,6 +35,17 @@ OpenHouseEventResponseModelResponses = {
                 }
             }
         }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Error retrieving open house event.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Error retrieving open house event"
+                }
+            }
+        }
     }
 }
 
@@ -56,18 +56,18 @@ CreateOpenHouseEventResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Open house event created"
+                    "detail": "Open house event created"
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid day or time.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid day or time"
                 }
             }
         }
@@ -92,18 +92,18 @@ DeleteOpenHouseEventResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Open house event deleted"
+                    "detail": "Open house event deleted"
                 }
             }
         }
     },
-    401: {
+    404: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Open house event not found.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Open house event not found"
                 }
             }
         }
@@ -128,18 +128,18 @@ UpdateOpenHouseEventResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                   "detail": "Open house event updated"
+                    "detail": "Open house event updated"
                 }
             }
         }
     },
-    401: {
+    400: {
         "model": ErrorModel,
-        "description": "User not authenticated.",
+        "description": "Invalid day or time.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "User not authenticated"
+                    "detail": "Invalid day or time"
                 }
             }
         }
