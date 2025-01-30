@@ -29,6 +29,8 @@ class DBSeller:
         result = mongo_client.Seller.find_one({"_id": id})
         if not result:
             return 404
+        #change name of the key "_id" to "seller_id"
+        result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
         return 200
 
@@ -80,7 +82,6 @@ class DBSeller:
         result = mongo_client.Seller.update_one({"_id": ObjectId("679a41fa777bc4a7eb04807a")}, {"$push": {"sold_properties": data}})
         return 200
 
-    
 
         
 

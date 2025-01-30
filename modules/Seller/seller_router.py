@@ -38,7 +38,7 @@ def sell_property(property_to_sell_id: str):
     
    
 
-@seller_router.get("/", response_model=dict, responses=ResponseModels.GetSellerResponses)
+@seller_router.get("/", response_model=Seller, responses=ResponseModels.GetSellerResponses)
 def get_seller(seller_id: str):
     temp_seller = Seller(seller_id=seller_id)
     db_seller = DBSeller(temp_seller)
@@ -47,7 +47,7 @@ def get_seller(seller_id: str):
         raise HTTPException(status_code=400, detail="Invalid seller id")
     if response == 404:
         raise HTTPException(status_code=404, detail="Seller not found.")
-    return db_seller.seller.model_dump(exclude_none=True,exclude={"seller_id"})
+    return db_seller.seller
 
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller):
