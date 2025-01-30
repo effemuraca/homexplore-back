@@ -72,6 +72,8 @@
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
 - View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto)
 - Rimozione della proprietà
+- INSERIRE BOTTONE PER LA VENDITA(mockup)
+- INSERIRE BARRA DI RICERCA(muckup)
 
 ## index.html
 
