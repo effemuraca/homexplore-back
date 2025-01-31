@@ -50,6 +50,11 @@ GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     }
 }
 
+
+class CreateBuyerResponseModel(BaseModel):
+    detail: str
+    buyer_id: str
+
 CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     201: {
         "model": SuccessModel,
@@ -88,18 +93,12 @@ CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
 
 UpdateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
-        "model": Buyer,
+        "model": SuccessModel,
         "description": "Buyer updated successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "buyer_id": "60d5ec49f8d2e30b8c8b4567",
-                    "password": "NewSecureP@ssw0rd",
-                    "email": "john.new@example.com",
-                    "phone_number": "0987654321",
-                    "name": "John",
-                    "surname": "Doe",
-                    "age": 31
+                    "detail": "Buyer updated successfully."
                 }
             }
         }
