@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from entities.ReservationsSeller.reservations_seller import ReservationsSeller  # Added import
+from entities.ReservationsSeller.reservations_seller import ReservationsSeller
 
 class SuccessModel(BaseModel):
     detail: str
@@ -30,7 +30,7 @@ CreateReservationSellerResponseModelResponses = {
             }
         }
     },
-    409: {  
+    409: {
         "model": ErrorModel,
         "description": "Reservation already exists.",
         "content": {
@@ -92,7 +92,7 @@ DeleteReservationsSellerResponseModelResponses = {
 
 GetReservationsSellerResponseModelResponses = {
     200: {
-        "model": ReservationsSeller,  # Changed from string to actual model
+        "model": ReservationsSeller,
         "description": "Reservations retrieved successfully.",
         "content": {
             "application/json": {
@@ -129,7 +129,7 @@ GetReservationsSellerResponseModelResponses = {
 
 UpdateReservationsSellerResponseModelResponses = {
     200: {
-        "model": ReservationsSeller,  # Changed from string to actual model
+        "model": ReservationsSeller,
         "description": "Reservation updated successfully.",
         "content": {
             "application/json": {

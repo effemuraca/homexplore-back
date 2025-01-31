@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from setup.redis_setup.redis_setup import get_redis_client, WatchError
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from modules.KVDBRoutes.models import response_models as ResponseModels
-from modules.KVDBRoutes.models import kvdb_models as KVDBModels
+from modules.KVDBRoutes.models.kvdb_models import BookNow
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from entities.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
@@ -98,6 +98,100 @@ def delete_reservation_by_user_and_property(user_id: str, property_id: str):
         raise HTTPException(status_code=500, detail="Unexpected error occurred")
 
 
+@kvdb_router.post(
+    "/book_now",
+    response_model=ResponseModels.SuccessModel,
+    responses=ResponseModels.BookNowResponses
+)
+def book_now(book_now_info: BookNow):
+    """
+    Book an open house event for a given buyer_id and property_id,
+    handling the case where the open house event is not present,
+    the case where the open house event is present,
+    and the case where the reservation is already present.
+    This is done atomically using Redis transactions (WATCH/MULTI/EXEC).
+    """
+    buyer_id = book_now_info.buyer_id
+    property_id = book_now_info.property_id
+    date = book_now_info.date
+    time = book_now_info.time
+    thumbnail = book_now_info.thumbnail
+    address = book_now_info.address
+
+    open_house_ev = OpenHouseEvent(property_id=property_id)
+    open_house_db = OpenHouseEventDB(open_house_ev)
+    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[
+        ReservationB(
+            property_id=property_id,
+            date=date,
+            time=time,
+            thumbnail=thumbnail,
+            address=address
+        )
+    ])
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+    reservations_seller = ReservationsSeller(property_id=property_id)
+    reservations_seller_db = ReservationsSellerDB(reservations_seller)
+
+    redis_client = get_redis_client()
+    if redis_client is None:
+        raise HTTPException(status_code=500, detail="Failed to connect to Redis")
+
+    try:
+        # Start WATCH on all keys involved
+        buyer_key = f"buyer_id:{buyer_id}:reservations"
+        seller_key = f"property_id:{property_id}:reservations_seller"
+        open_house_key = f"property_id:{property_id}:open_house_info"
+        redis_client.watch(buyer_key, seller_key, open_house_key)
+
+        # Check if open house event exists
+        status = open_house_db.get_open_house_event_by_property()
+        if status != 200:
+            redis_client.unwatch()
+            if status == 404:
+                raise HTTPException(status_code=404, detail="Open house event not found.")
+            else:
+                raise HTTPException(status_code=500, detail="Error retrieving open house event.")
+
+        # Check if reservation already exists
+        status = reservations_buyer_db.create_reservation_buyer()
+        if status == 500:
+            redis_client.unwatch()
+            raise HTTPException(status_code=500, detail="Failed to create buyer reservation.")
+        if status == 409:
+            redis_client.unwatch()
+            raise HTTPException(status_code=409, detail="Reservation already exists.")
+
+        # Create seller reservation
+        status = reservations_seller_db.create_reservation_seller(seconds=)
+        if status == 500:
+            redis_client.unwatch()
+            raise HTTPException(status_code=500, detail="Failed to create seller reservation.")
+
+        # Increment attendees
+        status = open_house_db.increment_attendees()
+        if status == 500:
+            redis_client.unwatch()
+            raise HTTPException(status_code=500, detail="Failed to increment attendees.")
+
+        # Execute transaction
+        with redis_client.pipeline() as pipe:
+            try:
+                pipe.multi()
+                # Since operations are already performed via DB methods, just execute the pipeline
+                pipe.execute()
+            except WatchError:
+                logger.error("Transaction failed due to concurrent modification.")
+                raise HTTPException(status_code=500, detail="Transaction failed.")
+
+        return JSONResponse(status_code=200, content={"detail": "Reservation created successfully."})
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Unexpected error occurred.")
+    
     
 
 
@@ -115,11 +209,12 @@ def delete_reservation_by_user_and_property(user_id: str, property_id: str):
 
     # To do:
     # Arriva l'open house event -> il ttl di openhouseevent scade e si cancella, allo stesso modo si elimina la reservationsseller, mentre si aggiorna reservationbuyer, eliminando la specifica prenotazione
-     # Si cancella un'utente dalla piattaforma:
+    
+    # Sistemare sulle route Mongo:
+    # Si cancella un'utente dalla piattaforma:
     #   Caso seller: ...
     #   Caso buyer: va cancellato reservationsseller, diminuito attendees in openhouseevent e cancellate le prenotazioni di quell'utente in reservationsbuyer
     # Si aggiorna l'open house time -> va aggiornato openhouseevent e reservationsbuyer e possibilmente notificato l'utente (necessario PropertyOnSale)
     # Si aggiorna thumbnail, prezzo, indirizzo -> va aggiornato reservationsbuyer (necessario PropertyOnSale)
     # Si cancella una casa in vendita -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer (necessario PropertyOnSale)
     # Si vende una casa -> va cancellato openhouseevent e reservationsseller e cancellate le prenotazioni in reservationsbuyer (necessario PropertyOnSale)
-# oss: bisogna stare attenti all'atomicità delle operazioni

@@ -16,8 +16,6 @@ GetOpenHouseEventResponseModelResponses = {
                 "example": {
                     "property_id": "615c44fdf641be001f0c1111",
                     "open_house_info": {
-                        "day": "Monday",
-                        "start_time": "10:00 AM",
                         "max_attendees": 50,
                         "attendees": 0
                     }
@@ -61,17 +59,7 @@ CreateOpenHouseEventResponseModelResponses = {
             }
         }
     },
-    400: {
-        "model": ErrorModel,
-        "description": "Invalid day or time.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Invalid day or time"
-                }
-            }
-        }
-    },
+    
     500: {
         "model": ErrorModel,
         "description": "Error creating open house event.",

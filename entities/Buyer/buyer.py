@@ -6,6 +6,13 @@ from typing import Optional
 # Configura il logger
 logger = logging.getLogger(__name__)
 
+class FavoriteProperty(BaseModel):
+    property_id: str
+    thumbnail: str
+    address: str
+    price: int
+    area: int
+
 class Buyer(BaseModel):
     buyer_id: Optional[str] = Field(None, example="60d5ec49f8d2e30b8c8b4567")
     password: Optional[str] = Field(None, example="SecureP@ssw0rd")
@@ -14,6 +21,14 @@ class Buyer(BaseModel):
     name: Optional[str] = Field(None, example="John")
     surname: Optional[str] = Field(None, example="Doe")
     age: Optional[int] = Field(None, example=30)  #campo opzionale
+    favorites: Optional[list[FavoriteProperty]] = Field(None, example=[{
+        "property_id": "1",
+        "thumbnail": "https://www.example.com/image.jpg",
+        "address": "1234 Example St.",
+        "price": 100000,
+        "area": 100
+    }])
+
 
     def update_info(self, buyer_info: 'Buyer'):
         """

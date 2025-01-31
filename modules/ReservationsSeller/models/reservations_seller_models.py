@@ -1,18 +1,25 @@
 from pydantic import BaseModel, Field
-from typing import Optional
-
+from typing import Optional, List
+from entities.ReservationsSeller.reservations_seller import ReservationS
 
 class CreateReservationSeller(BaseModel):
-    property_id: str = Field(example="615c44fdf641be001f0c1111")
-    buyer_id: str = Field(None, example="615c44fdf641be001f0c1111")
-    full_name: str = Field(None, example="John Doe")
-    email: str = Field(None, example="john@example.com")
-    phone: str = Field(None, example="1234567890")
-    seconds: int = Field(0, example=3600)  
-
-class UpdateReservationSeller(BaseModel):
-    property_id: str = Field(example="615c44fdf641be001f0c1111")
+    property_id: str = Field(..., example="615c44fdf641be001f0c1111")
     buyer_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
     full_name: Optional[str] = Field(None, example="John Doe")
     email: Optional[str] = Field(None, example="john@example.com")
     phone: Optional[str] = Field(None, example="1234567890")
+    day: str = Field(..., example="Monday")
+    time: str = Field(..., example="12:00 PM")
+    area: int = Field(..., example=500)
+
+class UpdateReservationSeller(BaseModel):
+    property_id: str = Field(..., example="615c44fdf641be001f0c1111")
+    buyer_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
+    full_name: Optional[str] = Field(None, example="John Doe")
+    email: Optional[str] = Field(None, example="john@example.com")
+    phone: Optional[str] = Field(None, example="1234567890")
+
+class UpdateEntireReservationSeller(BaseModel):
+    property_id: str = Field(..., example="615c44fdf641be001f0c1111")
+    reservations: List[ReservationS] = Field(..., example=[])
+    area: Optional[int] = Field(None, example=500)
