@@ -24,12 +24,12 @@
 
 ## favourites.html
 
-- Una proprietà viene rimossa dai preferiti
+- Una proprietà viene rimossa dai preferiti -> DA FARE OGGI FERDI
 
 ## detail_home.html
 
-- Add to favourites premuto da un buyer
-- Book now cliccato da un buyer
+- Add to favourites premuto da un buyer -> DA FARE OGGI FERDI
+- Book now cliccato da un buyer -> DA FARE OGGI FERDI
 - LEVARE INFO SULLE AGENZIE (SIA NEI MOCKUP CHE NELLA COLLECTION PROPERTYONSALE)
 
 ## seller_sold.html
@@ -68,16 +68,16 @@
 
 ## seller_for_sale.html
 
-- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo)
+- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> DA FARE OGGI FERDI
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
-- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto)
+- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> DA FARE OGGI FERDI
 - Rimozione della proprietà
 - INSERIRE BOTTONE PER LA VENDITA(mockup)
-- INSERIRE BARRA DI RICERCA(muckup)
+- INSERIRE BARRA DI RICERCA(mockup)
 
 ## index.html
 
-- search cliccato: parte la get con i parametri che l'utente ha impostato
+- search cliccato: parte la get con i parametri che l'utente ha impostato -> DA FARE OGGI FERDI
 
 # search.html
 
@@ -89,6 +89,6 @@
 ## Miscellanea
 
 - Viene venduta una casa
-- Arriva l'open house event
+- Arriva l'open house event -> DA FARE OGGI FERDI
 
 RIMUOVERE IL SESSO DAI MOCKUP E DALL'UML (che va riguardato tutto)
