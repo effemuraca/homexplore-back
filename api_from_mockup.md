@@ -22,11 +22,11 @@ DA VEDERE CARLO
 
 ## edit_property.html
 
-- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO
+- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI
 
 ## edit_profile.html
 
-- Un utente (buyer o seller) modifica i propri dati
+- Un utente (buyer o seller) modifica i propri dati -> DA FARE FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO
 
 ## favourites.html
 
@@ -40,7 +40,7 @@ DA VEDERE CARLO
 
 ## seller_dashboard.html
 
-- Edit seller information --> PARZIALMENTE FATTO DA ALE
+- Edit seller information --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS)
 - View sold houses  --> PARZIALMENTE FATTOI DA ALE
 - view property on sale --> PARZIALMENTE FATTO DA ALE
 
@@ -55,8 +55,8 @@ DA VEDERE CARLO
 - Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
 - View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI
-- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO  
-- Remove house --> PARZIALMENTE FATTO DA ALE
+- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS)  
+- Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS)
 - INSERIRE BOTTONE PER LA VENDITA(mockup)
 - INSERIRE BARRA DI RICERCA(mockup)
 - Search an house--> FATTO DA ALE PARZIALEMENTE
