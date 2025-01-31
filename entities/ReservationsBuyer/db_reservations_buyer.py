@@ -29,7 +29,7 @@ class ReservationsBuyerDB:
                 data = json.loads(raw_data)
                 # Verifica se la prenotazione esiste già
                 for res in data:
-                    if res['property_id'] == self.reservations_buyer.reservations[0].property_id:
+                    if res.get("property_id") == self.reservations_buyer.reservations[0].property_id:
                         logger.info("Reservation already exists.")
                         return 409
             else:
@@ -83,7 +83,7 @@ class ReservationsBuyerDB:
             updated = False
             reservation_to_update = self.reservations_buyer.reservations[0]
             for idx, res in enumerate(data):
-                if res['property_id'] == reservation_to_update.property_id:
+                if res.get("property_id") == reservation_to_update.property_id:
                     data[idx] = reservation_to_update.dict()
                     updated = True
                     break

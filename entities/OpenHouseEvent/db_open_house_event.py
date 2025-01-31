@@ -152,20 +152,16 @@ class OpenHouseEventDB:
             return 404
         try:
             data = json.loads(raw_data)
-            if data.get("attendees", 0) == 0:
-                logger.info(f"No attendees to decrement for property_id={self.open_house_event.property_id}.")
+            if data.get("attendees", 0) > 0:
+                data["attendees"] -= 1
+                result = redis_client.set(f"property_id:{self.open_house_event.property_id}:open_house_info", json.dumps(data))
+                logger.info(f"Attendees decremented for property_id={self.open_house_event.property_id}.")
+                if result:
+                    return 200
+                return 500
+            else:
+                logger.warning(f"Attendees already at 0 for property_id={self.open_house_event.property_id}.")
                 return 400
-            data["attendees"] -= 1
-            result = redis_client.set(
-                f"property_id:{self.open_house_event.property_id}:open_house_info",
-                json.dumps(data)
-            )
-            logger.info(
-                f"Attendees decremented for property_id={self.open_house_event.property_id}. New count: {data['attendees']}"
-            )
-            if result:
-                return 200
-            return 500
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
             logger.error(f"Error decrementing attendees: {e}")
             return 500

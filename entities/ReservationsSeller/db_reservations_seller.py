@@ -26,12 +26,18 @@ class ReservationsSellerDB:
             key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
             raw_data = redis_client.get(key)
             if raw_data:
-                logger.info("Reservation already exists.")
-                return 409
-            data = [r.dict() for r in self.reservations_seller.reservations or []]
-            redis_client.setex(key, seconds, json.dumps(data))
-            logger.info("Seller reservation created.")
-            return 201
+                data = json.loads(raw_data)
+                # Append new reservations to existing list
+                new_reservations = [r.dict() for r in self.reservations_seller.reservations or []]
+                data.extend(new_reservations)
+                redis_client.setex(key, seconds, json.dumps(data))
+                logger.info("Seller reservation appended successfully.")
+            else:
+                # No existing reservations, create new list
+                data = [r.dict() for r in self.reservations_seller.reservations or []]
+                redis_client.setex(key, seconds, json.dumps(data))
+                logger.info("Seller reservation created successfully.")
+            return 201    
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
             logger.error(f"Error creating seller reservation: {e}")
             return 500
@@ -68,11 +74,9 @@ class ReservationsSellerDB:
             data = json.loads(raw_data)
             updated = False
             reservation_to_update = self.reservations_seller.reservations[0]
-            for res in data:
-                existing_reservation = ReservationS(**res)
-                if existing_reservation.buyer_id == reservation_to_update.buyer_id:
-                    updated_reservation = reservation_to_update.dict(exclude_unset=True)
-                    res.update(updated_reservation)
+            for idx, res in enumerate(data):
+                if res.get("buyer_id") == reservation_to_update.buyer_id:
+                    data[idx] = reservation_to_update.dict()
                     updated = True
                     break
             if not updated:

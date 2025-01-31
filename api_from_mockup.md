@@ -4,7 +4,7 @@
 
 ## main.html
 
-- Mostra un numero generico di proprietà casuali nel db (necessaria thumbnail, posizione, prezzo)
+- Mostra un numero generico di proprietà casuali nel db (necessaria thumbnail, posizione, prezzo) -> DA FARE OGGI FERDI
 
 ## login.html
 
@@ -16,7 +16,7 @@
 
 ## buyer_reservations.html
 
-- L'utente cancella una prenotazione (tasto cancel)
+- L'utente cancella una prenotazione (tasto cancel) -> FATTO DA FERDI
 
 ## edit_profile.html
 
