@@ -12,7 +12,7 @@
 
 ## add_property.html
 
-- Una proprietà viene aggiunta (attenzione al caso end_time < start_time)
+- Una proprietà viene aggiunta (attenzione al caso end_time < start_time dell'open house) --> FATTO DA ALE E CONSISTENTE SU MONGO
 
 ## buyer_reservations.html
 
@@ -20,7 +20,7 @@
 
 ## edit_profile.html
 
-- Una proprietà viene modificata
+- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO
 
 ## favourites.html
 
@@ -30,13 +30,30 @@
 
 - Add to favourites premuto da un buyer -> DA FARE OGGI FERDI
 - Book now cliccato da un buyer -> DA FARE OGGI FERDI
-- LEVARE INFO SULLE AGENZIE (SIA NEI MOCKUP CHE NELLA COLLECTION PROPERTYONSALE)
+- LEVARE INFO SULLE AGENZIE (SIA NEI MOCKUP CHE NELLA COLLECTION PROPERTYONSALE)  --> FATTO SULLE COLLECTION
+
+
+## seller_dashboard.html
+- Edit seller information --> PARZIALMENTE FATTO DA ALE
+- View sold houses  --> PARZIALMENTE FATTOI DA ALE
+- view property on sale --> PARZIALMENTE FATTO DA ALE
 
 ## seller_sold.html
 
 - Cliccato il tasto per cambiare pagina o per andare alla pagina N (andare alla pagina N non ha senso se non si può ordinare per prezzo, etc)
 - Predisporre le analytics sulle case vendute (scritte giu)
+- Far vedere tutte le case vendute in ordine di prezzo
 
+## seller_for_sale.html
+
+- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> DA FARE OGGI FERDI
+- INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
+- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> DA FARE OGGI FERDI
+- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO  
+- Remove house --> PARZIALMENTE FATTO DA ALE
+- INSERIRE BOTTONE PER LA VENDITA(mockup)
+- INSERIRE BARRA DI RICERCA(mockup)
+- Search an house--> FATTO DA ALE PARZIALEMENTE
 
 ## register.html
 
@@ -66,15 +83,6 @@
 - INSERIRE NELLA PAGINA DEL SUPERUSER IN CUI VENGONO VISUALIZZATE LE CASE IN VENDITA DI UNA SINGOLA AGENZIA DUE BOTTONI PER USARE LE ANALYTICS:
     Data una città ritornare la media del prezzo al metro quadro delle case in vendita per ogni quartiere [filtro per tipologia di appartamento, ordinare per prezzo decrescente]
 
-## seller_for_sale.html
-
-- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> DA FARE OGGI FERDI
-- INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
-- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> DA FARE OGGI FERDI
-- Rimozione della proprietà
-- INSERIRE BOTTONE PER LA VENDITA(mockup)
-- INSERIRE BARRA DI RICERCA(mockup)
-
 ## index.html
 
 - search cliccato: parte la get con i parametri che l'utente ha impostato -> DA FARE OGGI FERDI
@@ -88,7 +96,6 @@
 
 ## Miscellanea
 
-- Viene venduta una casa
 - Arriva l'open house event -> DA FARE OGGI FERDI
 
 RIMUOVERE IL SESSO DAI MOCKUP E DALL'UML (che va riguardato tutto)
