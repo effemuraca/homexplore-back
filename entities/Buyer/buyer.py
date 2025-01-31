@@ -6,7 +6,7 @@ from typing import Optional
 # Configura il logger
 logger = logging.getLogger(__name__)
 
-class FavoriteProperty(BaseModel):
+class FavouriteProperty(BaseModel):
     property_id: str
     thumbnail: str
     address: str
@@ -21,7 +21,7 @@ class Buyer(BaseModel):
     name: Optional[str] = Field(None, example="John")
     surname: Optional[str] = Field(None, example="Doe")
     age: Optional[int] = Field(None, example=30)  #campo opzionale
-    favorites: Optional[list[FavoriteProperty]] = Field(None, example=[{
+    favorites: Optional[list[FavouriteProperty]] = Field(None, example=[{
         "property_id": "1",
         "thumbnail": "https://www.example.com/image.jpg",
         "address": "1234 Example St.",
