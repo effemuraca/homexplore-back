@@ -111,10 +111,7 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
 def update_entire_reservations_seller(reservations_seller_info: ReservationsSeller):
     reservations_seller_db = ReservationsSellerDB(reservations_seller_info)
     try:
-        status = reservations_seller_db.update_entire_reservation_seller(
-            reservations_seller_info.reservations or [],
-            area=reservations_seller_info.area
-        )
+        status = reservations_seller_db.update_entire_reservation_seller(area=reservations_seller_info.area)
     except Exception as e:
         logger.error(f"Error updating entire seller reservations: {e}")
         raise HTTPException(status_code=500, detail="Error updating entire seller reservations")

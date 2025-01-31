@@ -21,5 +21,4 @@ class UpdateReservationSeller(BaseModel):
 
 class UpdateEntireReservationSeller(BaseModel):
     property_id: str = Field(..., example="615c44fdf641be001f0c1111")
-    reservations: List[ReservationS] = Field(..., example=[])
     area: Optional[int] = Field(None, example=500)

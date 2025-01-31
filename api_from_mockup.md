@@ -52,7 +52,7 @@ DA VEDERE CARLO
 
 ## seller_for_sale.html
 
-- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) 
+- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
 - View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI
 - Sell house --> FATTO DA ALE CONSISTENTE DU MONGO  
@@ -63,7 +63,7 @@ DA VEDERE CARLO
 
 ## register.html
 
-- Un utente prova a registrarsi 
+- Un utente prova a registrarsi
 
 ## index.html
 
