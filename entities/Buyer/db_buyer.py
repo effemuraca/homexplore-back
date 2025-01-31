@@ -56,7 +56,7 @@ class BuyerDB:
         if result.inserted_id:
             self.buyer.buyer_id = str(result.inserted_id)
             logger.info(f"Buyer creato con id {self.buyer.buyer_id}.")
-            return 200
+            return 201
         logger.error("Creazione del buyer fallita.")
         return 500
 
