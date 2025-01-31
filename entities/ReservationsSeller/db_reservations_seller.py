@@ -10,8 +10,11 @@ logger = logging.getLogger(__name__)
 class ReservationsSellerDB:
     reservations_seller: ReservationsSeller = None
 
-    def __init__(self, reservations_seller: ReservationsSeller):
+    def __init__(self, reservations_seller: ReservationsSeller, area: Optional[int] = None):
         self.reservations_seller = reservations_seller
+        self.area = area
+        if self.area is not None:
+            self.reservations_seller.max_reservations = ReservationsSeller.calculate_max_reservations(self.area)
 
     def create_reservation_seller(self, day: str, time: str) -> int:
         redis_client = get_redis_client()
@@ -19,42 +22,30 @@ class ReservationsSellerDB:
             logger.error("Failed to connect to Redis.")
             return 500
         key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
-        raw_data = redis_client.get(key)
         try:
-            new_reservations = self.reservations_seller.reservations or []
-            if raw_data:
-                data = json.loads(raw_data)
-                seconds = convert_to_seconds(day, time)
-                if seconds is None:
-                    logger.error("Invalid day/time for reservation.")
-                    return 400
-                # Check for existing buyer_id conflicts
-                for nr in new_reservations:
-                    for existing in data:
-                        if nr.buyer_id == existing.get("buyer_id"):
-                            logger.warning("Reservation conflict detected.")
-                            return 409
+            existing_data = redis_client.get(key)
+            reservations = self.reservations_seller.reservations or []
+            if existing_data:
+                data = json.loads(existing_data)
+                # Check for duplicate reservation
+                for res in data:
+                    if res.get("buyer_id") == self.reservations_seller.reservations[0].buyer_id:
+                        logger.warning("Duplicate seller reservation detected.")
+                        return 409
                 # Check max_reservations
-                max_res = self.reservations_seller.max_reservations
-                if len(data) + len(new_reservations) > max_res:
+                if len(data) + len(reservations) > self.reservations_seller.max_reservations:
                     logger.error("Maximum reservations exceeded.")
                     return 400
-                data.extend([nr.dict() for nr in new_reservations])
-                redis_client.setex(key, seconds, json.dumps(data))
-                return 201
+                data.extend([res.dict() for res in reservations])
+                redis_client.set(key, json.dumps(data))
             else:
-                if convert_to_seconds(day, time) is None:
-                    logger.error("Invalid day/time for reservation.")
-                    return 400
-                data = [nr.dict() for nr in new_reservations]
-                seconds = convert_to_seconds(day, time)
                 # Check max_reservations
-                max_res = self.reservations_seller.max_reservations
-                if len(data) > max_res:
+                if len(reservations) > self.reservations_seller.max_reservations:
                     logger.error("Maximum reservations exceeded.")
                     return 400
-                redis_client.setex(key, seconds, json.dumps(data))
-                return 201
+                data = [res.dict() for res in reservations]
+                redis_client.set(key, json.dumps(data))
+            return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
             logger.error(f"Error creating seller reservation: {e}")
             return 500

@@ -82,3 +82,30 @@ def convert_to_seconds(day : str, start_time : str) -> Optional[int]:
     except Exception as e:
         logger.error(f"Error converting to seconds: {e}")
         return None
+
+def next_weekday(target_day: str) -> Optional[str]:
+    """
+    Restituisce la prossima data per il giorno della settimana specificato.
+    Ritorna la data in formato ISO (YYYY-MM-DD).
+    """
+    days = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6
+    }
+    target_day = target_day.lower()
+    if target_day not in days:
+        return None
+    
+    today = datetime.now()
+    today_weekday = today.weekday()
+    target_weekday = days[target_day]
+    days_ahead = target_weekday - today_weekday
+    if days_ahead <= 0:
+        days_ahead += 7
+    next_day = today + timedelta(days=days_ahead)
+    return next_day.strftime("%Y-%m-%d")
