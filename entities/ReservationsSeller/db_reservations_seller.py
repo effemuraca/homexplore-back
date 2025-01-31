@@ -110,10 +110,10 @@ class ReservationsSellerDB:
             logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
             return 404
         try:
-            data = json.loads(raw_data)
             if area:
                 self.reservations_seller.max_reservations = ReservationsSeller.calculate_max_reservations(area)
-            redis_client.set(key, json.dumps([res.dict() for res in self.reservations_seller.reservations]))
+            data = json.loads(raw_data)
+            redis_client.set(key, json.dumps(data))    
             logger.info(f"Entire ReservationSeller record updated successfully.")
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:

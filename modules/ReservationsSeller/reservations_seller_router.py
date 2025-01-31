@@ -5,7 +5,7 @@ from typing import List
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
 from entities.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from modules.ReservationsSeller.models import response_models as ResponseModels
-from modules.ReservationsSeller.models.reservations_seller_models import CreateReservationSeller, UpdateReservationSeller
+from modules.ReservationsSeller.models.reservations_seller_models import CreateReservationSeller, UpdateReservationSeller, UpdateEntireReservationSeller
 
 logger = logging.getLogger(__name__)
 reservations_seller_router = APIRouter(prefix="/reservations_seller", tags=["reservations_seller"])
@@ -108,8 +108,8 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
     response_model=ReservationsSeller,
     responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
 )
-def update_entire_reservations_seller(reservations_seller_info: ReservationsSeller):
-    reservations_seller_db = ReservationsSellerDB(reservations_seller_info)
+def update_entire_reservations_seller(reservations_seller_info : UpdateEntireReservationSeller):
+    reservations_seller_db = ReservationsSellerDB(ReservationsSeller(property_id=reservations_seller_info.property_id))
     try:
         status = reservations_seller_db.update_entire_reservation_seller(area=reservations_seller_info.area)
     except Exception as e:
