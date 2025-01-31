@@ -100,17 +100,6 @@ BookNowResponses = {
             }
         }
     },
-    404: {
-        "model": ErrorModel,
-        "description": "Open house event not found.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Open house event not found."
-                }
-            }
-        }
-    },
     409: {
         "model": ErrorModel,
         "description": "Reservation already exists.",
