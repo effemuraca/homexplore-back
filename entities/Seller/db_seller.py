@@ -81,6 +81,16 @@ class DBSeller:
         result = mongo_client.PropertyOnSale.delete_one({"_id": id})
         result = mongo_client.Seller.update_one({"_id": ObjectId("679a41fa777bc4a7eb04807a")}, {"$push": {"sold_properties": data}})
         return 200
+    
+    def get_sold_properties_by_price_desc(self) -> int:
+        mongo_client = get_default_mongo_db()
+        result = mongo_client.Seller.find_one({"_id": ObjectId("679a41fa777bc4a7eb04807a")})
+        if not result:
+            return 404
+        #sort the sold_properties by price in descending order
+        result["sold_properties"] = sorted(result["sold_properties"], key=lambda x: x["price"], reverse=True)
+        self.seller = Seller(**result)
+        return 200
 
 
         

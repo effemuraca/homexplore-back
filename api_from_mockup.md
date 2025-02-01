@@ -6,7 +6,7 @@ DA VEDERE CARLO
 
 ## main.html
 
-- Mostra un numero generico di proprietà casuali nel db (necessaria thumbnail, posizione, prezzo) -> CARLO TOGLI QUESTA ROBA
+- Mostra un numero generico di proprietà casuali nel db (necessaria thumbnail, posizione, prezzo) -> CARLO TOGLI QUESTA ROBA DAI MOCKUP
 
 ## login.html
 
@@ -22,7 +22,7 @@ DA VEDERE CARLO
 
 ## edit_property.html
 
-- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI
+- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI (REDIS + PREFERITI)
 
 ## edit_profile.html
 
@@ -48,7 +48,7 @@ DA VEDERE CARLO
 
 - Cliccato il tasto per cambiare pagina o per andare alla pagina N (andare alla pagina N non ha senso se non si può ordinare per prezzo, etc)
 - Predisporre le analytics sulle case vendute (scritte giu)
-- Far vedere tutte le case vendute in ordine di prezzo
+- Far vedere tutte le case vendute in ordine di prezzo -> FATTO DA FERDI
 
 ## seller_for_sale.html
 

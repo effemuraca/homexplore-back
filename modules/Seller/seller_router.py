@@ -6,7 +6,6 @@ from modules.Seller.models.seller_models import CreateSeller, UpdateSeller
 from modules.Seller.models import response_models as ResponseModels
 from bson.objectid import ObjectId
 
-
 seller_router = APIRouter(prefix="/sellers", tags=["Sellers"])
 
 @seller_router.post("/crud_create", response_model=ResponseModels.CreateSellerResponseModel, responses=ResponseModels.CreateSellerResponses)
@@ -21,22 +20,21 @@ def create_seller(seller: CreateSeller):
 
 # sell a property (move it from properties_on_sale to sold_properties of the seller & delete it from the property_on_sale collection)
 @seller_router.post("/methods/sell_property", response_model=ResponseModels.SuccessModel)
-def sell_property(property_to_sell_id: str):
-    if not property_to_sell_id:
-        raise HTTPException(status_code=400, detail="Invalid property id.")
+def sell_property(seller_id: str, property_to_sell_id: str):
+    if not property_to_sell_id or not seller_id:
+        raise HTTPException(status_code=400, detail="Invalid property id or seller id.")
     try:
-        id = ObjectId(property_to_sell_id)
+        property_id = ObjectId(property_to_sell_id)
+        seller_id = ObjectId(seller_id)
     except:
-        raise HTTPException(status_code=404, detail="Invalid property id.")
-    db_entity= DBSeller(Seller())
-    result = db_entity.db_sell_property(id)
+        raise HTTPException(status_code=404, detail="Invalid property id or seller id.")
+    db_entity = DBSeller(Seller())
+    result = db_entity.db_sell_property(seller_id, property_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Property not found.")
     if result == 500:
         raise HTTPException(status_code=500, detail="Failed to sell property.")
-    return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})  
-    
-   
+    return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
 
 @seller_router.get("/", response_model=Seller, responses=ResponseModels.GetSellerResponses)
 def get_seller(seller_id: str):
@@ -59,8 +57,6 @@ def update_seller(seller: UpdateSeller):
         raise HTTPException(status_code=404, detail="Seller not found.")
     return JSONResponse(status_code=200, content={"detail": "Seller updated successfully."})
 
-    
-
 @seller_router.delete("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteSellerResponses)
 def delete_seller(seller_id: str):
     temp_seller = Seller(seller_id=seller_id)
@@ -72,4 +68,12 @@ def delete_seller(seller_id: str):
         raise HTTPException(status_code=404, detail="Seller not found.")
     return JSONResponse(status_code=200, content={"detail": "Seller deleted successfully."})
 
- 
+@seller_router.get("/{seller_id}/sold_properties", response_model=Seller, responses=ResponseModels.GetSoldPropertiesByPriceDescResponses)
+def get_sold_properties_by_price_desc(seller_id: str):
+    db_seller = DBSeller()
+    result = db_seller.get_sold_properties_by_price_desc(seller_id)
+    if result == 404:
+        raise HTTPException(status_code=404, detail="Seller not found.")
+    if result == 500:
+        raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
+    return db_seller.seller

@@ -160,3 +160,56 @@ DeleteSellerResponses = {
         }
     }
 }
+
+GetSoldPropertiesByPriceDescResponses = {
+    200: {
+        "model": Seller,
+        "description": "Sold properties retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "seller_id": "507f1f77bcf86cd799439011",
+                    "agency_name": "HomeXplore",
+                    "email": "john@example.com",
+                    "phone_number": "123-456-7890",
+                    "properties_on_sale": [],
+                    "sold_properties": [
+                        {
+                            "sold_property_id": "507f1f77bcf86cd799439012",
+                            "city": "New York",
+                            "neighbourhood": "Manhattan",
+                            "price": 1000000,
+                            "thumbnail": "https://example.com/image.jpg",
+                            "type": "Apartment",
+                            "area": 100,
+                            "registration_date": "2021-01-01T00:00:00",
+                            "sell_date": "2021-06-01T00:00:00"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Seller not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Seller not found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to retrieve sold properties.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to retrieve sold properties."
+                }
+            }
+        }
+    }
+}
