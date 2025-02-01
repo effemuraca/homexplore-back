@@ -27,7 +27,7 @@ class ReservationsBuyerDB:
                 data = json.loads(existing_data)
                 # Check for duplicate reservation
                 for res in data:
-                    if res.get("property_id") == self.reservations_buyer.reservations[0].property_id:
+                    if res.get("property_on_sale_id") == self.reservations_buyer.reservations[0].property_on_sale_id:
                         logger.warning("Duplicate reservation detected for buyer.")
                         return 409
                 data.extend([res.dict() for res in reservations])
@@ -77,15 +77,15 @@ class ReservationsBuyerDB:
             updated = False
             reservation_to_update = self.reservations_buyer.reservations[0]
             for idx, res in enumerate(data):
-                if res.get("property_id") == reservation_to_update.property_id:
+                if res.get("property_on_sale_id") == reservation_to_update.property_on_sale_id:
                     data[idx] = reservation_to_update.dict()
                     updated = True
                     break
             if not updated:
-                logger.info(f"Reservation with property_id={reservation_to_update.property_id} not found.")
+                logger.info(f"Reservation with property_on_sale_id={reservation_to_update.property_on_sale_id} not found.")
                 return 404
             redis_client.set(key, json.dumps(data))
-            logger.info(f"Reservation updated for buyer_id={self.reservations_buyer.buyer_id}, property_id={reservation_to_update.property_id}.")
+            logger.info(f"Reservation updated for buyer_id={self.reservations_buyer.buyer_id}, property_on_sale_id={reservation_to_update.property_on_sale_id}.")
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
             logger.error(f"Error updating reservation: {e}")
@@ -109,7 +109,7 @@ class ReservationsBuyerDB:
             logger.error(f"Redis error during deletion of reservations: {e}")
             return 500
     
-    def delete_reservation_by_property_id(self, property_id: str) -> int:
+    def delete_reservation_by_property_on_sale_id(self, property_on_sale_id: str) -> int:
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -121,12 +121,12 @@ class ReservationsBuyerDB:
                 logger.warning(f"No reservations found for buyer_id={self.reservations_buyer.buyer_id} to delete.")
                 return 404
             data = json.loads(raw_data)
-            new_data = [res for res in data if res.get("property_id") != property_id]
+            new_data = [res for res in data if res.get("property_on_sale_id") != property_on_sale_id]
             if len(new_data) == len(data):
-                logger.info(f"Reservation with property_id={property_id} not found for buyer_id={self.reservations_buyer.buyer_id}.")
+                logger.info(f"Reservation with property_on_sale_id={property_on_sale_id} not found for buyer_id={self.reservations_buyer.buyer_id}.")
                 return 404
             result = redis_client.set(key, json.dumps(new_data))
-            logger.info(f"Reservation with property_id={property_id} deleted for buyer_id={self.reservations_buyer.buyer_id}.")
+            logger.info(f"Reservation with property_on_sale_id={property_on_sale_id} deleted for buyer_id={self.reservations_buyer.buyer_id}.")
             if result:
                 return 200
             return 500

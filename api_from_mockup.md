@@ -24,7 +24,7 @@ DA VEDERE CARLO
 
 ## index.html
 
-- search cliccato: parte la get con i parametri che l'utente ha impostato -> DA FARE FERDI
+- search cliccato: parte la get con i parametri che l'utente ha impostato -> FATTO DA FERDI
 
 ## search.html
 

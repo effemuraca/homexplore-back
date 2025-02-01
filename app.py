@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 #from modules.Auth.auth_router import auth_router
-from modules.OpenHouse.open_house_router import open_house_router
+#from modules.OpenHouse.open_house_router import open_house_router
 from modules.ReservationsSeller.reservations_seller_router import reservations_seller_router
 from modules.ReservationsBuyer.reservations_buyer_router import reservations_buyer_router
 #from modules.OpenHouse.open_house_router import open_house_router

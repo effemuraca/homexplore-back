@@ -22,7 +22,7 @@ def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer):
         buyer_id=reservations_buyer_info.buyer_id,
         reservations=[
             ReservationB(
-                property_id=reservations_buyer_info.property_id,
+                property_on_sale_id=reservations_buyer_info.property_on_sale_id,
                 date=reservations_buyer_info.date,
                 time=reservations_buyer_info.time,
                 thumbnail=reservations_buyer_info.thumbnail,
@@ -75,7 +75,7 @@ def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer):
         buyer_id=reservations_buyer_info.buyer_id,
         reservations=[
             ReservationB(
-                property_id=reservations_buyer_info.property_id,
+                property_on_sale_id=reservations_buyer_info.property_on_sale_id,
                 date=reservations_buyer_info.date,
                 time=reservations_buyer_info.time,
                 thumbnail=reservations_buyer_info.thumbnail,
@@ -121,15 +121,15 @@ def delete_reservations_buyer(buyer_id: str):
     return JSONResponse(status_code=200, content={"detail": "Buyer reservations deleted successfully."})
 
 @reservations_buyer_router.delete(
-    "/delete_reservation_buyer/{buyer_id}/{property_id}",
+    "/delete_reservation_buyer/{buyer_id}/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
-def delete_reservation_buyer(buyer_id: str, property_id: str):
+def delete_reservation_buyer(buyer_id: str, property_on_sale_id: str):
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        status = reservations_buyer_db.delete_reservation_by_property_id(property_id)
+        status = reservations_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)
     except Exception as e:
         logger.error(f"Error deleting buyer reservation: {e}")
         raise HTTPException(status_code=500, detail="Error deleting buyer reservation")

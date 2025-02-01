@@ -17,7 +17,7 @@ reservations_seller_router = APIRouter(prefix="/reservations_seller", tags=["res
 )
 def create_reservation_seller(reservations_seller_info: CreateReservationSeller):
     reservations_seller = ReservationsSeller(
-        property_id=reservations_seller_info.property_id,
+        property_on_sale_id=reservations_seller_info.property_on_sale_id,
         reservations=[ReservationS(
             buyer_id=reservations_seller_info.buyer_id,
             full_name=reservations_seller_info.full_name,
@@ -48,8 +48,8 @@ def create_reservation_seller(reservations_seller_info: CreateReservationSeller)
     response_model=ReservationsSeller,
     responses=ResponseModels.GetReservationsSellerResponseModelResponses
 )
-def get_reservations_seller(property_id: str):
-    reservations_seller = ReservationsSeller(property_id=property_id)
+def get_reservations_seller(property_on_sale_id: str):
+    reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     try:
         status = reservations_seller_db.get_reservation_seller()
@@ -72,7 +72,7 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
         raise HTTPException(status_code=400, detail="Missing buyer_id for update.")
     
     reservations_seller = ReservationsSeller(
-        property_id=reservations_seller_info.property_id,
+        property_on_sale_id=reservations_seller_info.property_on_sale_id,
         reservations=[ReservationS(
             buyer_id=reservations_seller_info.buyer_id,
             full_name=reservations_seller_info.full_name,
@@ -109,7 +109,7 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
     responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
 )
 def update_entire_reservations_seller(reservations_seller_info : UpdateEntireReservationSeller):
-    reservations_seller_db = ReservationsSellerDB(ReservationsSeller(property_id=reservations_seller_info.property_id))
+    reservations_seller_db = ReservationsSellerDB(ReservationsSeller(property_on_sale_id=reservations_seller_info.property_on_sale_id))
     try:
         status = reservations_seller_db.update_entire_reservation_seller(area=reservations_seller_info.area)
     except Exception as e:
@@ -126,8 +126,8 @@ def update_entire_reservations_seller(reservations_seller_info : UpdateEntireRes
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
-def delete_reservations_seller(property_id: str):
-    reservations_seller = ReservationsSeller(property_id=property_id)
+def delete_reservations_seller(property_on_sale_id: str):
+    reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     try:
         status = reservations_seller_db.delete_entire_reservation_seller()
@@ -141,13 +141,13 @@ def delete_reservations_seller(property_id: str):
     return JSONResponse(status_code=200, content={"detail": "Reservations deleted successfully."})
 
 @reservations_seller_router.delete(
-    "/{buyer_id}/{property_id}",
+    "/{buyer_id}/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
-def delete_reservation_seller_by_buyer_id(buyer_id: str, property_id: str):
+def delete_reservation_seller_by_buyer_id(buyer_id: str, property_on_sale_id: str):
     reservations_seller = ReservationsSeller(
-        property_id=property_id,
+        property_on_sale_id=property_on_sale_id,
         reservations=[ReservationS(buyer_id=buyer_id)]
     )
     reservations_seller_db = ReservationsSellerDB(reservations_seller)

@@ -18,12 +18,12 @@ class ReservationS(BaseModel):
         return v
 
 class ReservationsSeller(BaseModel):
-    property_id: Optional[str] = Field(None, example=1)
+    property_on_sale_id: Optional[str] = Field(None, example=1)
     reservations: Optional[List[ReservationS]] = None
     max_reservations: Optional[int] = Field(0, example=50)
     total_reservations: Optional[int] = Field(0, example=0)
     
-    @validator('property_id')
+    @validator('property_on_sale_id')
     def check_object_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
@@ -31,13 +31,13 @@ class ReservationsSeller(BaseModel):
 
     def __init__(
         __pydantic_self__,
-        property_id: Optional[str] = None,
+        property_on_sale_id: Optional[str] = None,
         reservations: Optional[List[ReservationS]] = None,
         area: Optional[int] = 0,
         total_reservations: Optional[int] = 0
     ):
         super().__init__(
-            property_id = property_id,
+            property_on_sale_id = property_on_sale_id,
             reservations = reservations,
             max_reservations = ReservationsSeller.calculate_max_reservations(area),
             total_reservations = total_reservations

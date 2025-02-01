@@ -97,7 +97,7 @@ GetReservationsSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "property_id": "615c44fdf641be001f0c1111",
+                    "property_on_sale_id": "615c44fdf641be001f0c1111",
                     "reservations": []
                 }
             }
@@ -134,7 +134,7 @@ UpdateReservationsSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "property_id": "615c44fdf641be001f0c1111",
+                    "property_on_sale_id": "615c44fdf641be001f0c1111",
                     "reservations": []
                 }
             }

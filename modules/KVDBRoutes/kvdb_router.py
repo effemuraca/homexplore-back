@@ -19,19 +19,19 @@ logger = logging.getLogger(__name__)
 
 # Reservation deleted by buyer
 @kvdb_router.delete(
-    "/delete_reservation_by_user_and_property/{user_id}/{property_id}",
+    "/delete_reservation_by_user_and_property/{user_id}/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.ReservationDeletedResponses
 )
-def delete_reservation_by_user_and_property(user_id: str, property_id: str):
+def delete_reservation_by_user_and_property(user_id: str, property_on_sale_id: str):
     """
-    Delete a buyer reservation for a given user_id and property_id and remove the seller reservation.
+    Delete a buyer reservation for a given user_id and property_on_sale_id and remove the seller reservation.
     This is done atomically using Redis transactions (WATCH/MULTI/EXEC).
     """
    
     reservations_buyer = ReservationsBuyer(buyer_id=user_id)
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    reservations_seller = ReservationsSeller(property_id=property_id)
+    reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
 
 
@@ -42,12 +42,12 @@ def delete_reservation_by_user_and_property(user_id: str, property_id: str):
     try:
         # Start WATCH on all keys involved
         buyer_key = f"buyer_id:{user_id}:reservations"
-        seller_key = f"property_id:{property_id}:reservations_seller"
+        seller_key = f"property_on_sale_id:{property_on_sale_id}:reservations_seller"
         redis_client.watch(buyer_key, seller_key)
 
 
         # Perform deletions
-        status = reservations_buyer_db.delete_reservation_by_property_id(property_id)
+        status = reservations_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)
         if status == 404:
             redis_client.unwatch()
             raise HTTPException(status_code=404, detail="Reservation not found")
@@ -89,7 +89,7 @@ def delete_reservation_by_user_and_property(user_id: str, property_id: str):
 )
 def book_now(book_now_info: BookNow):
     """
-    Book an open house event for a given buyer_id and property_id,
+    Book an open house event for a given buyer_id and property_on_sale_id,
     handling the case where the open house event is not present,
     the case where the open house event is present,
     and the case where the reservation is already present.
@@ -97,7 +97,7 @@ def book_now(book_now_info: BookNow):
     """
     
     buyer_id = book_now_info.buyer_id
-    property_id = book_now_info.property_id
+    property_on_sale_id = book_now_info.property_on_sale_id
     day = book_now_info.day
     time = book_now_info.time
     thumbnail = book_now_info.thumbnail
@@ -112,7 +112,7 @@ def book_now(book_now_info: BookNow):
         buyer_id=buyer_id,
         reservations=[
             ReservationB(
-                property_id=property_id,
+                property_on_sale_id=property_on_sale_id,
                 date=date,
                 time=time,
                 thumbnail=thumbnail,
@@ -121,7 +121,7 @@ def book_now(book_now_info: BookNow):
         ]
     )
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    reservations_seller = ReservationsSeller(property_id=property_id)
+    reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     
     redis_client = get_redis_client()
@@ -135,7 +135,7 @@ def book_now(book_now_info: BookNow):
                 try:
                     # Watch the buyer and seller keys
                     buyer_key = f"buyer_id:{buyer_id}:reservations"
-                    seller_key = f"property_id:{property_id}:reservations_seller"
+                    seller_key = f"property_on_sale_id:{property_on_sale_id}:reservations_seller"
                     pipe.watch(buyer_key, seller_key)
     
                     # Get existing reservations
@@ -153,11 +153,11 @@ def book_now(book_now_info: BookNow):
                         seller_data = json.loads(existing_seller)
                         seller_reservations = ReservationsSeller(**seller_data)
                     else:
-                        seller_reservations = ReservationsSeller(property_id=property_id, reservations=[])
+                        seller_reservations = ReservationsSeller(property_on_sale_id=property_on_sale_id, reservations=[])
     
                     # Check for duplicate reservations
                     for res in buyer_reservations.reservations:
-                        if res.property_id == property_id:
+                        if res.property_on_sale_id == property_on_sale_id:
                             raise HTTPException(status_code=409, detail="Reservation already exists.")
     
                     # Add new reservation

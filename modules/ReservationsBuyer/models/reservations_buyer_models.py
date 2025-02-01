@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class CreateReservationBuyer(BaseModel):
-    property_id: str = Field(example="615c44fdf641be001f0c1111")
+    property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     buyer_id: str = Field(example="615c44fdf641be001f0c1111")
     date: str = Field(example="2021-09-01")
     time: str = Field(example="10:00")
@@ -13,7 +13,7 @@ class CreateReservationBuyer(BaseModel):
                            
 
 class UpdateReservationBuyer(BaseModel):
-    property_id: str = Field(example="615c44fdf641be001f0c1111")
+    property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     buyer_id: str = Field(example="615c44fdf641be001f0c1111")
     date: str = Field(example="2021-09-01")
     time: str = Field(example="10:00")

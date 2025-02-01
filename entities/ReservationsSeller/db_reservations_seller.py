@@ -18,7 +18,7 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         try:
             existing_data = redis_client.get(key)
             reservations = self.reservations_seller.reservations or []
@@ -53,10 +53,10 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.info(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
+            logger.info(f"No seller reservations found for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 404
         try:
             data = json.loads(raw_data)
@@ -73,10 +73,10 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
+            logger.warning(f"No seller reservations found for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 404
         try:
             data = json.loads(raw_data)
@@ -104,10 +104,10 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
+            logger.warning(f"No seller reservations found for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 404
         try:
             if area:
@@ -125,10 +125,10 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.warning(f"No seller reservations found for property_id={self.reservations_seller.property_id}.")
+            logger.warning(f"No seller reservations found for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 404
         try:
             data = json.loads(raw_data)
@@ -148,13 +148,13 @@ class ReservationsSellerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"property_id:{self.reservations_seller.property_id}:reservations_seller"
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         try:
             if not redis_client.exists(key):
-                logger.warning(f"No seller reservations to delete for property_id={self.reservations_seller.property_id}.")
+                logger.warning(f"No seller reservations to delete for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
                 return 404
             redis_client.delete(key)
-            logger.info(f"All seller reservations deleted for property_id={self.reservations_seller.property_id}.")
+            logger.info(f"All seller reservations deleted for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 200
         except redis.exceptions.RedisError as e:
             logger.error(f"Error deleting entire ReservationSeller record: {e}")
