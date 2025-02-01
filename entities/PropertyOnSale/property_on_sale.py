@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import List, Optional, Dict, Any, Set
 from datetime import datetime
+from bson import ObjectId
 
 
 
@@ -25,6 +26,12 @@ class PropertyOnSale(BaseModel):
     description: Optional[str] = None
     photos: Optional[List[str]] = None
     disponibility: Optional[Disponibility] = None
+    
+    @validator('property_on_sale_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
     
     
 

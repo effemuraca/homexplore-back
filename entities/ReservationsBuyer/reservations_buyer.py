@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List
+from bson import ObjectId
 
 class ReservationB(BaseModel):
     property_id: Optional[str] = Field(None, example=1)
@@ -7,6 +8,13 @@ class ReservationB(BaseModel):
     time: Optional[str] = Field(None, example="10:00")
     thumbnail: Optional[str] = Field(None, example="https://www.example.com/image.jpg")
     address: Optional[str] = Field(None, example="1234 Example St.")
+    
+    @validator('property_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
+    
 
 class ReservationsBuyer(BaseModel):
     buyer_id: Optional[str] = Field(None, example=1)

@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional
 from datetime import datetime, timedelta
+from bson import ObjectId
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,12 @@ class OpenHouseInfo(BaseModel):
 class OpenHouseEvent(BaseModel):
     property_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
     open_house_info: Optional[OpenHouseInfo] = None
+    
+    @validator('property_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
 
 
 def convert_to_seconds(day : str, start_time : str) -> Optional[int]:

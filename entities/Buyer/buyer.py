@@ -2,6 +2,7 @@ import logging
 import re
 from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional
+from bson.objectid import ObjectId
 
 # Configura il logger
 logger = logging.getLogger(__name__)
@@ -28,6 +29,12 @@ class Buyer(BaseModel):
         "price": 100000,
         "area": 100
     }])
+    
+    @validator('buyer_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
     
     @validator('phone_number')
     def validate_phone_number(cls, value):

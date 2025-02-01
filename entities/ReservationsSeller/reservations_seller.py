@@ -1,20 +1,33 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator, EmailStr
 from typing import Optional, List
 from datetime import datetime, timedelta
 import logging
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 class ReservationS(BaseModel):
     buyer_id: Optional[str] = Field(None, example=1)
     full_name: Optional[str] = Field(None, example="John Doe")
-    email: Optional[str] = Field(None, example="john@example.com")
+    email: Optional[EmailStr] = Field(None, example="john@example.com")
     phone: Optional[str] = Field(None, example="1234567890")
+    
+    @validator('buyer_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
 
 class ReservationsSeller(BaseModel):
     property_id: Optional[str] = Field(None, example=1)
     reservations: Optional[List[ReservationS]] = None
     max_reservations: Optional[int] = Field(0, example=50)
     total_reservations: Optional[int] = Field(0, example=0)
+    
+    @validator('property_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
 
     def __init__(
         __pydantic_self__,
