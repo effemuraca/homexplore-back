@@ -16,6 +16,10 @@ class BuyerDB:
         if not buyer_id:
             logger.error("buyer_id non fornito.")
             return 400
+        if not ObjectId.is_valid(buyer_id):
+            logger.error("buyer_id non valido.")
+            return 400
+        
         mongo_client = get_default_mongo_db()
         try:
             data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favorites": 0})
