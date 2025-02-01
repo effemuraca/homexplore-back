@@ -5,5 +5,14 @@
     "age": "number",   
     "email": "string",
     "password": "string",             
-    "phone_number": "string"        
+    "phone_number": "string",   
+    "favorites": [
+      {
+        "_id": "unique_house_identifier",
+        "address": "string",
+        "price": "number", 
+        "thumbnail": "string", 
+        "area": "number"               
+      }
+    ]    
 }

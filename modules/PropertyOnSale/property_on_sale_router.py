@@ -4,6 +4,7 @@ from entities.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.PropertyOnSale.models.property_on_sale_models import CreatePropertyOnSale, UpdatePropertyOnSale
 from modules.PropertyOnSale.models import response_models as ResponseModels
+from typing import List, Optional
 
 property_on_sale_router = APIRouter(prefix="/properties-on-sale", tags=["PropertiesOnSale"])
 
@@ -49,9 +50,28 @@ def update_property_on_sale(property_on_sale: UpdatePropertyOnSale):
         raise HTTPException(status_code=response, detail="Property not found.")
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
 
-
-    
-
-    
+@property_on_sale_router.get("/search", response_model=List[PropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
+def filtered_search(
+    city: Optional[str] = None,
+    max_price: Optional[int] = None,
+    neighbourhood: Optional[str] = None,
+    type: Optional[str] = None,
+    area: Optional[int] = None,
+    min_bed_number: Optional[int] = None,
+    min_bath_number: Optional[int] = None
+):
+    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
+    result_code = db_property_on_sale.filtered_search(
+        city=city if city else "",
+        max_price=max_price if max_price is not None else 0,
+        neighbourhood=neighbourhood if neighbourhood else "",
+        type=type if type else "",
+        area=area if area is not None else 0,
+        min_bed_number=min_bed_number if min_bed_number is not None else 0,
+        min_bath_number=min_bath_number if min_bath_number is not None else 0
+    )
+    if result_code == 500:
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    return db_property_on_sale.property_on_sale
 
 

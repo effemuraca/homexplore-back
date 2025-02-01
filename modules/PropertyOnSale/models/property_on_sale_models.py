@@ -68,3 +68,12 @@ class UpdatePropertyOnSale(BaseModel):
     description: Optional[str] = Field(None, example="Beautiful home") 
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
     disponibility: Optional[UpdateDisponibility] = None   
+
+class FilteredSearchPropertyOnSale(BaseModel):
+    city: Optional[str] = Field(None, example="New York")
+    max_price: Optional[int] = Field(None, example=500000)
+    neighbourhood: Optional[str] = Field(None, example="Brooklyn")
+    type: Optional[str] = Field(None, example="House")
+    area: Optional[int] = Field(None, example=2000)
+    min_bed_number: Optional[int] = Field(None, example=3)
+    min_bath_number: Optional[int] = Field(None, example=2)

@@ -144,4 +144,31 @@ class PropertyOnSaleDB:
             return 404
         return 200
     
-    
+    def filtered_search(self, city: str, max_price: int, neighbourhood: str, type: str, area: int, min_bed_number: int, min_bath_number: int) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            return 500
+        query = {}
+        if city:
+            query["city"] = city
+        if max_price:
+            query["price"] = {"$lte": max_price}
+        if neighbourhood:
+            query["neighbourhood"] = neighbourhood
+        if type:
+            query["type"] = type
+        if area:
+            query["area"] = {"$gte": area}
+        if min_bed_number:
+            query["bed_number"] = {"$gte": min_bed_number}
+        if min_bath_number:
+            query["bath_number"] = {"$gte": min_bath_number}
+        results = mongo_client.PropertyOnSale.find(query)
+        results_list = list(results)
+        from entities.PropertyOnSale.property_on_sale import PropertyOnSale
+        properties = []
+        for result in results_list:
+            result["property_on_sale_id"] = str(result["_id"])
+            properties.append(PropertyOnSale(**result))
+        self.property_on_sale = properties
+        return 200
