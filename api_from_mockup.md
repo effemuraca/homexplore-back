@@ -33,7 +33,7 @@ DA VEDERE CARLO
 
 ### detail_home.html
 
-- Ottiene le informazioni di quella casa: GET /TO/BE/DECIDED
+- Ottiene le informazioni di quella casa -> FATTO (NORMALE GET BY ID): GET /TO/BE/DECIDED
 - LEVARE INFO SULLE AGENZIE (SIA NEI MOCKUP CHE NELLA COLLECTION PROPERTYONSALE)  --> FATTO SULLE COLLECTION
 
 ## SELLER
@@ -41,12 +41,12 @@ DA VEDERE CARLO
 ### seller.html
 
 - Edit seller information --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS)
-- View sold houses  --> PARZIALMENTE FATTOI DA ALE
+- View sold houses  --> PARZIALMENTE FATTO DA ALE
 - View property on sale --> PARZIALMENTE FATTO DA ALE
 
 ### profile.html
 
-- Get all profile info: GET /seller/get_profile_info
+- Get all profile info: -> DA FARE FERDI GET /seller/get_profile_info
 
 ### edit_profile.html
 
@@ -56,7 +56,7 @@ DA VEDERE CARLO
 
 - Far vedere tutte le case vendute in ordine di prezzo -> FATTO DA FERDI occhio alla paginazione: GET /seller/sold_properties
 - Cliccato il tasto per cambiare pagina o per andare alla pagina N (andare alla pagina N non ha senso se non si può ordinare per prezzo, etc)
-- Predisporre le analytics sulle case vendute (scritte giu)
+- Predisporre le analytics sulle case vendute 
 
 ### seller_for_sale.html
 
@@ -104,7 +104,7 @@ DA VEDERE CARLO
 
 ### favorites.html
 
-- Ottiene tutti i preferiti dell'utente: GET /buyer/favourites
+- Ottiene tutti i preferiti dell'utente -> FATTO DA FERDI: GET /buyer/favourites
 - Una proprietà viene rimossa dai preferiti -> FATTO FERDI: DELETE /buyer/favourites
 
 ### Miscellanea
