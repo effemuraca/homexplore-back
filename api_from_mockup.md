@@ -50,7 +50,7 @@ DA VEDERE CARLO
 
 ## edit_profile.html
 
-- Un utente (buyer o seller) modifica i propri dati -> DA FARE FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO : /seller/
+- Un utente (buyer o seller) modifica i propri dati -> DA FARE FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO : PUT /seller/
 
 ## seller_sold.html
 
