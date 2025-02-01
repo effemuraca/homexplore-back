@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from typing import Dict, Any
-from entities.Buyer.buyer import Buyer
+from typing import Dict, Any, List
+from entities.Buyer.buyer import Buyer, FavouriteProperty
 
 class SuccessModel(BaseModel):
     detail: str
@@ -49,7 +49,6 @@ GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
         }
     }
 }
-
 
 class CreateBuyerResponseModel(BaseModel):
     detail: str
@@ -157,6 +156,145 @@ DeleteBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
             "application/json": {
                 "example": {
                     "detail": "Buyer not found or delete failed."
+                }
+            }
+        }
+    }
+}
+
+GetFavoritesResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": List[FavouriteProperty],
+        "description": "Favorites retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "property_id": "1",
+                        "thumbnail": "https://www.example.com/image.jpg",
+                        "address": "1234 Example St.",
+                        "price": 100000,
+                        "area": 100
+                    }
+                ]
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Favorites not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Favorites not found."
+                }
+            }
+        }
+    }
+}
+
+AddFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": SuccessModel,
+        "description": "Favorite added successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Favorite added successfully."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid input.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid input."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to add favorite.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to add favorite."
+                }
+            }
+        }
+    }
+}
+
+DeleteFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": SuccessModel,
+        "description": "Favorite deleted successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Favorite deleted successfully."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid input.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid input."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to delete favorite.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to delete favorite."
+                }
+            }
+        }
+    }
+}
+
+UpdateFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": SuccessModel,
+        "description": "Favorite updated successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Favorite updated successfully."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid input.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid input."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to update favorite.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to update favorite."
                 }
             }
         }

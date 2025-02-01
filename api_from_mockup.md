@@ -28,13 +28,13 @@ DA VEDERE CARLO
 
 - Un utente (buyer o seller) modifica i propri dati -> DA FARE FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO
 
-## favourites.html
+## favorites.html
 
-- Una proprietà viene rimossa dai preferiti -> DA FARE FERDI
+- Una proprietà viene rimossa dai preferiti -> FATTO FERDI
 
 ## detail_home.html
 
-- Add to favourites premuto da un buyer -> DA FARE FERDI
+- Add to favorites premuto da un buyer -> FATTO FERDI
 - Book now cliccato da un buyer -> FATTO DA FERDI
 - LEVARE INFO SULLE AGENZIE (SIA NEI MOCKUP CHE NELLA COLLECTION PROPERTYONSALE)  --> FATTO SULLE COLLECTION
 
@@ -55,8 +55,8 @@ DA VEDERE CARLO
 - Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
 - View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI
-- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS)  
-- Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS)
+- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS + PREFERITI)  
+- Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS + PREFERITI)
 - INSERIRE BOTTONE PER LA VENDITA(mockup)
 - INSERIRE BARRA DI RICERCA(mockup)
 - Search an house--> FATTO DA ALE PARZIALEMENTE
