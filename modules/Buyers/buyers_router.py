@@ -17,6 +17,10 @@ def get_buyer(buyer_id: str):
     result = buyer_db.get_contact_info(buyer_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Buyer not found.")
+    elif result == 400:
+        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
+    elif result == 500:
+        raise HTTPException(status_code=500, detail="Internal server error.")
     return buyer_db.buyer
 
 @buyers_router.post("/", response_model=ResponseModels.CreateBuyerResponseModel, responses=ResponseModels.CreateBuyerResponseModelResponses)

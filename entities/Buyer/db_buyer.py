@@ -17,21 +17,25 @@ class BuyerDB:
             logger.error("buyer_id non fornito.")
             return 400
         mongo_client = get_default_mongo_db()
-        data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favorites": 0})
-        if not data:
-            logger.warning(f"Buyer con id {buyer_id} non trovato.")
-            return 404
-        self.buyer = Buyer(
-            buyer_id=str(data["_id"]),
-            password=data["password"],
-            email=data["email"],
-            phone_number=data["phone_number"],
-            name=data["name"],
-            surname=data["surname"],
-            age=data["age"]
-        )
-        logger.debug(f"Buyer recuperato: {self.buyer}")
-        return 200
+        try:
+            data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favorites": 0})
+            if not data:
+                logger.warning(f"Buyer con id {buyer_id} non trovato.")
+                return 404
+            self.buyer = Buyer(
+                buyer_id=str(data["_id"]),
+                password=data["password"],
+                email=data["email"],
+                phone_number=data["phone_number"],
+                name=data["name"],
+                surname=data["surname"],
+                age=data["age"]
+            )
+            logger.debug(f"Buyer recuperato: {self.buyer}")
+            return 200
+        except Exception as e:
+            logger.error(f"Errore durante il recupero del buyer: {e}")
+            return 500
 
     def delete_buyer_by_id(self, buyer_id: str) -> int:
         if not buyer_id:
