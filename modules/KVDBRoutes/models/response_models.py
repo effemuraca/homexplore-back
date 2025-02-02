@@ -90,3 +90,48 @@ BookNowResponses = {
         }
     }
 }
+
+GetReservationsResponses = {
+    200: {
+        "model": ReservationsBuyer,
+        "description": "Reservations retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "buyer_id": "1",
+                    "reservations": [
+                        {
+                            "property_on_sale_id": "1",
+                            "date": "2021-09-01",
+                            "time": "10:00",
+                            "thumbnail": "https://www.example.com/image.jpg",
+                            "address": "1234 Example St."
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "No reservations found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "No reservations found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to retrieve reservations.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to retrieve reservations."
+                }
+            }
+        }
+    }
+}

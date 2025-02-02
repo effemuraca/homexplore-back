@@ -109,7 +109,7 @@ DA VEDERE CARLO
 
 ### Miscellanea
 
-- Arriva l'open house event -> DA FARE FERDI
+- Arriva l'open house event -> FATTO DA FERDI
 
 RIMUOVERE IL SESSO DAI MOCKUP E DALL'UML (che va riguardato tutto)
 

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from bson import ObjectId
+from datetime import datetime
 
 class ReservationB(BaseModel):
     property_on_sale_id: Optional[str] = Field(None, example=1)
@@ -14,6 +15,13 @@ class ReservationB(BaseModel):
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
         return v
+    
+    def check_reservation_expired(self) -> bool:
+        """
+        Checks if the reservation has expired.
+        """
+        # Check if the reservation date is in the past
+        return datetime.strptime(self.date, "%Y-%m-%d") < datetime.now()
     
 
 class ReservationsBuyer(BaseModel):
