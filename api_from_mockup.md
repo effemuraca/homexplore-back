@@ -91,7 +91,7 @@ DA VEDERE CARLO
 
 ### profile.html (buyer)
 
-- Get all profile info -> DA FARE FERDI: GET /buyer/get_profile_info
+- Get all profile info -> FATTO DA FERDI: GET /buyer/get_profile_info
 
 ### edit_profile.html (buyer)
 
