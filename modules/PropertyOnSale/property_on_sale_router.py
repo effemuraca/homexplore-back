@@ -75,3 +75,11 @@ def filtered_search(
     return db_property_on_sale.property_on_sale
 
 
+@property_on_sale_router.get("/get_random", response_model=List[PropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
+def get_10_random_properties():
+    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
+    result_code = db_property_on_sale.get_10_random_properties()
+    if result_code == 500:
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    return db_property_on_sale.property_on_sale
+

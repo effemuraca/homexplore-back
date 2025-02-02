@@ -10,7 +10,7 @@ DA VEDERE CARLO
 
 ### main.html
 
-- Mostra un numero generico di proprietà casuali nel db (necessaria thumbnail, posizione, prezzo) -> CARLO TOGLI QUESTA ROBA DAI MOCKUP
+- Mostra un numero generico di proprietà casuali nel db (necessaria thumbnail, posizione, prezzo) -> FATTO DA FERDI
 
 ### register.html
 
@@ -46,7 +46,7 @@ DA VEDERE CARLO
 
 ### profile.html
 
-- Get all profile info: -> DA FARE FERDI GET /seller/get_profile_info
+- Get all profile info: -> FATTO DA FERDI GET /seller/get_profile_info
 
 ### edit_profile.html
 
@@ -56,11 +56,11 @@ DA VEDERE CARLO
 
 - Far vedere tutte le case vendute in ordine di prezzo -> FATTO DA FERDI occhio alla paginazione: GET /seller/sold_properties
 - Cliccato il tasto per cambiare pagina o per andare alla pagina N (andare alla pagina N non ha senso se non si può ordinare per prezzo, etc)
-- Predisporre le analytics sulle case vendute 
+- Predisporre le analytics sulle case vendute
 
 ### seller_for_sale.html
 
-- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo)
+- Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> FATTO (?)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
 - View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/property_on_sale
 - Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS + PREFERITI): POST /seller/sell_property_on_sale
@@ -91,7 +91,7 @@ DA VEDERE CARLO
 
 ### profile.html (buyer)
 
-- Get all profile info: GET /buyer/get_profile_info
+- Get all profile info -> DA FARE FERDI: GET /buyer/get_profile_info
 
 ### edit_profile.html (buyer)
 
@@ -99,7 +99,7 @@ DA VEDERE CARLO
 
 ### buyer_reservations.html
 
-- Ottiene tutte le prenotazioni dell'utente: GET /buyer/reservations
+- Ottiene tutte le prenotazioni dell'utente -> FATTO DA FERDI: GET /buyer/reservations
 - L'utente cancella una prenotazione (tasto cancel) -> FATTO DA FERDI: DELETE /buyer/reservations
 
 ### favorites.html

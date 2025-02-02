@@ -228,3 +228,47 @@ GetFilteredPropertiesOnSaleResponses = {
         }
     }
 }
+
+GetRandomPropertiesOnSaleResponses = {
+    200: {
+        "model": List[PropertyOnSale],
+        "description": "Random properties retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "property_on_sale_id": "60d5ec49f8d2e30b8c8b4567",
+                        "city": "New York",
+                        "neighbourhood": "Brooklyn",
+                        "address": "1234 Brooklyn St.",
+                        "price": 500000,
+                        "thumbnail": "https://www.example.com/thumbnail.jpg",
+                        "type": "House",
+                        "area": 2000,
+                        "registration_date": "2021-06-25T12:00:00",
+                        "bed_number": 3,
+                        "bath_number": 2,
+                        "description": "Beautiful house in Brooklyn.",
+                        "photos": ["https://www.example.com/photo1.jpg"],
+                        "disponibility": {
+                            "day": "Monday",
+                            "time": "10:00-11:00 AM",
+                            "max_attendees": 5
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Internal server error.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Internal server error."
+                }
+            }
+        }
+    }
+}

@@ -172,3 +172,17 @@ class PropertyOnSaleDB:
             properties.append(PropertyOnSale(**result))
         self.property_on_sale = properties
         return 200
+    
+    def get_10_random_properties(self) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            return 500
+        results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 10}}])
+        results_list = list(results)
+        from entities.PropertyOnSale.property_on_sale import PropertyOnSale
+        properties = []
+        for result in results_list:
+            result["property_on_sale_id"] = str(result["_id"])
+            properties.append(PropertyOnSale(**result))
+        self.property_on_sale = properties
+        return 200
