@@ -22,19 +22,13 @@ class ReservationsBuyerDB:
         key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
         try:
             existing_data = redis_client.get(key)
-            reservations = self.reservations_buyer.reservations or []
+            new_reservations = [res.dict() if hasattr(res, "dict") else res for res in (self.reservations_buyer.reservations or [])]
             if existing_data:
-                data = json.loads(existing_data)
-                # Check for duplicate reservation
-                for res in data:
-                    if res.get("property_on_sale_id") == self.reservations_buyer.reservations[0].property_on_sale_id:
-                        logger.warning("Duplicate reservation detected for buyer.")
-                        return 409
-                data.extend([res.dict() for res in reservations])
-                redis_client.set(key, json.dumps(data))
+                stored = json.loads(existing_data)
+                reservations = stored + new_reservations
             else:
-                data = [res.dict() for res in reservations]
-                redis_client.set(key, json.dumps(data))
+                reservations = new_reservations
+            redis_client.set(key, json.dumps(reservations))
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
             logger.error(f"Error creating buyer reservation: {e}")

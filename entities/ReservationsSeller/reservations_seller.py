@@ -48,7 +48,7 @@ class ReservationsSeller(BaseModel):
         """
         Calculates the maximum number of reservations based on the provided area.
         """
-        return area // 10  # 1 person per 10 sqft
+        return area // 10 if area > 0 else 0 # 1 person per 10 sqft
     
 def convert_to_seconds(day : str, start_time : str) -> Optional[int]:
     """
@@ -97,10 +97,6 @@ def convert_to_seconds(day : str, start_time : str) -> Optional[int]:
         return None
 
 def next_weekday(target_day: str) -> Optional[str]:
-    """
-    Restituisce la prossima data per il giorno della settimana specificato.
-    Ritorna la data in formato ISO (YYYY-MM-DD).
-    """
     days = {
         "monday": 0,
         "tuesday": 1,
@@ -110,13 +106,12 @@ def next_weekday(target_day: str) -> Optional[str]:
         "saturday": 5,
         "sunday": 6
     }
-    target_day = target_day.lower()
-    if target_day not in days:
+    target_day_lower = target_day.lower()
+    if target_day_lower not in days:
         return None
-    
     today = datetime.now()
     today_weekday = today.weekday()
-    target_weekday = days[target_day]
+    target_weekday = days[target_day_lower]
     days_ahead = target_weekday - today_weekday
     if days_ahead <= 0:
         days_ahead += 7

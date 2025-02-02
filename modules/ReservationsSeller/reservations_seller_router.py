@@ -24,25 +24,19 @@ def create_reservation_seller(reservations_seller_info: CreateReservationSeller)
             email=reservations_seller_info.email,
             phone=reservations_seller_info.phone
         )],
+        # Imposto total_reservations iniziale a 1 per registrare almeno una prenotazione
+        total_reservations=1,
         area=reservations_seller_info.area
     )
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    try:
-        status = reservations_seller_db.create_reservation_seller(
-            reservations_seller_info.day,
-            reservations_seller_info.time
-        )
-    except Exception as e:
-        logger.error(f"Error creating seller reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error creating seller reservation")
-    if status == 409:
-        raise HTTPException(status_code=409, detail="Reservation already exists")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input or missing reservation info.")
-    if status == 500:
+    status = reservations_seller_db.create_reservation_seller(reservations_seller_info.day, reservations_seller_info.time)
+    if status == 200:
+        return ResponseModels.SuccessModel(detail="Reservation created successfully.")
+    elif status == 409:
+        raise HTTPException(status_code=409, detail="Reservation already exists.")
+    else:
         raise HTTPException(status_code=500, detail="Failed to create reservation.")
-    return JSONResponse(status_code=201, content={"detail": "Seller reservation created"})
-
+    
 @reservations_seller_router.get(
     "/",
     response_model=ReservationsSeller,

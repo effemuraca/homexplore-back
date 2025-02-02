@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import logging
+import json
 from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from entities.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 from modules.ReservationsBuyer.models import response_models as ResponseModels
@@ -54,12 +55,13 @@ def get_reservations_buyer(buyer_id: str):
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
         status = reservations_buyer_db.get_reservations_by_user()
+
     except Exception as e:
         logger.error(f"Error retrieving buyer reservations: {e}")
         raise HTTPException(status_code=500, detail="Error retrieving buyer reservations")
-
+    
     if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found.")
+        raise HTTPException(status_code=404, detail="No reservations found for buyer.")
     if status == 500:
         raise HTTPException(status_code=500, detail="Failed to retrieve reservations.")
     
