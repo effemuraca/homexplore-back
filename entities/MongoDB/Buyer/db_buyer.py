@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 from bson.objectid import ObjectId
-from entities.Buyer.buyer import Buyer, FavouriteProperty
+from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 import logging
 

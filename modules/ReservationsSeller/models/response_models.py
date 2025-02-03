@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Dict, Any
-from entities.ReservationsSeller.reservations_seller import ReservationsSeller
+from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller
 
 class SuccessModel(BaseModel):
     detail: str

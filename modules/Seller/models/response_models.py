@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from entities.Seller.seller import Seller
+from entities.MongoDB.Seller.seller import Seller
 
 class SuccessModel(BaseModel):
     detail: str

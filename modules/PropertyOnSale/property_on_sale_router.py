@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from entities.PropertyOnSale.property_on_sale import PropertyOnSale
-from entities.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
+from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
+from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.PropertyOnSale.models.property_on_sale_models import CreatePropertyOnSale, UpdatePropertyOnSale
 from modules.PropertyOnSale.models import response_models as ResponseModels
 from typing import List, Optional

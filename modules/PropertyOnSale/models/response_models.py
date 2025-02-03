@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List
-from entities.PropertyOnSale.property_on_sale import PropertyOnSale
+from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 
 class SuccessModel(BaseModel):
     detail: str

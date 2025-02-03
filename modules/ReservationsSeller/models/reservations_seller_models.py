@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from entities.ReservationsSeller.reservations_seller import ReservationS
+from entities.Redis.ReservationsSeller.reservations_seller import ReservationS
 
 class CreateReservationSeller(BaseModel):
     property_on_sale_id: str = Field(..., example="615c44fdf641be001f0c1111")

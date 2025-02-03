@@ -1,9 +1,9 @@
 from typing import Optional
 from bson.objectid import ObjectId
-from entities.PropertyOnSale.property_on_sale import PropertyOnSale
+from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
-from entities.Seller.seller import SellerPropertyOnSale
+from entities.MongoDB.Seller.seller import SellerPropertyOnSale
 
 
 class PropertyOnSaleDB:

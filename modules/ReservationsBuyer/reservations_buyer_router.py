@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse
 from typing import List
 import logging
 import json
-from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
-from entities.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
+from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
+from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 from modules.ReservationsBuyer.models import response_models as ResponseModels
 from modules.ReservationsBuyer.models.reservations_buyer_models import CreateReservationBuyer, UpdateReservationBuyer
 

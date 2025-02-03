@@ -2,8 +2,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
-from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
-from entities.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
+from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
+from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from modules.ReservationsSeller.models import response_models as ResponseModels
 from modules.ReservationsSeller.models.reservations_seller_models import CreateReservationSeller, UpdateReservationSeller, UpdateEntireReservationSeller
 

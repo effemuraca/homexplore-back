@@ -2,7 +2,7 @@ from typing import Optional
 from datetime import datetime
 from bson.objectid import ObjectId
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
-from entities.Seller.seller import Seller, SoldProperty
+from entities.MongoDB.Seller.seller import Seller, SoldProperty
 
 class DBSeller:
     def __init__(self, seller: Optional[Seller] = None):

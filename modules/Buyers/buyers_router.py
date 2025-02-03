@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
-from entities.Buyer.buyer import Buyer, FavouriteProperty
-from entities.Buyer.db_buyer import BuyerDB
+from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
+from entities.MongoDB.Buyer.db_buyer import BuyerDB
 from modules.Buyers.models.buyer_models import CreateBuyer
 from modules.Buyers.models import response_models as ResponseModels
 

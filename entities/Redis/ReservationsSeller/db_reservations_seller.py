@@ -2,7 +2,7 @@ import json
 from typing import Optional
 import redis
 import logging
-from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, convert_to_seconds
+from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, convert_to_seconds
 from setup.redis_setup.redis_setup import get_redis_client
 
 logger = logging.getLogger(__name__)

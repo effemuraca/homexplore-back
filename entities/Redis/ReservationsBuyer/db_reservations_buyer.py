@@ -1,5 +1,5 @@
 from typing import Optional, List
-from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
+from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from setup.redis_setup.redis_setup import get_redis_client
 import json
 import redis

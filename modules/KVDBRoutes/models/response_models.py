@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer
+from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer
 
 class SuccessModel(BaseModel):
     detail: str

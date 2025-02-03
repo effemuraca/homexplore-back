@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Dict, Any, List
-from entities.Buyer.buyer import Buyer, FavouriteProperty
+from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
 
 class SuccessModel(BaseModel):
     detail: str

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, validator, EmailStr
 from typing import List, Optional
 from datetime import datetime
-from entities.PropertyOnSale.property_on_sale import Disponibility
+from entities.MongoDB.PropertyOnSale.property_on_sale import Disponibility
 from bson import ObjectId
 
 class SoldProperty(BaseModel):

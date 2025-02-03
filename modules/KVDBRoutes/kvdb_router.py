@@ -4,12 +4,12 @@ from setup.redis_setup.redis_setup import get_redis_client, WatchError
 from setup.mongo_setup.mongo_setup import get_mongo_client
 from modules.KVDBRoutes.models import response_models as ResponseModels
 from modules.KVDBRoutes.models.kvdb_models import BookNow
-from entities.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
-from entities.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
-from entities.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, next_weekday
-from entities.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
-from entities.Buyer.buyer import Buyer
-from entities.Buyer.db_buyer import BuyerDB
+from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
+from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
+from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, next_weekday
+from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
+from entities.MongoDB.Buyer.buyer import Buyer
+from entities.MongoDB.Buyer.db_buyer import BuyerDB
 import json
 import logging
 from bson.objectid import ObjectId

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from entities.Seller.seller import Seller
-from entities.Seller.db_seller import DBSeller
+from entities.MongoDB.Seller.seller import Seller
+from entities.MongoDB.Seller.db_seller import DBSeller
 from modules.Seller.models.seller_models import CreateSeller, UpdateSeller
 from modules.Seller.models import response_models as ResponseModels
 from bson.objectid import ObjectId
