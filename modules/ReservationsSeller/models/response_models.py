@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Dict, Any
 from entities.ReservationsSeller.reservations_seller import ReservationsSeller
 
 class SuccessModel(BaseModel):
@@ -7,7 +8,7 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-CreateReservationSellerResponseModelResponses = {
+CreateReservationSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     201: {
         "model": SuccessModel,
         "description": "Reservation created successfully.",
@@ -21,11 +22,11 @@ CreateReservationSellerResponseModelResponses = {
     },
     400: {
         "model": ErrorModel,
-        "description": "Invalid input or missing reservation info.",
+        "description": "Invalid input provided.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Invalid reservation info."
+                    "detail": "Invalid input."
                 }
             }
         }
@@ -36,7 +37,7 @@ CreateReservationSellerResponseModelResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation already exists"
+                    "detail": "Reservation already exists."
                 }
             }
         }
@@ -54,58 +55,24 @@ CreateReservationSellerResponseModelResponses = {
     }
 }
 
-DeleteReservationsSellerResponseModelResponses = {
-    200: {
-        "model": SuccessModel,
-        "description": "Reservation(s) deleted successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Reservations deleted successfully."
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "Reservation not found or delete failed.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Reservation not found or delete failed."
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Failed to delete reservation.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Failed to delete reservation."
-                }
-            }
-        }
-    }
-}
-
-GetReservationsSellerResponseModelResponses = {
+GetReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": ReservationsSeller,
-        "description": "Reservations retrieved successfully.",
+        "description": "Reservations fetched successfully.",
         "content": {
             "application/json": {
                 "example": {
                     "property_on_sale_id": "615c44fdf641be001f0c1111",
-                    "reservations": []
+                    "reservations": [],
+                    "max_reservations": 50,
+                    "total_reservations": 1
                 }
             }
         }
     },
     404: {
         "model": ErrorModel,
-        "description": "No reservations found for the property.",
+        "description": "No reservations found.",
         "content": {
             "application/json": {
                 "example": {
@@ -116,18 +83,18 @@ GetReservationsSellerResponseModelResponses = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Failed to retrieve reservations.",
+        "description": "Failed to fetch reservations.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Failed to retrieve reservations."
+                    "detail": "Failed to fetch reservations."
                 }
             }
         }
     }
 }
 
-UpdateReservationsSellerResponseModelResponses = {
+UpdateReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": ReservationsSeller,
         "description": "Reservation updated successfully.",
@@ -135,18 +102,20 @@ UpdateReservationsSellerResponseModelResponses = {
             "application/json": {
                 "example": {
                     "property_on_sale_id": "615c44fdf641be001f0c1111",
-                    "reservations": []
+                    "reservations": [],
+                    "max_reservations": 50,
+                    "total_reservations": 2
                 }
             }
         }
     },
     400: {
         "model": ErrorModel,
-        "description": "Invalid input.",
+        "description": "Invalid input provided.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Invalid input data."
+                    "detail": "Invalid input."
                 }
             }
         }
@@ -169,6 +138,42 @@ UpdateReservationsSellerResponseModelResponses = {
             "application/json": {
                 "example": {
                     "detail": "Failed to update reservation."
+                }
+            }
+        }
+    }
+}
+
+DeleteReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+    200: {
+        "model": SuccessModel,
+        "description": "Reservation deleted successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation deleted successfully."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Reservation not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Reservation not found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to delete reservation.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to delete reservation."
                 }
             }
         }

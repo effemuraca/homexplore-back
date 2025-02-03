@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional
 from entities.ReservationsSeller.reservations_seller import ReservationS
 
 class CreateReservationSeller(BaseModel):
