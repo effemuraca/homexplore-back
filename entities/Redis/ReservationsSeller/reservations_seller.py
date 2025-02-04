@@ -23,6 +23,7 @@ class ReservationsSeller(BaseModel):
     reservations: Optional[List[ReservationS]] = []
     max_reservations: Optional[int] = Field(0, example=50)
     total_reservations: Optional[int] = Field(0, example=0)
+    area: Optional[int] = Field(0, example=100)
     
     @validator('property_on_sale_id')
     def check_object_id(cls, v: str) -> str:
@@ -42,14 +43,12 @@ class ReservationsSeller(BaseModel):
             property_on_sale_id=property_on_sale_id,
             reservations=reservations,
             max_reservations=ReservationsSeller.calculate_max_reservations(area),
-            total_reservations=total_reservations if total_reservations > 0 else len(reservations)
+            total_reservations=total_reservations if total_reservations > 0 else len(reservations),
+            area=area
         )
-        # Save area for future reference if needed.
-        self.__dict__['area'] = area
 
     @staticmethod
     def calculate_max_reservations(area: int) -> int:
-        # Esempio: max_reservations = area diviso 10
         return area // 10 if area > 0 else 0
 
 def convert_to_seconds(day: str, start_time: str) -> Optional[int]:

@@ -10,10 +10,9 @@ from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSe
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from entities.MongoDB.Buyer.buyer import Buyer
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
-import json
-import logging
 from bson.objectid import ObjectId
 from datetime import datetime
+import logging
 
 kvdb_router = APIRouter(prefix="/kvdb", tags=["kvdb"])
 
@@ -93,127 +92,75 @@ def delete_reservation_by_user_and_property(user_id: str, property_on_sale_id: s
 def book_now(book_now_info: BookNow):
     """
     Book an open house event for a given buyer_id and property_on_sale_id,
-    handling the case where the open house event is not present,
-    the case where the open house event is present,
+    handling the case where the open house event is not present (first reservation),
+    the case where the open house event is present (subsequent reservation),
     and the case where the reservation is already present.
-    This is done atomically using Redis transactions (WATCH/MULTI/EXEC).
     """
-    
-    buyer_id = book_now_info.buyer_id
-    property_on_sale_id = book_now_info.property_on_sale_id
-    day = book_now_info.day
-    time = book_now_info.time
-    thumbnail = book_now_info.thumbnail
-    address = book_now_info.address
 
-    date = next_weekday(day)
-    if not date:
-        raise HTTPException(status_code=400, detail="Invalid day provided.")
-    
-    # Initialize instances of classes
-    reservations_buyer = ReservationsBuyer(
-        buyer_id=buyer_id,
-        reservations=[
-            ReservationB(
-                property_on_sale_id=property_on_sale_id,
-                date=date,
-                time=time,
-                thumbnail=thumbnail,
-                address=address
-            )
-        ]
-    )
-
-    buyer = Buyer(buyer_id=buyer_id)
+    buyer = Buyer(buyer_id=book_now_info.buyer_id)
     buyer_db = BuyerDB(buyer)
-
-    status = buyer_db.get_contact_info(buyer_id)
+    
+    status = buyer_db.get_contact_info(book_now_info.buyer_id)
     if status == 404:
-        raise HTTPException(status_code=404, detail="Buyer not found.")
+        raise HTTPException(status_code=404, detail="Buyer not found")
     if status == 500:
-        raise HTTPException(status_code=500, detail="Error retrieving buyer data.")
-    
+        raise HTTPException(status_code=500, detail="Error decoding buyer data")
 
+    buyer = buyer_db.buyer
+    if not all([buyer.name, buyer.surname, buyer.email, buyer.phone_number]):
+        logger.error("Incomplete buyer data for booking")
+        raise HTTPException(status_code=500, detail="Incomplete buyer data")
 
-    
-    redis_client = get_redis_client()
-    if redis_client is None:
-        raise HTTPException(status_code=500, detail="Failed to connect to Redis.")
-    
-    try:
-        # Start Redis transaction
-        with redis_client.pipeline() as pipe:
-            while True:
-                try:
-                    # Watch the buyer and seller keys
-                    buyer_key = f"buyer_id:{buyer_id}:reservations"
-                    seller_key = f"property_on_sale_id:{property_on_sale_id}:reservations_seller"
-                    pipe.watch(buyer_key, seller_key)
-    
-                    # Get existing reservations
-                    existing_buyer = pipe.get(buyer_key)
-                    existing_seller = pipe.get(seller_key)
+    reservations_buyer = ReservationsBuyer(buyer_id=book_now_info.buyer_id)
+    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+    reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id, area=book_now_info.area)
+    reservations_seller_db = ReservationsSellerDB(reservations_seller)
 
-                    # Convert existing buyer data
-                    if existing_buyer:
-                        buyer_data = json.loads(existing_buyer)
-                        if isinstance(buyer_data, list):
-                            buyer_reservations = ReservationsBuyer(buyer_id=buyer_id, reservations=buyer_data)
-                        else:
-                            buyer_reservations = ReservationsBuyer(**buyer_data)
-                    else:
-                        buyer_reservations = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
-
-                    # Convert existing seller data
-                    if existing_seller:
-                        seller_data = json.loads(existing_seller)
-                        if isinstance(seller_data, list):
-                            seller_reservations = ReservationsSeller(property_on_sale_id=property_on_sale_id, reservations=seller_data)
-                        else:
-                            seller_reservations = ReservationsSeller(**seller_data)
-                    else:
-                        seller_reservations = ReservationsSeller(property_on_sale_id=property_on_sale_id, reservations=[])
-
-                    # Check for duplicate reservations in buyer's record
-                    for res in buyer_reservations.reservations:
-                        if res.property_on_sale_id == property_on_sale_id:
-                            raise HTTPException(status_code=409, detail="Reservation already exists.")
-
-                    # Add new reservation to buyer and seller records
-                    buyer_reservations.reservations.append(
-                        ReservationB(
-                            property_on_sale_id=property_on_sale_id,
-                            date=date,
-                            time=time,
-                            thumbnail=thumbnail,
-                            address=address
-                        )
-                    )
-                    seller_reservations.reservations.append(
-                        ReservationS(
-                            buyer_id=buyer_id,
-                            full_name= f"{buyer.name} {buyer.surname}",
-                            email= buyer.email,
-                            phone= buyer.phone_number
-                        )
-                    )
-
-                    # Begin transaction
-                    pipe.multi()
-                    pipe.set(buyer_key, buyer_reservations.json())
-                    pipe.set(seller_key, seller_reservations.json())
-                    pipe.execute()
-                    break
-                except WatchError:
-                    continue
-
-        return JSONResponse(status_code=200, content={"detail": "Reservation created successfully."})
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logger.error(f"Unexpected error in book_now: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error.")
         
+    status = reservations_buyer_db.get_reservations_by_user()
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Error decoding reservations data")
+    if status == 200:
+        raise HTTPException(status_code=400, detail="Buyer already has a reservation")
+    
+    status = reservations_seller_db.get_reservation_seller()
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Error decoding seller reservations data")
+    
+    new_reservation = ReservationS(
+        buyer_id=book_now_info.buyer_id, 
+        full_name=f"{buyer.name} {buyer.surname}",
+        email=buyer.email,
+        phone=buyer.phone_number
+    )
+    
+    if reservations_seller_db.reservations_seller.reservations is None:
+        reservations_seller_db.reservations_seller.reservations = []
+    reservations_seller_db.reservations_seller.reservations.append(new_reservation)
+
+    status = reservations_seller_db.create_reservation_seller(book_now_info.day, book_now_info.time, book_now_info.buyer_id)
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Error creating seller reservation")
+    if status == 409:
+        raise HTTPException(status_code=409, detail="Reservation already exists")
+    
+    date = next_weekday(book_now_info.day)
+
+    reservations_buyer_db.reservations_buyer.reservations = [
+        ReservationB(
+            property_on_sale_id = book_now_info.property_on_sale_id, 
+            date = date, 
+            time = book_now_info.time, 
+            thumbnail = book_now_info.thumbnail, 
+            address = book_now_info.address
+        )
+    ]
+    status = reservations_buyer_db.create_reservation_buyer()
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Error creating buyer reservation")
+    
+    return JSONResponse(status_code=200, content={"detail": "Reservation created successfully"})
+            
 @kvdb_router.get(
     "/get_reservations_by_buyer/{buyer_id}",
     response_model=ResponseModels.SuccessModel,
