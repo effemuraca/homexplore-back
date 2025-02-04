@@ -5,7 +5,7 @@ from typing import List
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from modules.ReservationsSeller.models import response_models as ResponseModels
-from modules.ReservationsSeller.models.reservations_seller_models import CreateReservationSeller, UpdateReservationSeller, UpdateEntireReservationSeller
+from modules.ReservationsSeller.models.reservations_seller_models import CreateReservationSeller, UpdateReservationSeller
 
 logger = logging.getLogger(__name__)
 reservations_seller_router = APIRouter(prefix="/reservations_seller", tags=["reservations_seller"])
@@ -23,22 +23,22 @@ def create_reservation_seller(reservations_seller_info: CreateReservationSeller)
             full_name=reservations_seller_info.full_name,
             email=reservations_seller_info.email,
             phone=reservations_seller_info.phone
-        )],
-        total_reservations=1,
-        area=reservations_seller_info.area
+        )]
     )
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     status = reservations_seller_db.create_reservation_seller(
         day=reservations_seller_info.day,
         time=reservations_seller_info.time,
-        buyer_id=reservations_seller_info.buyer_id
+        buyer_id=reservations_seller_info.buyer_id,
+        max_reservations=reservations_seller_info.max_reservations
     )
-    if status == 200:
-        return ResponseModels.SuccessModel(detail="Reservation created successfully.")
-    elif status == 409:
+    if status == 409:
         raise HTTPException(status_code=409, detail="Reservation already exists.")
-    else:
+    if status == 400:
+        raise HTTPException(status_code=400, detail="Invalid input provided.")
+    if status == 500:
         raise HTTPException(status_code=500, detail="Failed to create reservation.")
+    return JSONResponse(status_code=201, content={"detail": "Seller reservation created successfully."})
    
 @reservations_seller_router.get(
     "/",
@@ -82,21 +82,6 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
         raise HTTPException(status_code=500, detail="Failed to update reservation.")
     reservations_seller_db.get_reservation_seller()
     return reservations_seller_db.reservations_seller
-
-@reservations_seller_router.put(
-    "/bulk",
-    response_model=ReservationsSeller,
-    responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
-)
-def update_entire_reservations_seller(reservations_seller_info: UpdateEntireReservationSeller):
-    reservations_seller = ReservationsSeller(property_on_sale_id=reservations_seller_info.property_on_sale_id)
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.update_entire_reservation_seller(area=reservations_seller_info.area)
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Maximum reservations exceeded.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to update entire reservations.")
-    return ResponseModels.SuccessModel(detail="Entire reservation updated successfully.")
 
 @reservations_seller_router.delete(
     "/",
