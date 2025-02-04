@@ -4,7 +4,7 @@
 
 ### map.html
 
-- Vedere tutte le case in un'area filtrate per score: GET /map/get_properties
+- Vedere tutte le case in un'area collegate a quella di partenza: GET /map/get_properties
 - Vedere i POI collegati a una casa: GET /map/get_pois
 DA VEDERE CARLO
 
@@ -62,21 +62,21 @@ DA VEDERE CARLO
 
 - Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> FATTO (?)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
-- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/property_on_sale
-- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS + PREFERITI): POST /seller/sell_property_on_sale
-- Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS + PREFERITI): DELETE /seller/property_on_sale
+- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/properties_on_sale
+- Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS + PREFERITI): POST /seller/sell_properties_on_sale
+- Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS + PREFERITI): DELETE /seller/properties_on_sale
 
 - INSERIRE BOTTONE PER LA VENDITA(mockup)
 - INSERIRE BARRA DI RICERCA(mockup)
-- Search an house--> FATTO DA ALE PARZIALMENTE: POST /seller/search_property_on_sale
+- Search an house--> FATTO DA ALE PARZIALMENTE: POST /seller/search_properties_on_sale
 
 ### add_property.html
 
-- Una proprietà viene aggiunta (attenzione al caso end_time < start_time dell'open house) --> FATTO DA ALE E CONSISTENTE SU MONGO: POST /seller/property_on_sale
+- Una proprietà viene aggiunta (attenzione al caso end_time < start_time dell'open house) --> FATTO DA ALE E CONSISTENTE SU MONGO: POST /seller/properties_on_sale
 
 ### edit_property.html
 
-- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI (REDIS + PREFERITI): PUT /seller/property_on_sale
+- Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI (REDIS + PREFERITI): PUT /seller/properties_on_sale
 
 ## BUYER
 

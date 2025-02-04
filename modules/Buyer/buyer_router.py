@@ -12,7 +12,7 @@ from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsB
 from modules.Buyer.models import response_models as ResponseModels
 from modules.Buyer.models.buyer_models import CreateReservationBuyer, UpdateReservationBuyer
 
-buyer_router = APIRouter(prefix="/buyer", tags=["buyer"])
+buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 
 # Configura il logger
 logger = logging.getLogger(__name__)
