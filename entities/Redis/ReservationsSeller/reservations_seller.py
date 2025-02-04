@@ -39,6 +39,7 @@ class ReservationsSeller(BaseModel):
             reservations=reservations
         )
 
+# Usa il fuso orario di Londra per calcolare l'intervallo di tempo
 def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
     """
     Converte il giorno e l'orario nell'intervallo di secondi da ora all'evento.
@@ -62,7 +63,10 @@ def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
         time_obj = datetime.strptime(start_time, "%I:%M %p")
         event_datetime = datetime.combine(event_date.date(), time_obj.time())
         delta = (event_datetime - today).total_seconds()
-        return int(delta) if delta > 0 else None
+        if delta <= 0:
+            event_datetime += timedelta(days=7)
+            delta = (event_datetime - today).total_seconds()
+        return int(delta)
     except Exception as e:
         logger.error(f"Error in convert_to_seconds: {e}")
         return None

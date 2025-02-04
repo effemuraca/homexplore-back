@@ -73,7 +73,7 @@ class ReservationsSellerDB:
             logger.error(f"Error retrieving seller reservation: {e}")
             return 500
 
-    def update_reservation_seller(self, buyer_id: str, updated_data: dict, new_day: Optional[str] = None) -> int:
+    def update_reservation_seller(self, buyer_id: str, updated_data: dict) -> int:
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -94,11 +94,6 @@ class ReservationsSellerDB:
             if not updated:
                 logger.warning(f"Reservation for buyer_id={buyer_id} not found.")
                 return 404
-            redis_client.set(key, json.dumps(data))
-            if new_day and updated_data.get("time"):
-                ttl = convert_to_seconds(new_day, updated_data.get("time"))
-                if ttl:
-                    redis_client.expire(key, ttl)
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
             logger.error(f"Error updating seller reservation: {e}")
@@ -135,4 +130,22 @@ class ReservationsSellerDB:
             return 200
         except redis.exceptions.RedisError as e:
             logger.error(f"Error deleting entire seller reservation: {e}")
+            return 500
+        
+    def update_day_and_time(self, day: str, time: str) -> int:
+        redis_client = get_redis_client()
+        if redis_client is None:
+            logger.error("Failed to connect to Redis.")
+            return 500
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
+        try:
+            ttl = convert_to_seconds(day, time)
+            raw_data = redis_client.get(key)
+            if not raw_data:
+                logger.warning("No reservations found for update.")
+                return 404
+            redis_client.expire(key, ttl)
+            return 200
+        except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
+            logger.error(f"Error updating day and time: {e}")
             return 500
