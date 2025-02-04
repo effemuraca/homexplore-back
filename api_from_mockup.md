@@ -14,15 +14,14 @@ DA VEDERE CARLO
 
 ### register.html
 
-- Un utente prova a registrarsi: POST /auth/signup
+- Un buyer prova a registrarsi: POST /auth/signup/buyer
+- Un seller prova a registrarsi: POST /auth/signup/seller
 
 ### login.html
 
-- Un buyer tenta il login: POST /auth/login_buyer
-- Un seller tenta il login: POST /auth/login_seller
+- Un buyer o un seller tenta il login: POST /auth/login
 
-- Un buyer fa il refresh del token: POST /auth/jwt/refresh_jwt_buyer
-- Un seller fa il refresh del token: POST /auth/jwt/refresh_jwt_seller
+- Un buyer o un seller fa il refresh del token: POST /auth/jwt/refresh
 
 ### index.html
 
