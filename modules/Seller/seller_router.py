@@ -7,7 +7,7 @@ from modules.Seller.models import response_models as ResponseModels
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from modules.Seller.models import response_models as ResponseModels
-from modules.Seller.models.seller_models import CreateReservationSeller, UpdateReservationSeller, UpdateEntireReservationSeller
+from modules.Seller.models.seller_models import CreateReservationSeller, UpdateReservationSeller
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.Seller.models import response_models as ResponseModels
