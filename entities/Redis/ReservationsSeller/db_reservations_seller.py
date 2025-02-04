@@ -13,7 +13,7 @@ class ReservationsSellerDB:
     def __init__(self, reservations_seller: Optional[ReservationsSeller] = None):
         self.reservations_seller = reservations_seller
 
-    def create_reservation_seller(self, day: str, time: str) -> int:
+    def create_reservation_seller(self, day: str, time: str, buyer_id :str) -> int:
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -23,7 +23,11 @@ class ReservationsSellerDB:
             ttl = convert_to_seconds(day, time)
             # Get existing reservations data from redis
             existing_data = redis_client.get(key)
-            new_reservation_dict = self.reservations_seller.reservations[0].dict()
+            if self.reservations_seller.reservations and len(self.reservations_seller.reservations) > 0:
+                new_reservation_dict = self.reservations_seller.reservations[0].dict()
+            else:
+                new_reservation_dict = {"buyer_id": buyer_id}
+            
             if existing_data:
                 data = json.loads(existing_data)
                 reservations_list = data.get("reservations", [])
@@ -35,10 +39,15 @@ class ReservationsSellerDB:
                 reservations_list.append(new_reservation_dict)
                 data["reservations"] = reservations_list
                 data["total_reservations"] = len(reservations_list)
+                data["area"] = self.reservations_seller.area
+                data["max_reservations"] = self.reservations_seller.max_reservations
             else:
                 # No existing data: use current data from self.reservations_seller
                 data = self.reservations_seller.dict()
-            redis_client.set(key, json.dumps(data), ex=ttl)
+                data["reservations"] = [new_reservation_dict]
+                data["total_reservations"] = 1
+                data["max_reservations"] = self.reservations_seller.max_reservations
+            redis_client.setex(key, ttl, json.dumps(data))
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
             logger.error(f"Error creating seller reservation: {e}")
@@ -57,11 +66,12 @@ class ReservationsSellerDB:
         try:
             data = json.loads(raw_data)
             self.reservations_seller = ReservationsSeller(
-                property_on_sale_id = data.get("property_on_sale_id"),
-                reservations = [ReservationS(**item) for item in data.get("reservations", [])],
-                area = data.get("area", 0),
-                total_reservations = data.get("total_reservations", 0)
+                property_on_sale_id=data.get("property_on_sale_id"),
+                reservations=[ReservationS(**item) for item in data.get("reservations", [])],
+                area=data.get("area", 0),
+                total_reservations=data.get("total_reservations", 0)
             )
+            # Nel costruttore di ReservationsSeller, max_reservations verrà ricalcolato
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError, TypeError) as e:
             logger.error(f"Error retrieving seller reservation: {e}")
@@ -112,7 +122,7 @@ class ReservationsSellerDB:
             data = json.loads(raw_data)
             if area is not None:
                 data["area"] = area
-                data["max_reservations"] = ReservationsSeller.calculate_max_reservations(area)
+                data["max_reservations"] = ReservationsSeller.calculate_max_reservations(self.reservations_seller.__dict__["area"])
             redis_client.set(key, json.dumps(data))
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
