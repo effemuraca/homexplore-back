@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from typing import List
 import logging
@@ -11,6 +11,7 @@ from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuye
 from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 from modules.Buyer.models import response_models as ResponseModels
 from modules.Buyer.models.buyer_models import CreateReservationBuyer, UpdateReservationBuyer
+from modules.Auth.helpers.auth_helpers import JWTHandler
 
 buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 
@@ -149,7 +150,14 @@ def update_favorite(buyer_id: str, property_id: str, favorite: FavouriteProperty
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.CreateReservationBuyerResponseModelResponses
 )
-def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer):
+def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
+    #Check if the buyer_id in the token is the same as the buyer_id in the request
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    if buyer_id != reservations_buyer_info.buyer_id:
+        raise HTTPException(status_code=401, detail="Invalid buyer_id")
+    
     reservations_buyer = ReservationsBuyer(
         buyer_id=reservations_buyer_info.buyer_id,
         reservations=[
@@ -176,27 +184,27 @@ def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer):
     
     return JSONResponse(status_code=201, content={"detail": "Buyer reservation created successfully."})
 
-@buyer_router.get(
-    "/reservations/{buyer_id}",
-    response_model=ReservationsBuyer,
-    responses=ResponseModels.GetReservationsBuyerResponseModelResponses
-)
-def get_reservations_buyer(buyer_id: str):
-    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    try:
-        status = reservations_buyer_db.get_reservations_by_user()
+# @buyer_router.get(
+#     "/reservations/{buyer_id}",
+#     response_model=ReservationsBuyer,
+#     responses=ResponseModels.GetReservationsBuyerResponseModelResponses
+# )
+# def get_reservations_buyer(buyer_id: str):
+#     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
+#     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+#     try:
+#         status = reservations_buyer_db.get_reservations_by_user()
 
-    except Exception as e:
-        logger.error(f"Error retrieving buyer reservations: {e}")
-        raise HTTPException(status_code=500, detail="Error retrieving buyer reservations")
+#     except Exception as e:
+#         logger.error(f"Error retrieving buyer reservations: {e}")
+#         raise HTTPException(status_code=500, detail="Error retrieving buyer reservations")
     
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found for buyer.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to retrieve reservations.")
+#     if status == 404:
+#         raise HTTPException(status_code=404, detail="No reservations found for buyer.")
+#     if status == 500:
+#         raise HTTPException(status_code=500, detail="Failed to retrieve reservations.")
     
-    return reservations_buyer_db.reservations_buyer
+#     return reservations_buyer_db.reservations_buyer
 
 @buyer_router.put(
     "/reservations",
