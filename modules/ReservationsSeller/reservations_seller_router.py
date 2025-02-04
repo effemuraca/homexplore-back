@@ -24,19 +24,22 @@ def create_reservation_seller(reservations_seller_info: CreateReservationSeller)
             email=reservations_seller_info.email,
             phone=reservations_seller_info.phone
         )],
-        # Imposto total_reservations iniziale a 1 per registrare almeno una prenotazione
         total_reservations=1,
         area=reservations_seller_info.area
     )
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.create_reservation_seller(reservations_seller_info.day, reservations_seller_info.time)
+    status = reservations_seller_db.create_reservation_seller(
+        day=reservations_seller_info.day,
+        time=reservations_seller_info.time,
+        buyer_id=reservations_seller_info.buyer_id
+    )
     if status == 200:
         return ResponseModels.SuccessModel(detail="Reservation created successfully.")
     elif status == 409:
         raise HTTPException(status_code=409, detail="Reservation already exists.")
     else:
         raise HTTPException(status_code=500, detail="Failed to create reservation.")
-    
+   
 @reservations_seller_router.get(
     "/",
     response_model=ReservationsSeller,

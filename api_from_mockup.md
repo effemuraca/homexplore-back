@@ -77,10 +77,12 @@ DA VEDERE CARLO
 ### add_property.html
 
 - Una proprietà viene aggiunta (attenzione al caso end_time < start_time dell'open house) --> FATTO DA ALE E CONSISTENTE SU MONGO: POST /seller/properties_on_sale
+- AGGIUNGERE NEI MOCKUP LA SCELTA DI MAX_RESERVATIONS
 
 ### edit_property.html
 
 - Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI (REDIS + PREFERITI): PUT /seller/properties_on_sale
+- AGGIUNGERE NEI MOCKUP LA SCELTA DI MAX_RESERVATIONS
 
 ## BUYER
 

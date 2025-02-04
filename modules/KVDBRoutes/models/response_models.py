@@ -58,11 +58,22 @@ BookNowResponses = {
     },
     400: {
         "model": ErrorModel,
-        "description": "Invalid input provided.",
+        "description": "Buyer already has a reservation.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Invalid day provided."
+                    "detail": "Buyer already has a reservation."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Buyer not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Buyer not found."
                 }
             }
         }
