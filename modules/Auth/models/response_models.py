@@ -1,19 +1,18 @@
-# author: @VinStan1
-# purpose:
-#     this file contains all the response models for the Auth module, for documentation purposes.
-
 from pydantic import BaseModel
+
+class SuccessModel(BaseModel):
+    detail: str
 
 class ErrorModel(BaseModel):
     detail: str
 
-class UserLoginResponseModel(BaseModel):
+class LoginResponseModel(BaseModel):
     access_token: str
     refresh_token: str
 
-UserLoginResponseModelResponses = {
+LoginResponseModelResponses = {
     200: {
-        "model": UserLoginResponseModel,
+        "model": LoginResponseModel,
         "description": "Successful login, returns access and refresh tokens.",
         "content": {
             "application/json": {
@@ -77,53 +76,12 @@ RefreshAccessTokenResponseModelResponses = {
     }
 }
 
-class GetMeResponseModel(BaseModel):
-    id: int
-    user_type_id: int
-    first_name: str
-    last_name: str
-    email: str
-    created_at: str
-    updated_at: str
-
-GetMeResponseModelResponses = {
-    200: {
-        "model": GetMeResponseModel,
-        "description": "Successful retrieval of user data.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "id": 1,
-                    "user_type_id": 0,
-                    "first_name": "John",
-                    "last_name": "Doe",
-                    "email": "johndoe@test.com",
-                    "created_at": "2021-01-01T00:00:00",
-                    "updated_at": "2021-01-01T00:00:00"
-                }
-            }
-        }
-    },
-    401: {
-        "model": ErrorModel,
-        "description": "User not verified.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not verified"
-                }
-            }
-        }
-    }
-}
-
-
-class UserRegisterResponseModel(BaseModel):
+class RegisterResponseModel(BaseModel):
     message: str
 
-UserRegisterResponseModelResponses = {
+RegisterResponseModelResponses = {
     201: {
-        "model": UserRegisterResponseModel,
+        "model": RegisterResponseModel,
         "description": "Successful registration.",
         "content": {
             "application/json": {
@@ -162,150 +120,6 @@ UserRegisterResponseModelResponses = {
             "application/json": {
                 "example": {
                     "detail": "User not created"
-                }
-            }
-        }
-    }
-}
-
-class GetUserResponseModel(BaseModel):
-    id: int
-    user_type_id: int
-    first_name: str
-    last_name: str
-    email: str
-    created_at: str
-    updated_at: str
-    verified: bool
-
-GetUserResponseModelResponses = {
-    200: {
-        "model": GetUserResponseModel,
-        "description": "Successful retrieval of user.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "id": 1,
-                    "user_type_id": 0,
-                    "first_name": "John",
-                    "last_name": "Doe",
-                    "email": "johndoe@test.com",
-                    "created_at": "2021-01-01T00:00:00",
-                    "updated_at": "2021-01-01T00:00:00",
-                    "verified": True,
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "User not found.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not found"
-                }
-            }
-        }
-    },
-    403: {
-        "model": ErrorModel,
-        "description": "User is not admin.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User is not admin"
-                }
-            }
-        }
-    }
-}
-
-class UserDeleteResponseModel(BaseModel):
-    message: str
-    
-UserDeleteResponseModelResponses = {
-    200: {
-        "model": UserDeleteResponseModel,
-        "description": "Successful deletion of user.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "message": "User deleted"
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "User not found.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User not found"
-                }
-            }
-        }
-    },
-    403: {
-        "model": ErrorModel,
-        "description": "User is not admin.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User is not admin"
-                }
-            }
-        }
-    }
-}
-        
-
-
-
-class GetUsersResponseModel(BaseModel):
-    users: list[GetUserResponseModel]
-    
-GetUsersResponseModelResponses = {
-    200: {
-        "model": GetUsersResponseModel,
-        "description": "Successful retrieval of users.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "users": [
-                        {
-                            "id": 1,
-                            "user_type_id": 0,
-                            "first_name": "John",
-                            "last_name": "Doe",
-                            "email": "johndoe@test.com",
-                            "created_at": "2021-01-01T00:00:00",
-                            "updated_at": "2021-01-01T00:00:00",
-                            "verified": True,
-                        },
-                        {
-                            "id": 2,
-                            "user_type_id": 0,
-                            "first_name": "Jane",
-                            "last_name": "Doe",
-                            "email": "janedoe@test.com",
-                            "created_at": "2021-01-01T00:00:00",
-                            "updated_at": "2021-01-01T00:00:00",
-                            "verified": True,
-                        }
-                    ]
-                }
-            }
-        }
-    },
-    403: {
-        "model": ErrorModel,
-        "description": "User is not admin.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "User is not admin"
                 }
             }
         }
