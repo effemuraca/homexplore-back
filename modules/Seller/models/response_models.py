@@ -276,9 +276,7 @@ GetReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
             "application/json": {
                 "example": {
                     "property_on_sale_id": "615c44fdf641be001f0c1111",
-                    "reservations": [],
-                    "max_reservations": 50,
-                    "total_reservations": 1
+                    "reservations": []
                 }
             }
         }
@@ -315,9 +313,7 @@ UpdateReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
             "application/json": {
                 "example": {
                     "property_on_sale_id": "615c44fdf641be001f0c1111",
-                    "reservations": [],
-                    "max_reservations": 50,
-                    "total_reservations": 2
+                    "reservations": []
                 }
             }
         }

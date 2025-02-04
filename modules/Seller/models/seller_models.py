@@ -59,7 +59,8 @@ class CreateReservationSeller(BaseModel):
     phone: Optional[str] = Field(None, example="1234567890")
     day: str = Field(..., example="Monday")
     time: str = Field(..., example="12:00 PM")
-    area: int = Field(..., example=500)
+    max_reservations: int = Field(..., example=5)
+    
 
 class UpdateReservationSeller(BaseModel):
     property_on_sale_id: str = Field(..., example="615c44fdf641be001f0c1111")
@@ -67,10 +68,6 @@ class UpdateReservationSeller(BaseModel):
     full_name: Optional[str] = Field(None, example="John Doe")
     email: Optional[str] = Field(None, example="john@example.com")
     phone: Optional[str] = Field(None, example="1234567890")
-
-class UpdateEntireReservationSeller(BaseModel):
-    property_on_sale_id: str = Field(..., example="615c44fdf641be001f0c1111")
-    area: Optional[int] = Field(None, example=500)
 
 
 # PropertyOnSale
