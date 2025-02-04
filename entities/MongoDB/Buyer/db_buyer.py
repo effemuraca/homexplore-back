@@ -40,6 +40,26 @@ class BuyerDB:
         except Exception as e:
             logger.error(f"Errore durante il recupero del buyer: {e}")
             return 500
+    
+    def get_buyer_by_email(self, email: str) -> int:
+        if not email:
+            logger.error("Email not given.")
+            return 400
+        mongo_client = get_default_mongo_db()
+        data = mongo_client.buyers.find_one({"email": email}, {"favourites": 0})
+        if not data:
+            logger.warning(f"Buyer with email {email} not found.")
+            return 404
+        self.buyer = Buyer(
+            buyer_id=str(data["_id"]),
+            password=data["password"],
+            email=data["email"],
+            phone_number=data["phone_number"],
+            name=data["name"],
+            surname=data["surname"]
+        )
+        logger.debug(f"Buyer retrieved: {self.buyer}")
+        return 200
 
     def delete_buyer_by_id(self, buyer_id: str) -> int:
         if not buyer_id:
