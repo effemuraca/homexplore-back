@@ -18,7 +18,11 @@ DA VEDERE CARLO
 
 ### login.html
 
-- Un utente tenta il login: POST /auth/login
+- Un buyer tenta il login: POST /auth/login_buyer
+- Un seller tenta il login: POST /auth/login_seller
+
+- Un buyer fa il refresh del token: POST /auth/jwt/refresh_jwt_buyer
+- Un seller fa il refresh del token: POST /auth/jwt/refresh_jwt_seller
 
 ### index.html
 
