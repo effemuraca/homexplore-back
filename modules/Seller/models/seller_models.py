@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, validator
+from bson import ObjectId 
 from typing import Optional, List
 import re
 
@@ -148,3 +149,57 @@ class FilteredSearchPropertyOnSale(BaseModel):
     area: Optional[int] = Field(None, example=2000)
     min_bed_number: Optional[int] = Field(None, example=3)
     min_bath_number: Optional[int] = Field(None, example=2)
+
+
+# Analytics
+
+class AnalyticsResponseModel(BaseModel):
+    detail: str
+    result: List[dict]
+
+class Analytics2Input(BaseModel):
+    agency_id: str = Field(example="5f4f4f4f4f4f4f4f4f4f4f4f")
+    city: str = Field(example="New York")
+    start_date: str = Field(example="2021-01-01")
+    end_date: str = Field(example="2021-12-31")
+
+    #create validator for date
+    @validator("start_date")
+    def validate_start_date(cls, value):
+        date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+        if not date_pattern.match(value):
+            raise ValueError("Invalid date format. Expected format: YYYY-MM-DD")
+        return value
+    
+    @validator("end_date")
+    def validate_end_date(cls, value):
+        date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+        if not date_pattern.match(value):
+            raise ValueError("Invalid date format. Expected format: YYYY-MM-DD")
+        return value
+    
+class Analytics3Input(BaseModel):
+    agency_id: str = Field(example="5f4f4f4f4f4f4f4f4f4f4f4f")
+    city: str = Field(example="New York")
+    start_date: str = Field(example="2021-01-01")
+
+    #create validator for date
+    @validator("start_date")
+    def validate_start_date(cls, value):
+        date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+        if not date_pattern.match(value):
+            raise ValueError("Invalid date format. Expected format: YYYY-MM-DD")
+        return value
+    
+    #check if agency is a valid ObjectId
+    @validator("agency_id")
+    def validate_agency(cls, value):
+        if not ObjectId.is_valid(value):
+            raise ValueError("Invalid agency_id")
+        return value
+    
+   
+    
+
+   
+    

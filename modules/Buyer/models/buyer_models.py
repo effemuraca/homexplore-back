@@ -34,3 +34,4 @@ class UpdateReservationBuyer(BaseModel):
     thumbnail: str = Field(example="https://www.example.com/image")
     address: str = Field(example="1234 Example St.")
 
+

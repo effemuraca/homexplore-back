@@ -2,16 +2,16 @@
     "_id": "string",
     "name": "string",                   
     "surname": "string",
-    "age": "number",   
     "email": "string",
     "password": "string",             
     "phone_number": "string",   
+    "age": "number",
     "favorites": [
       {
         "_id": "unique_house_identifier",
+        "thumbnail": "string", 
         "address": "string",
         "price": "number", 
-        "thumbnail": "string", 
         "area": "number"               
       }
     ]    

@@ -14,12 +14,6 @@
   "description": "string",        
   "photos": ["string"],   
   "registration_date": "ISO_8601_date",              
-  "agency_info":{
-    "_id": "unique_agency_identifier",
-    "agency_name": "string",  
-    "phone_number": "string",
-    "email": "string"
-   },
   "disponibility":{
     "date": "ISO_8601_date",
     "time": "string",

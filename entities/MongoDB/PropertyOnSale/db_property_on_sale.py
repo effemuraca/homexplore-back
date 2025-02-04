@@ -18,22 +18,25 @@ class PropertyOnSaleDB:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
-        result = mongo_client.PropertyOnSale.insert_one(self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"}))
+        try:
+            result = mongo_client.PropertyOnSale.insert_one(self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"}))
+        except Exception as e:
+            return 500
         if result.inserted_id:
             self.property_on_sale.property_on_sale_id = str(result.inserted_id)
-            data={
-                "_id": ObjectId(self.property_on_sale.property_on_sale_id),
-                "city": self.property_on_sale.city,
-                "neighbourhood": self.property_on_sale.neighbourhood,
-                "address": self.property_on_sale.address,
-                "price": self.property_on_sale.price,
-                "thumbnail": self.property_on_sale.thumbnail,
-            }
-            if self.property_on_sale.disponibility:
-                data["disponibility"] = self.property_on_sale.disponibility.model_dump()
-            result = mongo_client.Seller.update_one({"_id": ObjectId("679a41fa777bc4a7eb04807a")}, {"$push": {"properties_on_sale": data}})
+            data = self.property_on_sale.convert_to_seller_property()
+            try:
+                result = mongo_client.Seller.update_one({"_id": ObjectId("67a24123e4e677efc3af0032")}, {"$push": {"properties_on_sale": data}})
+            except Exception as e:
+                #rollback of property creation
+                try:
+                    mongo_client.PropertyOnSale.delete_one({"_id": ObjectId(self.property_on_sale.property_on_sale_id)})
+                except Exception as e:
+                    # Log the error if needed
+                    print(f"Rollback failed, inconsistent database state: {e}")
+                return 500
             return 201
-        return 500
+        return 500 #superfluo
     
     def get_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
         try:
@@ -186,3 +189,4 @@ class PropertyOnSaleDB:
             properties.append(PropertyOnSale(**result))
         self.property_on_sale = properties
         return 200
+    

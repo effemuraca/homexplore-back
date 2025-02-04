@@ -9,6 +9,7 @@ from modules.PropertyOnSale.property_on_sale_router import property_on_sale_rout
 from modules.Seller.seller_router import seller_router
 from modules.KVDBRoutes.kvdb_router import kvdb_router
 from modules.Buyer.buyer_router import buyer_router
+from modules.RegisteredUser.registered_user_router import registered_user_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -42,6 +43,7 @@ app.include_router(reservations_buyer_router)
 app.include_router(seller_router)
 app.include_router(kvdb_router)
 app.include_router(buyer_router)
+app.include_router(registered_user_router)
 
 # router have to be included after the app is created, here
 

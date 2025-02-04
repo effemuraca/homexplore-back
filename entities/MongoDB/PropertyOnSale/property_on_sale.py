@@ -26,13 +26,26 @@ class PropertyOnSale(BaseModel):
     description: Optional[str] = None
     photos: Optional[List[str]] = None
     disponibility: Optional[Disponibility] = None
-    
+ 
     @validator('property_on_sale_id')
     def check_object_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
         return v
     
+    def convert_to_seller_property(self) -> Dict[str, Any]:
+        #create a dictionary with the property fields
+        data = {
+            "_id": ObjectId(self.property_on_sale_id),
+            "city": self.city,
+            "neighbourhood": self.neighbourhood,
+            "address": self.address,
+            "price": self.price,
+            "thumbnail": self.thumbnail
+        }
+        if self.disponibility:
+            data["disponibility"] = self.disponibility.model_dump()
+        return data
     
 
     

@@ -12,9 +12,12 @@ from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.Seller.models import response_models as ResponseModels
 from modules.Seller.models.seller_models import CreatePropertyOnSale, UpdatePropertyOnSale
+from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input
 from typing import List, Optional
-
 from bson.objectid import ObjectId
+
+from setup.mongo_setup.mongo_setup import get_default_mongo_db
+from datetime import datetime
 
 seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
@@ -42,7 +45,7 @@ def sell_property(seller_id: str, property_to_sell_id: str):
     except:
         raise HTTPException(status_code=404, detail="Invalid property id or seller id.")
     db_entity = DBSeller(Seller())
-    result = db_entity.db_sell_property(seller_id, property_id)
+    result = db_entity.db_sell_property(property_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Property not found.")
     if result == 500:
@@ -99,7 +102,7 @@ def create_property_on_sale(property_on_sale: CreatePropertyOnSale):
     property_on_sale = PropertyOnSale(**property_on_sale.model_dump())
     db_property_on_sale = PropertyOnSaleDB(property_on_sale)
     response = db_property_on_sale.create_property_on_sale()
-    if response == 400:
+    if response == 400: #non facciamo nessun controllo sui campi, quindi non dovrebbe mai accadere
         raise HTTPException(status_code=response, detail="Invalid property information.")
     if response == 500:
         raise HTTPException(status_code=response, detail="Failed to create property.")
@@ -188,7 +191,7 @@ def create_reservation_seller(reservations_seller_info: CreateReservationSeller)
         # Imposto total_reservations iniziale a 1 per registrare almeno una prenotazione
         total_reservations=1,
         area=reservations_seller_info.area
-    )
+    ) 
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     status = reservations_seller_db.create_reservation_seller(reservations_seller_info.day, reservations_seller_info.time)
     if status == 200:
@@ -287,3 +290,84 @@ def delete_reservation_seller_by_buyer_id(buyer_id: str, property_on_sale_id: st
     if status == 500:
         raise HTTPException(status_code=500, detail="Failed to delete reservation.")
     return JSONResponse(status_code=200, content={"detail": "Seller reservation deleted successfully."})
+
+# Analytics routes
+
+@seller_router.post("/Analytics/Analytics 2", response_model=ResponseModels.AnaltyricsResponseModel, responses=ResponseModels.Analytics2Responses)
+def analytics_2(input : Analytics2Input):
+    mongo_client = get_default_mongo_db()
+    if mongo_client is None:
+        raise HTTPException(status_code=500, detail="Database client not found")
+    #convert input dates into datetime objects
+    start = datetime.strptime(input.start_date, "%Y-%m-%d")
+    end = datetime.strptime(input.end_date, "%Y-%m-%d")
+    #check if the start date is before the end date
+    if start > end:
+        raise HTTPException(status_code=400, detail="Start date must be before end date")
+    try:
+        pipeline = [
+            {
+                "$match": {
+                    "_id": ObjectId(input.agency_id),
+                }
+            },
+            {"$unwind": "$sold_properties"},
+            {
+                "$match": {
+                    "sold_properties.city": input.city,
+                    "sold_properties.sell_date": {"$gte": start,"$lte": end}
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$sold_properties.neighbourhood",
+                    "houses_sold": {"$sum": 1},
+                    "revenue": {"$sum": "$sold_properties.price"}
+                }
+            }
+        ]
+        aggregation_result = mongo_client.Seller.aggregate(pipeline)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    aggregation_result = list(aggregation_result)
+    if not aggregation_result:
+        response="No data found"
+    else:
+        response="Aggregated data finished successfully"
+    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
+
+@seller_router.post("/Analytics/Analytics 3", response_model=ResponseModels.AnaltyricsResponseModel, responses=ResponseModels.Analytics3Responses)
+def analytics_3(input : Analytics3Input):
+    mongo_client = get_default_mongo_db()
+    if mongo_client is None:
+        raise HTTPException(status_code=500, detail="Database client not found")
+    start=datetime.strptime(input.start_date, "%Y-%m-%d")
+    try:
+        pipeline = [
+            {"$match": {"_id": ObjectId(input.agency_id)}},
+            {"$unwind": "$sold_properties"},
+            {"$match": {"sold_properties.city": input.city, "sold_properties.registration_date": {"$gte": start}}},
+            {"$project": {
+                "time_to_sell": {
+                    "$divide": [{"$subtract": ["$sold_properties.sell_date", "$sold_properties.registration_date"]},86400000 ]
+                },
+                "sold_properties.neighbourhood": 1
+            }
+            },
+            {
+            "$group": {
+                "_id": "$sold_properties.neighbourhood",
+                "avg_time_to_sell": {"$avg": "$time_to_sell"},
+                "num_house": {"$sum": 1}
+            }    
+            }
+        ]
+        aggregation_result = mongo_client.Seller.aggregate(pipeline)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    aggregation_result = list(aggregation_result)
+    if not aggregation_result:
+        response="No data found"
+    else:
+        response="Aggregated data finished successfully"
+    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})

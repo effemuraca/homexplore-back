@@ -43,3 +43,4 @@ class Buyer(BaseModel):
             if not phone_pattern.match(value):
                 raise ValueError('Invalid phone number format.')
         return value
+

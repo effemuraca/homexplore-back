@@ -240,7 +240,7 @@ db.SoldProperty.aggregate([
   }
 ])
 
-// Given an agency and a city, return the average time to sell a house for each neighborhood
+// Given an agency and a city, return the average time to sell a house for each neighborhood with time period
 db.SoldProperty.aggregate([
   {
     $match: {
@@ -259,7 +259,7 @@ db.SoldProperty.aggregate([
       },
       neighbourhood: 1
     }
-  },
+  }, 
   {
     $group: {
       _id: "$neighbourhood",
