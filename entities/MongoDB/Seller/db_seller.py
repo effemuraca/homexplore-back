@@ -8,7 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class DBSeller:
+class SellerDB:
     def __init__(self, seller: Optional[Seller] = None):
         self.seller = seller
     

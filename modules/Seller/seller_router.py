@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from entities.MongoDB.Seller.seller import Seller
-from entities.MongoDB.Seller.db_seller import DBSeller
+from entities.MongoDB.Seller.db_seller import SellerDB
 from modules.Seller.models.seller_models import CreateSeller, UpdateSeller
 from modules.Seller.models import response_models as ResponseModels
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
@@ -26,7 +26,7 @@ seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
 # @seller_router.post("/", response_model=ResponseModels.CreateSellerResponseModel, responses=ResponseModels.CreateSellerResponses)
 # def create_seller(seller: CreateSeller):
-#     db_seller = DBSeller(Seller(**seller.model_dump()))
+#     db_seller = SellerDB(Seller(**seller.model_dump()))
 #     response = db_seller.create_seller()
 #     if response == 400:
 #         raise HTTPException(status_code=400, detail="Invalid seller information.")
@@ -44,7 +44,7 @@ def sell_property(seller_id: str, property_to_sell_id: str):
         seller_id = ObjectId(seller_id)
     except:
         raise HTTPException(status_code=404, detail="Invalid property id or seller id.")
-    db_entity = DBSeller(Seller())
+    db_entity = SellerDB(Seller())
     result = db_entity.db_sell_property(property_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Property not found.")
@@ -55,7 +55,7 @@ def sell_property(seller_id: str, property_to_sell_id: str):
 @seller_router.get("/", response_model=Seller, responses=ResponseModels.GetSellerResponses)
 def get_seller(seller_id: str):
     temp_seller = Seller(seller_id=seller_id)
-    db_seller = DBSeller(temp_seller)
+    db_seller = SellerDB(temp_seller)
     response = db_seller.get_seller_by_id()
     if response == 400:
         raise HTTPException(status_code=400, detail="Invalid seller id")
@@ -65,7 +65,7 @@ def get_seller(seller_id: str):
 
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller):
-    db_seller = DBSeller(Seller(**seller.model_dump()))
+    db_seller = SellerDB(Seller(**seller.model_dump()))
     response = db_seller.update_seller_by_id()
     if response == 400:
         raise HTTPException(status_code=400, detail="Invalid seller id")
@@ -76,7 +76,7 @@ def update_seller(seller: UpdateSeller):
 @seller_router.delete("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteSellerResponses)
 def delete_seller(seller_id: str):
     temp_seller = Seller(seller_id=seller_id)
-    db_seller = DBSeller(temp_seller)
+    db_seller = SellerDB(temp_seller)
     response = db_seller.delete_seller_by_id()
     if response == 400:
         raise HTTPException(status_code=400, detail="Invalid seller id")
@@ -86,7 +86,7 @@ def delete_seller(seller_id: str):
 
 @seller_router.get("/{seller_id}/sold_properties", response_model=Seller, responses=ResponseModels.GetSoldPropertiesByPriceDescResponses)
 def get_sold_properties_by_price_desc(seller_id: str):
-    db_seller = DBSeller()
+    db_seller = SellerDB()
     result = db_seller.get_sold_properties_by_price_desc(seller_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Seller not found.")

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password, verify_hashed_password
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
-from entities.MongoDB.Seller.db_seller import DBSeller as SellerDB
+from entities.MongoDB.Seller.db_seller import SellerDB
 from entities.MongoDB.Buyer.buyer import Buyer
 from entities.MongoDB.Seller.seller import Seller
 from modules.Auth.models import response_models as ResponseModels
