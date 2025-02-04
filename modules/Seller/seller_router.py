@@ -12,7 +12,7 @@ from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.Seller.models import response_models as ResponseModels
 from modules.Seller.models.seller_models import CreatePropertyOnSale, UpdatePropertyOnSale
-from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input
+from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input, Analytics6Input
 from typing import List, Optional
 from bson.objectid import ObjectId
 
@@ -301,7 +301,7 @@ def update_reservations_seller_date_and_time(property_on_sale_id: str, day: str,
 
 # Analytics routes
 
-@seller_router.post("/Analytics/Analytics 2", response_model=ResponseModels.AnaltyricsResponseModel, responses=ResponseModels.Analytics2Responses)
+@seller_router.post("/Analytics/Analytics 2", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics2Responses)
 def analytics_2(input : Analytics2Input):
     mongo_client = get_default_mongo_db()
     if mongo_client is None:
@@ -344,7 +344,7 @@ def analytics_2(input : Analytics2Input):
         response="Aggregated data finished successfully"
     return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
 
-@seller_router.post("/Analytics/Analytics 3", response_model=ResponseModels.AnaltyricsResponseModel, responses=ResponseModels.Analytics3Responses)
+@seller_router.post("/Analytics/Analytics 3", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics3Responses)
 def analytics_3(input : Analytics3Input):
     mongo_client = get_default_mongo_db()
     if mongo_client is None:
@@ -379,3 +379,4 @@ def analytics_3(input : Analytics3Input):
     else:
         response="Aggregated data finished successfully"
     return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
+

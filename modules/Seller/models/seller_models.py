@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, validator
 from bson import ObjectId 
 from typing import Optional, List
 import re
+from datetime import datetime
 
 # Seller
 class CreateSeller(BaseModel):
@@ -195,7 +196,30 @@ class Analytics3Input(BaseModel):
             raise ValueError("Invalid agency_id")
         return value
     
-   
+class Analytics6Input(BaseModel):
+    agency_id: str = Field(example="5f4f4f4f4f4f4f4f4f4f4f4f")
+    city: str = Field(example="New York")
+    start_houre: str = Field(example="10:00 AM")
+    end_houre: str = Field(example="12:00 PM")
+
+    #create validator for houre
+    @validator("start_houre")
+    def validate_start_houre(cls, value):
+        houre_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
+        if not houre_pattern.match(value):
+            raise ValueError("Invalid houre format. Expected format: HH:MM AM/PM")
+        return value
+    
+    @validator("end_houre")
+    def validate_end_houre(cls, value, values):
+        houre_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
+        if not houre_pattern.match(value):
+            raise ValueError("Invalid houre format. Expected format: HH:MM AM/PM")
+        start_time = datetime.strptime(values["start_houre"], "%I:%M %p")
+        end_time = datetime.strptime(value, "%I:%M %p")
+        if start_time >= end_time:
+            raise ValueError("end_houre must be after start_houre")
+        return value
     
 
    

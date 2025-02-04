@@ -658,13 +658,13 @@ GetRandomPropertiesOnSaleResponses = {
 }
 
 #Analytics
-class AnaltyricsResponseModel(BaseModel):
+class AnalyticsResponseModel(BaseModel):
     detail: str
     result: List[dict]
 
 Analytics2Responses = {
     200: {
-        "model": AnaltyricsResponseModel,
+        "model": AnalyticsResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
@@ -712,7 +712,7 @@ Analytics2Responses = {
  
 Analytics3Responses = {
     200: {
-        "model": AnaltyricsResponseModel,
+        "model": AnalyticsResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
@@ -748,4 +748,39 @@ Analytics3Responses = {
 }
 
 
-    
+Analytics6Responses = {
+    200: {
+        "model": AnalyticsResponseModel,
+        "description": "Analytics data retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Aggregated data finished successfully",
+                    "result": [
+                        {
+                            "_id": "Brooklyn",
+                            "house_sold": 10,
+                            "revenue": 5000000
+                        },
+                        {
+                            "_id": "Manhattan",
+                            "house_sold": 5,
+                            "revenue": 3000000
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Database client not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Database client not found"
+                }
+            }
+        }
+    }
+}
