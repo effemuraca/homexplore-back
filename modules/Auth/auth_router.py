@@ -2,52 +2,41 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password, verify_hashed_password
-from entities.User.methods_user import create_user, get_user_by_email, get_user_by_id, update_user_by_id, is_admin_check, delete_user_by_id
-from entities.Candidate.methods_candidate import create_candidate, delete_candidate
+from entities.MongoDB.Buyer.db_buyer import BuyerDB
+from entities.MongoDB.Seller.db_seller import DBSeller as SellerDB
+from entities.MongoDB.Buyer.buyer import Buyer
+from entities.MongoDB.Seller.seller import Seller
 from modules.Auth.models import response_models as ResponseModels
-from modules.Auth.models import auth_models as UserModels
+from modules.Auth.models import auth_models as AuthModels
 
-auth_router = APIRouter(prefix="/auth", tags=["auth"])
+auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@auth_router.post("/login", response_model=ResponseModels.UserLoginResponseModel, responses= ResponseModels.UserLoginResponseModelResponses)
-def login_handler(loginInfo: UserModels.UserLoginModel):
-    return login(loginInfo)
-
-@auth_router.get("/me", response_model=ResponseModels.GetMeResponseModel, responses= ResponseModels.GetMeResponseModelResponses)
-def me_handler(access_token: str = Depends(JWTHandler())):
-    return me(access_token)
-
-@auth_router.post("/jwt/refresh", response_model=ResponseModels.RefreshAccessTokenResponseModel, responses= ResponseModels.RefreshAccessTokenResponseModelResponses)
-def refreshAccToken_handler(refresh_token: str = Depends(JWTHandler())):
-    return refreshAccToken(refresh_token)
-
-@auth_router.post("/register", response_model=ResponseModels.UserRegisterResponseModel, responses= ResponseModels.UserRegisterResponseModelResponses)
-async def register_handler(userInfo: UserModels.UserCreateModel):
-    return await register(userInfo)
+@auth_router.post("/login", response_model=ResponseModels.LoginResponseModel, responses= ResponseModels.LoginResponseModelResponses)
+def login(login_info: AuthModels.Login, user_type: str):
+    if user_type not in ["buyer", "seller"]:
+        raise HTTPException(status_code=400, detail="Invalid user type")
     
-@auth_router.get("/user", response_model=ResponseModels.GetUserResponseModel, responses= ResponseModels.GetUserResponseModelResponses)
-def getUser_handler(user_id: int, access_token: str = Depends (JWTHandler())):
-    return getUser(user_id, access_token)
-
-@auth_router.delete("/delete-user")
-def delete_user_handler(user_id: int, access_token: str = Depends(JWTHandler())):
-    return delete_user(user_id, access_token)
-
+    if user_type == "buyer":
+        user_db = BuyerDB()
+        result = user_db.get_buyer_by_email(login_info.email)
+    elif user_type == "seller":
+        user_db = SellerDB()
+        result = user_db.get_seller_by_email(login_info.email)
     
-def login(loginInfo: UserModels.UserLoginModel):
-    user = get_user_by_email(loginInfo.email)
-    if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
-    if not user.verified:
-        raise HTTPException(status_code=401, detail="user not verified")
-    pw_is_correct = verify_hashed_password(user.password, loginInfo.password)
+    if result == 404:
+        raise HTTPException(status_code=404, detail="User not found")
+    elif result == 400:
+        raise HTTPException(status_code=400, detail="email not given")
+    
+    user = getattr(user_db, user_type)
+    user_id = getattr(user, f"{user_type}_id")
+    
+    pw_is_correct = verify_hashed_password(user.password, login_info.password)
     if not pw_is_correct:
         raise HTTPException(status_code=401, detail="Wrong credentials")
-    user_is_verified = user.verified
-    if not user_is_verified:
-        raise HTTPException(status_code=401, detail="user not verified")
-    acc_token = JWTHandler.createAccessToken(user.id, 60*24*7)
-    ref_token = JWTHandler.createRefreshToken(user.id, 60*24*7)
+    
+    acc_token = JWTHandler.createAccessToken(user_id, user_type, 60*24*7)
+    ref_token = JWTHandler.createRefreshToken(user_id, user_type, 60*24*7)
     return JSONResponse(
         content= {
             "access_token": acc_token,
@@ -55,30 +44,14 @@ def login(loginInfo: UserModels.UserLoginModel):
         },
         status_code=200
     )
-
-def me(access_token: str = Depends(JWTHandler())):
-    user_id = JWTHandler.verifyAccessToken(access_token)
-    if user_id is None:
-        raise HTTPException(status_code=401, detail="invalid access token")
-    user = get_user_by_id(user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
-    user = user._asdict()
-    if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
-    if not user["verified"]:
-        raise HTTPException(status_code=401, detail="user not verified")
-    del user["password"]
-    return JSONResponse(
-        content=user,
-        status_code=200
-    )
     
+@auth_router.post("/jwt/refresh", response_model=ResponseModels.RefreshAccessTokenResponseModel, responses= ResponseModels.RefreshAccessTokenResponseModelResponses)
 def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
-    user_id = JWTHandler.verifyRefreshToken(refresh_token)
+    print(refresh_token)
+    user_id, user_type = JWTHandler.verifyRefreshToken(refresh_token)
     if user_id is None:
         raise HTTPException(status_code=401, detail="invalid refresh token")
-    acc_token = JWTHandler.createAccessToken(user_id)
+    acc_token = JWTHandler.createAccessToken(user_id, user_type, 60*24*7)
     return JSONResponse(
         content= {
             "access_token": acc_token,
@@ -86,54 +59,53 @@ def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
         status_code=200
     )
 
-@auth_router.post("/register", response_model=ResponseModels.UserRegisterResponseModel, responses= ResponseModels.UserRegisterResponseModelResponses)
-def register(userInfo: UserModels.CreateUserModel):
-    user: User = get_user_by_email(userInfo.email)
-    if user is not None:
-        raise HTTPException(status_code=409, detail="email already exists")
-    hashed_pw = hash_password(userInfo.password)
-    userInfo.password = hashed_pw
-    user = User(**userInfo.model_dump())
-    with get_db_session() as session:
-        session.add(user)
-        session.commit()
-        session.close()
+@auth_router.post("/signup/buyer", response_model=ResponseModels.SuccessModel, responses=ResponseModels.RegisterResponseModelResponses)
+def register_buyer(user_info: AuthModels.CreateBuyer):
+    # Check if the email already exists in the buyer database
+    buyer_db = BuyerDB()
+    existing_check = buyer_db.get_buyer_by_email(user_info.email)
+    if existing_check != 404:
+        raise HTTPException(status_code=409, detail="Email already exists")
+
+    # Hash of the password and creation of the user
+    hashed_pw = hash_password(user_info.password)
+    user_info.password = hashed_pw
+    buyer_db.buyer = Buyer(**user_info.model_dump())
+    result = buyer_db.create_buyer()
+    if result == 500:
+        raise HTTPException(status_code=500, detail="Error during buyer creation")
+    elif result == 400:
+        raise HTTPException(status_code=400, detail="Error in the information provided")
+
     return JSONResponse(
         content={
-            "message": "user created"
+            "detail": "Buyer created successfully"
         },
         status_code=201
     )
-    
-def getUser(user_id: int, access_token: str = Depends (JWTHandler())):
-    user_id = JWTHandler.verifyAccessToken(access_token)
-    user_admin = is_admin_check(user_id)
-    if not user_admin:
-        raise HTTPException(status_code=403, detail="user is not admin")
-    user = get_user_by_id(user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
-    return JSONResponse(
-        content=user._asdict(),
-        status_code=200
-    )
 
-    
-def delete_user(user_id: int, access_token: str = Depends(JWTHandler())):
-    admin_id = JWTHandler.verifyAccessToken(access_token)
-    user_admin = is_admin_check(admin_id)
-    if not user_admin:
-        raise HTTPException(status_code=403, detail="user is not admin")
-    user = get_user_by_id(user_id)
-    if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
-    response = delete_user_by_id(user_id)
-    if response is None:
-        raise HTTPException(status_code=500, detail="user not deleted")
-    response2 = delete_candidate(user_id)
-    if response2 is None:
-        raise HTTPException(status_code=500, detail="candidate not deleted")
+
+@auth_router.post("/signup/seller", response_model=ResponseModels.SuccessModel, responses=ResponseModels.RegisterResponseModelResponses)
+def register_seller(user_info: AuthModels.CreateSeller):
+    # Check if the email already exists in the seller database
+    seller_db = SellerDB()
+    existing_check = seller_db.get_seller_by_email(user_info.email)
+    if existing_check != 404:
+        raise HTTPException(status_code=409, detail="Email already exists")
+
+    # Hash of the password and creation of the user
+    hashed_pw = hash_password(user_info.password)
+    user_info.password = hashed_pw
+    seller_db.seller = Seller(**user_info.model_dump())
+    result = seller_db.create_seller()
+    if result == 500:
+        raise HTTPException(status_code=500, detail="Error during seller creation")
+    elif result == 400:
+        raise HTTPException(status_code=400, detail="Error in the information provided")
+
     return JSONResponse(
-        content={ "message": "user deleted" },
-        status_code=200
+        content={
+            "detail": "Seller created successfully"
+        },
+        status_code=201
     )

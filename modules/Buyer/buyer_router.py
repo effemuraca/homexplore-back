@@ -35,22 +35,22 @@ def get_buyer(buyer_id: str):
         raise HTTPException(status_code=500, detail="Internal server error.")
     return buyer_db.buyer
 
-@buyer_router.post("/", response_model=ResponseModels.CreateBuyerResponseModel, responses=ResponseModels.CreateBuyerResponseModelResponses)
-def create_buyer(buyer: CreateBuyer):
-    """
-    Creates a new buyer.
-    """
-    if not buyer:
-        raise HTTPException(status_code=400, detail="Missing buyer info.")
+# @buyer_router.post("/", response_model=ResponseModels.CreateBuyerResponseModel, responses=ResponseModels.CreateBuyerResponseModelResponses)
+# def create_buyer(buyer: CreateBuyer):
+#     """
+#     Creates a new buyer.
+#     """
+#     if not buyer:
+#         raise HTTPException(status_code=400, detail="Missing buyer info.")
     
-    buyer_db = BuyerDB(Buyer(**buyer.dict()))
-    result = buyer_db.create_buyer()
-    if result == 400:
-        raise HTTPException(status_code=result, detail="Invalid buyer info.")
-    elif result == 500:
-        raise HTTPException(status_code=result, detail="Failed to create buyer.")
-    elif result == 201:
-        return JSONResponse(status_code=201, content={"detail": "Buyer created successfully.", "buyer_id": buyer_db.buyer.buyer_id})
+#     buyer_db = BuyerDB(Buyer(**buyer.dict()))
+#     result = buyer_db.create_buyer()
+#     if result == 400:
+#         raise HTTPException(status_code=result, detail="Invalid buyer info.")
+#     elif result == 500:
+#         raise HTTPException(status_code=result, detail="Failed to create buyer.")
+#     elif result == 201:
+#         return JSONResponse(status_code=201, content={"detail": "Buyer created successfully.", "buyer_id": buyer_db.buyer.buyer_id})
 
 @buyer_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateBuyerResponseModelResponses)
 def update_buyer(buyer: Buyer):

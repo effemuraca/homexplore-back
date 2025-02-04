@@ -3,6 +3,10 @@ from datetime import datetime
 from bson.objectid import ObjectId
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from entities.MongoDB.Seller.seller import Seller, SoldProperty
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 class DBSeller:
     def __init__(self, seller: Optional[Seller] = None):
@@ -32,6 +36,20 @@ class DBSeller:
         #change name of the key "_id" to "seller_id"
         result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
+        return 200
+    
+    def get_seller_by_email(self, email: str) -> int:
+        if not email:
+            logger.error("Email not given.")
+            return 400
+        mongo_client = get_default_mongo_db()
+        result = mongo_client.Seller.find_one({"email": email}, {"properties_on_sale": 0, "sold_properties": 0})
+        if not result:
+            logger.warning(f"Seller with email {email} not found.")
+            return 404
+        result["seller_id"] = str(result.pop("_id"))
+        self.seller = Seller(**result)
+        logger.debug(f"Seller retrieved: {self.seller}")
         return 200
 
     def update_seller_by_id(self) -> int:
