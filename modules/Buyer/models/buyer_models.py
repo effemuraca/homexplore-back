@@ -10,12 +10,11 @@ class FavouriteProperty(BaseModel):
     area: int
 
 class CreateBuyer(BaseModel):
-    password: str = Field(None, example="SecureP@ssw0rd")
     email: EmailStr = Field(None, example="john.doe@example.com")
-    phone_number: Optional[str] = Field(None, example="+1 1234567890")
+    password: str = Field(None, example="SecureP@ssw0rd")
     name: str = Field(None, example="John")
     surname: str = Field(None, example="Doe")
-    age: Optional[int] = Field(None, example=30)
+    phone_number: Optional[str] = Field(None, example="+1 1234567890")
     
 
 class CreateReservationBuyer(BaseModel):
