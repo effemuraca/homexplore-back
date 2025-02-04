@@ -113,7 +113,7 @@ def book_now(book_now_info: BookNow):
 
     reservations_buyer = ReservationsBuyer(buyer_id=book_now_info.buyer_id)
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id, area=book_now_info.area)
+    reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
 
         
@@ -138,7 +138,7 @@ def book_now(book_now_info: BookNow):
         reservations_seller_db.reservations_seller.reservations = []
     reservations_seller_db.reservations_seller.reservations.append(new_reservation)
 
-    status = reservations_seller_db.create_reservation_seller(book_now_info.day, book_now_info.time, book_now_info.buyer_id)
+    status = reservations_seller_db.create_reservation_seller(book_now_info.day, book_now_info.time, book_now_info.buyer_id, book_now_info.max_reservations)
     if status == 500:
         raise HTTPException(status_code=500, detail="Error creating seller reservation")
     if status == 409:
