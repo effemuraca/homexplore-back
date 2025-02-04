@@ -21,15 +21,15 @@ seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
 #Seller
 
-@seller_router.post("/", response_model=ResponseModels.CreateSellerResponseModel, responses=ResponseModels.CreateSellerResponses)
-def create_seller(seller: CreateSeller):
-    db_seller = DBSeller(Seller(**seller.model_dump()))
-    response = db_seller.create_seller()
-    if response == 400:
-        raise HTTPException(status_code=400, detail="Invalid seller information.")
-    if response == 500:
-        raise HTTPException(status_code=500, detail="Failed to create seller.")
-    return JSONResponse(status_code=201, content={"detail": "Seller created successfully.", "seller_id": db_seller.seller.seller_id})
+# @seller_router.post("/", response_model=ResponseModels.CreateSellerResponseModel, responses=ResponseModels.CreateSellerResponses)
+# def create_seller(seller: CreateSeller):
+#     db_seller = DBSeller(Seller(**seller.model_dump()))
+#     response = db_seller.create_seller()
+#     if response == 400:
+#         raise HTTPException(status_code=400, detail="Invalid seller information.")
+#     if response == 500:
+#         raise HTTPException(status_code=500, detail="Failed to create seller.")
+#     return JSONResponse(status_code=201, content={"detail": "Seller created successfully.", "seller_id": db_seller.seller.seller_id})
 
 # sell a property (move it from properties_on_sale to sold_properties of the seller & delete it from the property_on_sale collection)
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel)
