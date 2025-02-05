@@ -3,7 +3,6 @@ from bson.objectid import ObjectId
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
-from entities.MongoDB.Seller.seller import SellerPropertyOnSale
 import logging
 
 
@@ -169,7 +168,6 @@ class PropertyOnSaleDB:
             query["bath_number"] = {"$gte": min_bath_number}
         results = mongo_client.PropertyOnSale.find(query)
         results_list = list(results)
-        from entities.PropertyOnSale.property_on_sale import PropertyOnSale
         properties = []
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
@@ -183,7 +181,6 @@ class PropertyOnSaleDB:
             return 500
         results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 10}}])
         results_list = list(results)
-        from entities.PropertyOnSale.property_on_sale import PropertyOnSale
         properties = []
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
