@@ -5,7 +5,6 @@ import logging
 import json
 from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
-from modules.Buyer.models.buyer_models import CreateBuyer
 from modules.Buyer.models import response_models as ResponseModels
 from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
