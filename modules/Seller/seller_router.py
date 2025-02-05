@@ -180,47 +180,54 @@ def get_10_random_properties():
     responses=ResponseModels.CreateReservationSellerResponseModelResponses
 )
 def create_reservation_seller(reservations_seller_info: CreateReservationSeller):
-    reservations_seller = ReservationsSeller(
-        property_on_sale_id=reservations_seller_info.property_on_sale_id,
-        reservations=[ReservationS(
+    try:
+        reservations_seller = ReservationsSeller(
+            property_on_sale_id=reservations_seller_info.property_on_sale_id,
+            reservations=[ReservationS(
+                buyer_id=reservations_seller_info.buyer_id,
+                full_name=reservations_seller_info.full_name,
+                email=reservations_seller_info.email,
+                phone=reservations_seller_info.phone
+            )]
+        )
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
+        status = reservations_seller_db.create_reservation_seller(
+            day=reservations_seller_info.day,
+            time=reservations_seller_info.time,
             buyer_id=reservations_seller_info.buyer_id,
-            full_name=reservations_seller_info.full_name,
-            email=reservations_seller_info.email,
-            phone=reservations_seller_info.phone
-        )]
-    )
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.create_reservation_seller(
-        day=reservations_seller_info.day,
-        time=reservations_seller_info.time,
-        buyer_id=reservations_seller_info.buyer_id,
-        max_reservations=reservations_seller_info.max_reservations
-    )
-    if status == 409:
-        raise HTTPException(status_code=409, detail="Reservation already exists.")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input provided.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to create reservation.")
-    return JSONResponse(status_code=201, content={"detail": "Seller reservation created successfully."})
-    
+            max_reservations=reservations_seller_info.max_reservations
+        )
+        if status == 409:
+            raise HTTPException(status_code=409, detail="Reservation already exists.")
+        if status == 400:
+            raise HTTPException(status_code=400, detail="Invalid input provided.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to create reservation.")
+        return JSONResponse(status_code=201, content={"detail": "Seller reservation created successfully."})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+
 @seller_router.get(
     "/reservations",
     response_model=ReservationsSeller,
     responses=ResponseModels.GetReservationsSellerResponseModelResponses
 )
 def get_reservations_seller(property_on_sale_id: str):
+    try:
+        if not property_on_sale_id:
+            raise HTTPException(status_code=400, detail="Property on sale ID is required.")
+        reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
+        status = reservations_seller_db.get_reservation_seller()
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to fetch reservations.")
+        return reservations_seller_db.reservations_seller
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
-    if not property_on_sale_id:
-        raise HTTPException(status_code=400, detail="Property on sale ID is required.")
-    reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.get_reservation_seller()
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to fetch reservations.")
-    return reservations_seller_db.reservations_seller
 
 @seller_router.put(
     "/reservations",
@@ -228,27 +235,34 @@ def get_reservations_seller(property_on_sale_id: str):
     responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
 )
 def update_reservations_seller(reservations_seller_info: UpdateReservationSeller):
-    if not reservations_seller_info.buyer_id:
-        raise HTTPException(status_code=400, detail="Buyer ID is required for update.")
-    reservations_seller = ReservationsSeller(
-        property_on_sale_id=reservations_seller_info.property_on_sale_id,
-        reservations=[ReservationS(
-            buyer_id=reservations_seller_info.buyer_id,
-            full_name=reservations_seller_info.full_name,
-            email=reservations_seller_info.email,
-            phone=reservations_seller_info.phone
-        )]
-    )
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.update_reservation_seller(reservations_seller_info.buyer_id, reservations_seller_info.dict(exclude_unset=True, exclude={"property_on_sale_id"}))
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found.")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input provided.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to update reservation.")
-    reservations_seller_db.get_reservation_seller()
-    return reservations_seller_db.reservations_seller
+    try:
+        if not reservations_seller_info.buyer_id:
+            raise HTTPException(status_code=400, detail="Buyer ID is required for update.")
+        reservations_seller = ReservationsSeller(
+            property_on_sale_id=reservations_seller_info.property_on_sale_id,
+            reservations=[ReservationS(
+                buyer_id=reservations_seller_info.buyer_id,
+                full_name=reservations_seller_info.full_name,
+                email=reservations_seller_info.email,
+                phone=reservations_seller_info.phone
+            )]
+        )
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
+        status = reservations_seller_db.update_reservation_seller(
+            reservations_seller_info.buyer_id,
+            reservations_seller_info.dict(exclude_unset=True, exclude={"property_on_sale_id"})
+        )
+        if status == 404:
+            raise HTTPException(status_code=404, detail="Reservation not found.")
+        if status == 400:
+            raise HTTPException(status_code=400, detail="Invalid input provided.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to update reservation.")
+        reservations_seller_db.get_reservation_seller()
+        return reservations_seller_db.reservations_seller
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
 
 @seller_router.delete(
     "/reservations",
@@ -256,35 +270,44 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
 def delete_reservations_seller(property_on_sale_id: str):
-    if not ObjectId.is_valid(property_on_sale_id):
-        raise HTTPException(status_code=400, detail="Invalid property on sale ID")
-    reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.delete_entire_reservation_seller()
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found or delete failed.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to delete reservation.")
-    
+    try:
+        if not ObjectId.is_valid(property_on_sale_id):
+            raise HTTPException(status_code=400, detail="Invalid property on sale ID")
+        reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
+        status = reservations_seller_db.delete_entire_reservation_seller()
+        if status == 404:
+            raise HTTPException(status_code=404, detail="Reservation not found or delete failed.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to delete reservation.")
+        return JSONResponse(status_code=200, content={"detail": "Seller reservation deleted successfully."})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+
 @seller_router.delete(
     "/reservations/{buyer_id}/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
 def delete_reservation_seller_by_buyer_id(buyer_id: str, property_on_sale_id: str):
-    if not ObjectId.is_valid(property_on_sale_id) or not ObjectId.is_valid(buyer_id):
-        raise HTTPException(status_code=400, detail="Invalid property on sale ID or buyer ID")
-    reservations_seller = ReservationsSeller(
-        property_on_sale_id=property_on_sale_id,
-        reservations=[ReservationS(buyer_id=buyer_id)]
-    )
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to delete reservation.")
-    return JSONResponse(status_code=200, content={"detail": "Seller reservation deleted successfully."})
+    try:
+        if not ObjectId.is_valid(property_on_sale_id) or not ObjectId.is_valid(buyer_id):
+            raise HTTPException(status_code=400, detail="Invalid property on sale ID or buyer ID")
+        reservations_seller = ReservationsSeller(
+            property_on_sale_id=property_on_sale_id,
+            reservations=[ReservationS(buyer_id=buyer_id)]
+        )
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
+        status = reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
+        if status == 404:
+            raise HTTPException(status_code=404, detail="Reservation not found.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to delete reservation.")
+        return JSONResponse(status_code=200, content={"detail": "Seller reservation deleted successfully."})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
 
 @seller_router.put(
     "/reservations/date_and_time",
@@ -292,19 +315,22 @@ def delete_reservation_seller_by_buyer_id(buyer_id: str, property_on_sale_id: st
     responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
 )
 def update_reservations_seller_date_and_time(update_info: UpdateReservationSellerDateAndTime):
-    reservations_seller = ReservationsSeller(
-        property_on_sale_id=update_info.property_on_sale_id,
-        reservations=[]
-    )
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.update_day_and_time(update_info.day, update_info.time)
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found.")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input provided.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to update reservation.")
-    return JSONResponse(status_code=200, content={"detail": "Seller reservation updated successfully."})
+    try:
+        reservations_seller = ReservationsSeller(
+            property_on_sale_id=update_info.property_on_sale_id,
+            reservations=[]
+        )
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
+        status = reservations_seller_db.update_day_and_time(update_info.day, update_info.time)
+        if status == 404:
+            raise HTTPException(status_code=404, detail="Reservation not found.")
+        if status == 400:
+            raise HTTPException(status_code=400, detail="Invalid input provided.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to update reservation.")
+        return JSONResponse(status_code=200, content={"detail": "Seller reservation updated successfully."})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 # Analytics routes
 
