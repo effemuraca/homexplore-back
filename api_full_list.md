@@ -19,6 +19,19 @@
 - GET /guest/properties_on_sale/search
 - GET /guest/property_on_sale
 
+## BUYER
+
+- GET /buyer/profile_info
+- PUT /buyer
+
+- GET /buyer/favourites
+- POST /buyer/favourite
+- DELETE /buyer/favourite/{property_on_sale_id}
+
+- GET /buyer/reservations
+- POST /buyer/reservation
+- DELETE /buyer/reservation/{property_on_sale_id}
+
 
 ## SELLER
 
@@ -38,17 +51,3 @@
 
 - POST /seller/analytics/analytics_2
 - POST /seller/analytics/analytics_3
-
-
-## BUYER
-
-- GET /buyer/profile_info
-- PUT /buyer
-
-- POST /buyer/favourite
-- GET /buyer/favourites
-- DELETE /buyer/favourite/{property_on_sale_id}
-
-- GET /buyer/reservations
-- POST /buyer/reservation
-- DELETE /buyer/reservation/{property_on_sale_id}

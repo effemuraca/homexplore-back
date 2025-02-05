@@ -134,7 +134,7 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=404, detail="Favourites not found.")
     return favourites
 
-@buyer_router.post("/favourites", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
+@buyer_router.post("/favourite", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
 def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
     Adds a favourite property for a buyer.
@@ -155,7 +155,7 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Favourite added successfully."})
 
-@buyer_router.delete("/favourites/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
+@buyer_router.delete("/favourite/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
 def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
     Deletes a favourite property for a buyer.
