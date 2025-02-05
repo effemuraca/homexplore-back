@@ -7,7 +7,7 @@ from modules.Seller.models import response_models as ResponseModels
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from modules.Seller.models import response_models as ResponseModels
-from modules.Seller.models.seller_models import CreateReservationSeller, UpdateReservationSeller
+from modules.Seller.models.seller_models import CreateReservationSeller, UpdateReservationSeller, UpdateReservationSellerDateAndTime
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.Seller.models import response_models as ResponseModels
@@ -210,6 +210,9 @@ def create_reservation_seller(reservations_seller_info: CreateReservationSeller)
     responses=ResponseModels.GetReservationsSellerResponseModelResponses
 )
 def get_reservations_seller(property_on_sale_id: str):
+
+    if not property_on_sale_id:
+        raise HTTPException(status_code=400, detail="Property on sale ID is required.")
     reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     status = reservations_seller_db.get_reservation_seller()
@@ -253,6 +256,8 @@ def update_reservations_seller(reservations_seller_info: UpdateReservationSeller
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
 def delete_reservations_seller(property_on_sale_id: str):
+    if not ObjectId.is_valid(property_on_sale_id):
+        raise HTTPException(status_code=400, detail="Invalid property on sale ID")
     reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
     status = reservations_seller_db.delete_entire_reservation_seller()
@@ -267,6 +272,8 @@ def delete_reservations_seller(property_on_sale_id: str):
     responses=ResponseModels.DeleteReservationsSellerResponseModelResponses
 )
 def delete_reservation_seller_by_buyer_id(buyer_id: str, property_on_sale_id: str):
+    if not ObjectId.is_valid(property_on_sale_id) or not ObjectId.is_valid(buyer_id):
+        raise HTTPException(status_code=400, detail="Invalid property on sale ID or buyer ID")
     reservations_seller = ReservationsSeller(
         property_on_sale_id=property_on_sale_id,
         reservations=[ReservationS(buyer_id=buyer_id)]
@@ -284,13 +291,13 @@ def delete_reservation_seller_by_buyer_id(buyer_id: str, property_on_sale_id: st
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.UpdateReservationsSellerResponseModelResponses
 )
-def update_reservations_seller_date_and_time(property_on_sale_id: str, day: str, time: str):
+def update_reservations_seller_date_and_time(update_info: UpdateReservationSellerDateAndTime):
     reservations_seller = ReservationsSeller(
-        property_on_sale_id=property_on_sale_id,
+        property_on_sale_id=update_info.property_on_sale_id,
         reservations=[]
     )
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
-    status = reservations_seller_db.update_day_and_time(day, time)
+    status = reservations_seller_db.update_day_and_time(update_info.day, update_info.time)
     if status == 404:
         raise HTTPException(status_code=404, detail="Reservation not found.")
     if status == 400:

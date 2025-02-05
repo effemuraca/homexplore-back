@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator, EmailStr
 from bson import ObjectId 
 from typing import Optional, List
 import re
@@ -40,19 +40,116 @@ class CreateReservationSeller(BaseModel):
     property_on_sale_id: str = Field(..., example="615c44fdf641be001f0c1111")
     buyer_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
     full_name: Optional[str] = Field(None, example="John Doe")
-    email: Optional[str] = Field(None, example="john@example.com")
+    email: Optional[EmailStr] = Field(None, example="john@example.com")
     phone: Optional[str] = Field(None, example="1234567890")
     day: str = Field(..., example="Monday")
     time: str = Field(..., example="12:00 PM")
     max_reservations: int = Field(..., example=5)
     
+    @field_validator("day")
+    def validate_day(cls, value):
+        valid_days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+        if value not in valid_days:
+            raise ValueError("Invalid day. Must be one of: " + ", ".join(valid_days))
+        return value
+    
+    @field_validator("time")
+    def validate_time(cls, value):
+        time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
+        if not time_pattern.match(value):
+            raise ValueError("Invalid time format. Expected format: HH:MM AM/PM")
+        return value
+    
+    @field_validator("max_reservations")
+    def validate_max_reservations(cls, value):
+        if value < 1 and value > 1000:
+            raise ValueError("max_reservations must be greater than 0 and less than 1000")
+        return value
 
+    @field_validator("email")
+    def validate_email(cls, value):
+        email_pattern = re.compile(
+            r"^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|"
+            r"([-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+(?:\.[-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+)*)"
+            r")@((?:[A-Z0-9-]+\.)+[A-Z]{2,})$", re.IGNORECASE)
+        if not email_pattern.match(value):
+            raise ValueError("Invalid email format. Expected format: mail@example.com")
+        return value
+    
+    @field_validator("phone")
+    def validate_phone(cls, value):
+        phone_pattern = re.compile(r"^\+\d{2} \d{10}$")
+        if not phone_pattern.match(value):
+            raise ValueError("Invalid phone number format. Expected format: +xx xxxxxxxxxx")
+        return value
+    
+    @field_validator("property_on_sale_id")
+    def validate_property_on_sale_id(cls, value):
+        if not ObjectId.is_valid(value):
+            raise ValueError("Invalid property_on_sale_id")
+        return value
+    
+    @field_validator("buyer_id")
+    def validate_buyer_id(cls, value):
+        if value and not ObjectId.is_valid(value):
+            raise ValueError("Invalid buyer_id")
+        return value
+                                     
 class UpdateReservationSeller(BaseModel):
     property_on_sale_id: str = Field(..., example="615c44fdf641be001f0c1111")
     buyer_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
     full_name: Optional[str] = Field(None, example="John Doe")
     email: Optional[str] = Field(None, example="john@example.com")
     phone: Optional[str] = Field(None, example="1234567890")
+    
+
+    @field_validator("email")
+    def validate_email(cls, value):
+        email_pattern = re.compile(
+            r"^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|"
+            r"([-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+(?:\.[-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+)*)"
+            r")@((?:[A-Z0-9-]+\.)+[A-Z]{2,})$", re.IGNORECASE)
+        if not email_pattern.match(value):
+            raise ValueError("Invalid email format. Expected format: mail@example.com")
+        return value
+    
+    @field_validator("phone")
+    def validate_phone(cls, value):
+        phone_pattern = re.compile(r"^\+\d{2} \d{10}$")
+        if not phone_pattern.match(value):
+            raise ValueError("Invalid phone number format. Expected format: +xx xxxxxxxxxx")
+        return value
+    
+    @field_validator("property_on_sale_id")
+    def validate_property_on_sale_id(cls, value):
+        if not ObjectId.is_valid(value):
+            raise ValueError("Invalid property_on_sale_id")
+        return value
+    
+    @field_validator("buyer_id")
+    def validate_buyer_id(cls, value):
+        if value and not ObjectId.is_valid(value):
+            raise ValueError("Invalid buyer_id")
+        return value
+    
+class UpdateReservationSellerDateAndTime(BaseModel):
+    property_on_sale_id: str = Field(..., example="615c44fdf641be001f0c1111")
+    day: str = Field(..., example="Monday")
+    time: str = Field(..., example="12:00 PM")
+
+    @field_validator("day")
+    def validate_day(cls, value):
+        valid_days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+        if value not in valid_days:
+            raise ValueError("Invalid day. Must be one of: " + ", ".join(valid_days))
+        return value
+    
+    @field_validator("time")
+    def validate_time(cls, value):
+        time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
+        if not time_pattern.match(value):
+            raise ValueError("Invalid time format. Expected format: HH:MM AM/PM")
+        return value
 
 
 # PropertyOnSale
