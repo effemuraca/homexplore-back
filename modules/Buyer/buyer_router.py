@@ -152,14 +152,18 @@ def update_favorite(buyer_id: str, property_id: str, favorite: FavouriteProperty
 )
 def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
     #Check if the buyer_id in the token is the same as the buyer_id in the request
-    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)    
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     if buyer_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
+    
     if buyer_id != reservations_buyer_info.buyer_id:
         raise HTTPException(status_code=401, detail="Invalid buyer_id")
     
     reservations_buyer = ReservationsBuyer(
-        buyer_id=reservations_buyer_info.buyer_id,
+        buyer_id=buyer_id,
         reservations=[
             ReservationB(
                 property_on_sale_id=reservations_buyer_info.property_on_sale_id,
