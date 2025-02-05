@@ -12,33 +12,19 @@ class BuyerDB:
     def __init__(self, buyer: Optional[Buyer] = None):
         self.buyer = buyer
 
-    def get_contact_info(self, buyer_id: str) -> int:
-        if not buyer_id:
-            logger.error("buyer_id non fornito.")
+    def get_profile_info(self) -> int:
+        if not self.buyer or not self.buyer.buyer_id:
+            logger.error("Buyer info not initialized.")
             return 400
-        if not ObjectId.is_valid(buyer_id):
-            logger.error("buyer_id non valido.")
-            return 400
-        
         mongo_client = get_default_mongo_db()
-        try:
-            data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favourites": 0})
-            if not data:
-                logger.warning(f"Buyer con id {buyer_id} non trovato.")
-                return 404
-            self.buyer = Buyer(
-                buyer_id=str(data["_id"]),
-                password=data["password"],
-                email=data["email"],
-                phone_number=data["phone_number"],
-                name=data["name"],
-                surname=data["surname"]
-            )
-            logger.debug(f"Buyer recuperato: {self.buyer}")
-            return 200
-        except Exception as e:
-            logger.error(f"Errore durante il recupero del buyer: {e}")
-            return 500
+        data = mongo_client.buyers.find_one({"_id": ObjectId(self.buyer.buyer_id)}, {"favourites": 0})
+        if not data:
+            logger.warning(f"Buyer with id {self.buyer.buyer_id} not found.")
+            return 404
+        data["buyer_id"] = str(data.pop("_id"))
+        self.buyer = Buyer(**data)
+        logger.debug(f"Buyer retrieved: {self.buyer}")
+        return 200
     
     def get_buyer_by_email(self, email: str) -> int:
         if not email:
