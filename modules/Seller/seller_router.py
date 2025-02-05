@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from entities.MongoDB.Seller.seller import Seller
 from entities.MongoDB.Seller.db_seller import SellerDB
-from modules.Seller.models.seller_models import CreateSeller, UpdateSeller
+from modules.Seller.models.seller_models import UpdateSeller
 from modules.Seller.models import response_models as ResponseModels
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
