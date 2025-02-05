@@ -166,32 +166,7 @@ def book_now(book_now_info: BookNow, access_token: str = Depends(JWTHandler())):
         return JSONResponse(status_code=200, content={"detail": "Reservation created successfully"})
     except Exception as e:
         logger.error(f"Unhandled error in book_now: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")           
-@kvdb_router.get(
-    "/get_reservations_by_buyer/{buyer_id}",
-    response_model=ResponseModels.SuccessModel,
-    responses=ResponseModels.GetReservationsResponses
-)
-def get_reservations_by_buyer(access_token: str = Depends(JWTHandler())):
-    """
-    Get reservations for a given buyer_id, 
-    before showing the buyer the reservations,
-    check if some of them are expired and delete them.
-    """
-    try:
-        buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-        reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
-        reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-        status = reservations_buyer_db.update_expired_reservations()
-        if status == 500:
-            raise HTTPException(status_code=500, detail="Error updating expired reservations")
-        if status == 404:
-            raise HTTPException(status_code=404, detail="No reservations found for buyer")
-        return reservations_buyer_db.reservations_buyer.model_dump()
-    
-    except Exception as e:
-        logger.error(f"Unhandled error in get_reservations_by_buyer: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}") 
 
 
 
