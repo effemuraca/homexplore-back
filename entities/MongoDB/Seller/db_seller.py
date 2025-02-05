@@ -23,6 +23,20 @@ class SellerDB:
             self.seller.seller_id = str(result.inserted_id)
             return 201
         return 500
+    
+    def get_profile_info(self) -> int:
+        try:
+            id = ObjectId(self.seller.seller_id)
+        except:
+            return 400
+        mongo_client = get_default_mongo_db()
+        result = mongo_client.Seller.find_one({"_id": id}, {"properties_on_sale": 0, "sold_properties": 0})
+        if not result:
+            return 404
+        #change name of the key "_id" to "seller_id"
+        result["seller_id"] = str(result.pop("_id"))
+        self.seller = Seller(**result)
+        return 200
 
     def get_seller_by_id(self) -> int:
         try:
