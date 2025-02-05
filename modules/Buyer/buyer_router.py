@@ -7,11 +7,12 @@ from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
 from bson import ObjectId
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
 from modules.Buyer.models import response_models as ResponseModels
+from modules.Buyer.models.buyer_models import UpdateBuyer
 from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 from modules.Buyer.models import response_models as ResponseModels
 from modules.Buyer.models.buyer_models import CreateReservationBuyer, UpdateReservationBuyer
-from modules.Auth.helpers.auth_helpers import JWTHandler
+from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
 
 buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 
@@ -21,11 +22,18 @@ logger = logging.getLogger(__name__)
 
 # Buyer
 
-@buyer_router.get("/{buyer_id}/get_profile_info", response_model=Buyer, responses=ResponseModels.GetBuyerResponseModelResponses)
-def get_buyer(buyer_id: str):
+@buyer_router.get("/profile_info", response_model=Buyer, responses=ResponseModels.GetBuyerResponseModelResponses)
+def get_buyer(access_token: str = Depends(JWTHandler())):
     """
     Retrieves a buyer by id.
     """
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     buyer_db = BuyerDB()
     result = buyer_db.get_contact_info(buyer_id)
     if result == 404:
@@ -54,14 +62,24 @@ def get_buyer(buyer_id: str):
 #         return JSONResponse(status_code=201, content={"detail": "Buyer created successfully.", "buyer_id": buyer_db.buyer.buyer_id})
 
 @buyer_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateBuyerResponseModelResponses)
-def update_buyer(buyer: Buyer):
+def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     """
     Updates an existing buyer.
     """
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     buyer_db = BuyerDB()
-    result = buyer_db.get_contact_info(buyer.buyer_id)
+    result = buyer_db.get_contact_info(buyer_id)
     if result == 404:
         raise HTTPException(status_code=result, detail="Buyer not found.")
+    
+    # check if there's a password to crypt
+    if buyer.password:
+        buyer.password = hash_password(buyer.password)
     
     result = buyer_db.update_buyer(buyer)
     if result == 400:
@@ -89,70 +107,81 @@ def update_buyer(buyer: Buyer):
 
 # Favourites
 
-@buyer_router.get("/{buyer_id}/favorites", response_model=List[FavouriteProperty], responses=ResponseModels.GetFavoritesResponseModelResponses)
-def get_favorites(buyer_id: str):
+@buyer_router.get("/favourites", response_model=List[FavouriteProperty], responses=ResponseModels.GetFavouritesResponseModelResponses)
+def get_favourites(access_token: str = Depends(JWTHandler())):
     """
-    Retrieves the favorite properties of a buyer by id.
+    Retrieves the favourite properties of a buyer by id.
     """
-    if not ObjectId.is_valid(buyer_id):
-        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     buyer_db = BuyerDB()
-    favorites = buyer_db.get_favorites(buyer_id)
-    if favorites is None:
-        raise HTTPException(status_code=404, detail="Favorites not found.")
-    return favorites
+    favourites = buyer_db.get_favourites(buyer_id)
+    if favourites is None:
+        raise HTTPException(status_code=404, detail="Favourites not found.")
+    return favourites
 
-@buyer_router.post("/{buyer_id}/favorites", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavoriteResponseModelResponses)
-def add_favorite(buyer_id: str, favorite: FavouriteProperty):
+@buyer_router.post("/favourites", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
+def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
-    Adds a favorite property for a buyer.
+    Adds a favourite property for a buyer.
     """
-    if not favorite:
-        raise HTTPException(status_code=400, detail="Missing favorite info.")
-    if not ObjectId.is_valid(buyer_id):
-        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     buyer_db = BuyerDB()
-    result = buyer_db.add_favorite(buyer_id, favorite)
+    result = buyer_db.add_favourite(buyer_id, favourite)
     if result == 400:
         raise HTTPException(status_code=result, detail="Invalid input.")
     elif result == 500:
-        raise HTTPException(status_code=result, detail="Failed to add favorite.")
+        raise HTTPException(status_code=result, detail="Failed to add favourite.")
     elif result == 200:
-        return JSONResponse(status_code=result, content={"detail": "Favorite added successfully."})
+        return JSONResponse(status_code=result, content={"detail": "Favourite added successfully."})
 
-@buyer_router.delete("/{buyer_id}/favorites/{property_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavoriteResponseModelResponses)
-def delete_favorite(buyer_id: str, property_id: str):
+@buyer_router.delete("/favourites/{property_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
+def delete_favourite(property_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Deletes a favorite property for a buyer.
+    Deletes a favourite property for a buyer.
     """
-    if not ObjectId.is_valid(buyer_id) or not ObjectId.is_valid(property_id):
+    if not ObjectId.is_valid(property_id):
         raise HTTPException(status_code=400, detail="Invalid input.")
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     buyer_db = BuyerDB()
-    result = buyer_db.delete_favorite(buyer_id, property_id)
+    result = buyer_db.delete_favourite(buyer_id, property_id)
     if result == 400:
         raise HTTPException(status_code=result, detail="Invalid input.")
     elif result == 500:
-        raise HTTPException(status_code=result, detail="Failed to delete favorite.")
+        raise HTTPException(status_code=result, detail="Failed to delete favourite.")
     elif result == 200:
-        return JSONResponse(status_code=result, content={"detail": "Favorite deleted successfully."})
+        return JSONResponse(status_code=result, content={"detail": "Favourite deleted successfully."})
 
-@buyer_router.put("/{buyer_id}/favorites/{property_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateFavoriteResponseModelResponses)
-def update_favorite(buyer_id: str, property_id: str, favorite: FavouriteProperty):
-    """
-    Updates a favorite property for a buyer.
-    """
-    if not ObjectId.is_valid(buyer_id) or not ObjectId.is_valid(property_id):
-        raise HTTPException(status_code=400, detail="Invalid input.")
-    if not favorite:
-        raise HTTPException(status_code=400, detail="Missing favorite info.")
-    buyer_db = BuyerDB()
-    result = buyer_db.update_favorite(buyer_id, property_id, favorite.dict())
-    if result == 400:
-        raise HTTPException(status_code=result, detail="Invalid input.")
-    elif result == 500:
-        raise HTTPException(status_code=result, detail="Failed to update favorite.")
-    elif result == 200:
-        return JSONResponse(status_code=result, content={"detail": "Favorite updated successfully."})
+# @buyer_router.put("/{buyer_id}/favourites/{property_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateFavouriteResponseModelResponses)
+# def update_favourite(buyer_id: str, property_id: str, favourite: FavouriteProperty):
+#     """
+#     Updates a favourite property for a buyer.
+#     """
+#     buyer_db = BuyerDB()
+#     result = buyer_db.update_favourite(buyer_id, property_id, favourite.dict())
+#     if result == 400:
+#         raise HTTPException(status_code=result, detail="Invalid input.")
+#     elif result == 500:
+#         raise HTTPException(status_code=result, detail="Failed to update favourite.")
+#     elif result == 200:
+#         return JSONResponse(status_code=result, content={"detail": "Favourite updated successfully."})
 
 
 # ReservationsBuyer
@@ -230,11 +259,19 @@ def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, ac
     response_model=ReservationsBuyer,
     responses=ResponseModels.UpdateReservationsBuyerResponseModelResponses
 )
-def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer):
-    if not reservations_buyer_info:
-        raise HTTPException(status_code=400, detail="Missing reservation info.")
+def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer, access_token: str = Depends(JWTHandler())):
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if buyer_id != reservations_buyer_info.buyer_id:
+        raise HTTPException(status_code=401, detail="Invalid buyer_id")
+    
     reservations_buyer = ReservationsBuyer(
-        buyer_id=reservations_buyer_info.buyer_id,
+        buyer_id=buyer_id,
         reservations=[
             ReservationB(
                 property_on_sale_id=reservations_buyer_info.property_on_sale_id,
@@ -261,37 +298,43 @@ def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer):
     
     return reservations_buyer_db.reservations_buyer
 
-@buyer_router.delete(
-    "/reservations/{buyer_id}",
-    response_model=ResponseModels.SuccessModel,
-    responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
-)
-def delete_reservations_buyer(buyer_id: str):
-    if not ObjectId.is_valid(buyer_id):
-        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
-    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    try:
-        status = reservations_buyer_db.delete_reservations_buyer()
-    except Exception as e:
-        logger.error(f"Error deleting buyer reservations: {e}")
-        raise HTTPException(status_code=500, detail="Error deleting buyer reservations")
+# @buyer_router.delete(
+#     "/reservations/{buyer_id}",
+#     response_model=ResponseModels.SuccessModel,
+#     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
+# )
+# def delete_reservations_buyer(buyer_id: str):
+#     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
+#     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+#     try:
+#         status = reservations_buyer_db.delete_reservations_buyer()
+#     except Exception as e:
+#         logger.error(f"Error deleting buyer reservations: {e}")
+#         raise HTTPException(status_code=500, detail="Error deleting buyer reservations")
 
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found or delete failed.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to delete reservation.")
+#     if status == 404:
+#         raise HTTPException(status_code=404, detail="No reservations found or delete failed.")
+#     if status == 500:
+#         raise HTTPException(status_code=500, detail="Failed to delete reservation.")
     
-    return JSONResponse(status_code=200, content={"detail": "Buyer reservations deleted successfully."})
+#     return JSONResponse(status_code=200, content={"detail": "Buyer reservations deleted successfully."})
 
 @buyer_router.delete(
-    "/reservations/{buyer_id}/{property_on_sale_id}",
+    "/reservations/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
-def delete_reservation_buyer(buyer_id: str, property_on_sale_id: str):
-    if not ObjectId.is_valid(buyer_id) or not ObjectId.is_valid(property_on_sale_id):
+def delete_reservation_buyer(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
+    if ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid input.")
+    
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:

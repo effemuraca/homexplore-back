@@ -22,7 +22,7 @@ class BuyerDB:
         
         mongo_client = get_default_mongo_db()
         try:
-            data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favorites": 0})
+            data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favourites": 0})
             if not data:
                 logger.warning(f"Buyer con id {buyer_id} non trovato.")
                 return 404
@@ -80,7 +80,7 @@ class BuyerDB:
             return 400
         mongo_client = get_default_mongo_db()
         buyer_data = self.buyer.model_dump(exclude_none=True, exclude={"buyer_id"})
-        buyer_data["favorites"] = []
+        buyer_data["favourites"] = []
         result = mongo_client.buyers.insert_one(buyer_data)
         if result.inserted_id:
             self.buyer.buyer_id = str(result.inserted_id)
@@ -105,58 +105,58 @@ class BuyerDB:
         logger.warning(f"Nessuna modifica effettuata per buyer_id={self.buyer.buyer_id}.")
         return 500
 
-    def get_favorites(self, buyer_id: str) -> Optional[list]:
+    def get_favourites(self, buyer_id: str) -> Optional[list]:
         if not buyer_id:
             logger.error("buyer_id non fornito.")
             return None
         mongo_client = get_default_mongo_db()
-        data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favorites": 1})
-        if not data or "favorites" not in data:
-            logger.warning(f"Favorites non trovati per buyer_id={buyer_id}.")
+        data = mongo_client.buyers.find_one({"_id": ObjectId(buyer_id)}, {"favourites": 1})
+        if not data or "favourites" not in data:
+            logger.warning(f"Favourites non trovati per buyer_id={buyer_id}.")
             return None
-        return data["favorites"]
+        return data["favourites"]
 
-    def add_favorite(self, buyer_id: str, favorite: FavouriteProperty) -> int:
+    def add_favourite(self, buyer_id: str, favourite: FavouriteProperty) -> int:
         if not buyer_id:
             logger.error("buyer_id non fornito.")
             return 400
         mongo_client = get_default_mongo_db()
         result = mongo_client.buyers.update_one(
             {"_id": ObjectId(buyer_id)},
-            {"$push": {"favorites": favorite.dict()}}
+            {"$push": {"favourites": favourite.dict()}}
         )
         if result.modified_count:
-            logger.info(f"Favorite aggiunto per buyer_id={buyer_id}.")
+            logger.info(f"Favourite aggiunto per buyer_id={buyer_id}.")
             return 200
-        logger.warning(f"Favorite non aggiunto per buyer_id={buyer_id}.")
+        logger.warning(f"Favourite non aggiunto per buyer_id={buyer_id}.")
         return 500
 
-    def delete_favorite(self, buyer_id: str, property_id: str) -> int:
+    def delete_favourite(self, buyer_id: str, property_id: str) -> int:
         if not buyer_id or not property_id:
             logger.error("buyer_id o property_id non fornito.")
             return 400
         mongo_client = get_default_mongo_db()
         result = mongo_client.buyers.update_one(
             {"_id": ObjectId(buyer_id)},
-            {"$pull": {"favorites": {"property_id": property_id}}}
+            {"$pull": {"favourites": {"property_id": property_id}}}
         )
         if result.modified_count:
-            logger.info(f"Favorite rimosso per buyer_id={buyer_id}.")
+            logger.info(f"Favourite rimosso per buyer_id={buyer_id}.")
             return 200
-        logger.warning(f"Favorite non rimosso per buyer_id={buyer_id}.")
+        logger.warning(f"Favourite non rimosso per buyer_id={buyer_id}.")
         return 500
 
-    def update_favorite(self, buyer_id: str, property_id: str, updated_data: dict) -> int:
+    def update_favourite(self, buyer_id: str, property_id: str, updated_data: dict) -> int:
         if not buyer_id or not property_id:
             logger.error("buyer_id o property_id non fornito.")
             return 400
         mongo_client = get_default_mongo_db()
         result = mongo_client.buyers.update_one(
-            {"_id": ObjectId(buyer_id), "favorites.property_id": property_id},
-            {"$set": {"favorites.$": updated_data}}
+            {"_id": ObjectId(buyer_id), "favourites.property_id": property_id},
+            {"$set": {"favourites.$": updated_data}}
         )
         if result.modified_count:
-            logger.info(f"Favorite aggiornato per buyer_id={buyer_id}.")
+            logger.info(f"Favourite aggiornato per buyer_id={buyer_id}.")
             return 200
-        logger.warning(f"Favorite non aggiornato per buyer_id={buyer_id}.")
+        logger.warning(f"Favourite non aggiornato per buyer_id={buyer_id}.")
         return 500

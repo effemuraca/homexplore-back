@@ -17,6 +17,22 @@ class FavouriteProperty(BaseModel):
 #     name: str = Field(None, example="John")
 #     surname: str = Field(None, example="Doe")
 #     phone_number: Optional[str] = Field(None, example="+1 1234567890")
+
+class UpdateBuyer(BaseModel):
+    email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
+    password: Optional[str] = Field(None, example="SecureP@ssw0rd")
+    name: Optional[str] = Field(None, example="John")
+    surname: Optional[str] = Field(None, example="Doe")
+    phone_number: Optional[str] = Field(None, example="+1 1234567890")
+    
+    @validator('phone_number')
+    def validate_phone_number(cls, value):
+        if value:
+            phone_pattern = re.compile(r'^\+\d{1,3}\s?\d{7,14}$')
+            if not phone_pattern.match(value):
+                raise ValueError('Invalid phone number format.')
+        return value
+
     
 
 class CreateReservationBuyer(BaseModel):

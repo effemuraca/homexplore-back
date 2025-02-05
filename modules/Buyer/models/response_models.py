@@ -53,45 +53,45 @@ GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     }
 }
 
-class CreateBuyerResponseModel(BaseModel):
-    detail: str
-    buyer_id: str
+# class CreateBuyerResponseModel(BaseModel):
+#     detail: str
+#     buyer_id: str
 
-CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
-    201: {
-        "model": SuccessModel,
-        "description": "Buyer created successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Buyer created successfully."
-                }
-            }
-        }
-    },
-    400: {
-        "model": ErrorModel,
-        "description": "Invalid input or missing buyer info.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Invalid buyer info."
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Failed to create buyer.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Failed to create buyer."
-                }
-            }
-        }
-    }
-}
+# CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+#     201: {
+#         "model": SuccessModel,
+#         "description": "Buyer created successfully.",
+#         "content": {
+#             "application/json": {
+#                 "example": {
+#                     "detail": "Buyer created successfully."
+#                 }
+#             }
+#         }
+#     },
+#     400: {
+#         "model": ErrorModel,
+#         "description": "Invalid input or missing buyer info.",
+#         "content": {
+#             "application/json": {
+#                 "example": {
+#                     "detail": "Invalid buyer info."
+#                 }
+#             }
+#         }
+#     },
+#     500: {
+#         "model": ErrorModel,
+#         "description": "Failed to create buyer.",
+#         "content": {
+#             "application/json": {
+#                 "example": {
+#                     "detail": "Failed to create buyer."
+#                 }
+#             }
+#         }
+#     }
+# }
 
 UpdateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
@@ -168,10 +168,10 @@ DeleteBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
 
 # Favourites
 
-GetFavoritesResponseModelResponses: Dict[int, Dict[str, Any]] = {
+GetFavouritesResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": List[FavouriteProperty],
-        "description": "Favorites retrieved successfully.",
+        "description": "Favourites retrieved successfully.",
         "content": {
             "application/json": {
                 "example": [
@@ -188,25 +188,25 @@ GetFavoritesResponseModelResponses: Dict[int, Dict[str, Any]] = {
     },
     404: {
         "model": ErrorModel,
-        "description": "Favorites not found.",
+        "description": "Favourites not found.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Favorites not found."
+                    "detail": "Favourites not found."
                 }
             }
         }
     }
 }
 
-AddFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
+AddFavouriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": SuccessModel,
-        "description": "Favorite added successfully.",
+        "description": "Favourite added successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Favorite added successfully."
+                    "detail": "Favourite added successfully."
                 }
             }
         }
@@ -224,25 +224,25 @@ AddFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Failed to add favorite.",
+        "description": "Failed to add favourite.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Failed to add favorite."
+                    "detail": "Failed to add favourite."
                 }
             }
         }
     }
 }
 
-DeleteFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
+DeleteFavouriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": SuccessModel,
-        "description": "Favorite deleted successfully.",
+        "description": "Favourite deleted successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Favorite deleted successfully."
+                    "detail": "Favourite deleted successfully."
                 }
             }
         }
@@ -260,52 +260,52 @@ DeleteFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Failed to delete favorite.",
+        "description": "Failed to delete favourite.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Failed to delete favorite."
+                    "detail": "Failed to delete favourite."
                 }
             }
         }
     }
 }
 
-UpdateFavoriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
-    200: {
-        "model": SuccessModel,
-        "description": "Favorite updated successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Favorite updated successfully."
-                }
-            }
-        }
-    },
-    400: {
-        "model": ErrorModel,
-        "description": "Invalid input.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Invalid input."
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Failed to update favorite.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Failed to update favorite."
-                }
-            }
-        }
-    }
-}
+# UpdateFavouriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
+#     200: {
+#         "model": SuccessModel,
+#         "description": "Favourite updated successfully.",
+#         "content": {
+#             "application/json": {
+#                 "example": {
+#                     "detail": "Favourite updated successfully."
+#                 }
+#             }
+#         }
+#     },
+#     400: {
+#         "model": ErrorModel,
+#         "description": "Invalid input.",
+#         "content": {
+#             "application/json": {
+#                 "example": {
+#                     "detail": "Invalid input."
+#                 }
+#             }
+#         }
+#     },
+#     500: {
+#         "model": ErrorModel,
+#         "description": "Failed to update favourite.",
+#         "content": {
+#             "application/json": {
+#                 "example": {
+#                     "detail": "Failed to update favourite."
+#                 }
+#             }
+#         }
+#     }
+# }
 
 # ReservationsBuyer
 
@@ -396,11 +396,11 @@ UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
 DeleteReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": SuccessModel,
-        "description": "Reservations deleted successfully.",
+        "description": "Reservation deleted successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer reservations deleted successfully."
+                    "detail": "Buyer reservation deleted successfully."
                 }
             }
         }

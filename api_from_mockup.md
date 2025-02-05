@@ -91,7 +91,7 @@ DA VEDERE CARLO
 
 ### detail_home.html (buyer)
 
-- Add to favorites premuto da un buyer -> FATTO FERDI: POST /buyer/favourites
+- Add to favourites premuto da un buyer -> FATTO FERDI: POST /buyer/favourites
 - Book now cliccato da un buyer -> FATTO DA FERDI: POST /buyer/reservations
 
 ### profile.html (buyer)
@@ -107,7 +107,7 @@ DA VEDERE CARLO
 - Ottiene tutte le prenotazioni dell'utente -> FATTO DA FERDI: GET /buyer/reservations
 - L'utente cancella una prenotazione (tasto cancel) -> FATTO DA FERDI: DELETE /buyer/reservations
 
-### favorites.html
+### favourites.html
 
 - Ottiene tutti i preferiti dell'utente -> FATTO DA FERDI: GET /buyer/favourites
 - Una proprietà viene rimossa dai preferiti -> FATTO FERDI: DELETE /buyer/favourites

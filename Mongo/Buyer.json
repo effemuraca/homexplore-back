@@ -6,7 +6,7 @@
     "password": "string",             
     "phone_number": "string",   
     "age": "number",
-    "favorites": [
+    "favourites": [
       {
         "_id": "unique_house_identifier",
         "thumbnail": "string", 
