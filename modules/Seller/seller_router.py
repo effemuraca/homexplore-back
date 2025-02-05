@@ -73,16 +73,16 @@ def update_seller(seller: UpdateSeller):
         raise HTTPException(status_code=404, detail="Seller not found.")
     return JSONResponse(status_code=200, content={"detail": "Seller updated successfully."})
 
-@seller_router.delete("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteSellerResponses)
-def delete_seller(seller_id: str):
-    temp_seller = Seller(seller_id=seller_id)
-    db_seller = SellerDB(temp_seller)
-    response = db_seller.delete_seller_by_id()
-    if response == 400:
-        raise HTTPException(status_code=400, detail="Invalid seller id")
-    if response == 404:
-        raise HTTPException(status_code=404, detail="Seller not found.")
-    return JSONResponse(status_code=200, content={"detail": "Seller deleted successfully."})
+# @seller_router.delete("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteSellerResponses)
+# def delete_seller(seller_id: str):
+#     temp_seller = Seller(seller_id=seller_id)
+#     db_seller = SellerDB(temp_seller)
+#     response = db_seller.delete_seller_by_id()
+#     if response == 400:
+#         raise HTTPException(status_code=400, detail="Invalid seller id")
+#     if response == 404:
+#         raise HTTPException(status_code=404, detail="Seller not found.")
+#     return JSONResponse(status_code=200, content={"detail": "Seller deleted successfully."})
 
 @seller_router.get("/{seller_id}/sold_properties", response_model=Seller, responses=ResponseModels.GetSoldPropertiesByPriceDescResponses)
 def get_sold_properties_by_price_desc(seller_id: str):

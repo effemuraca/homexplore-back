@@ -72,19 +72,19 @@ def update_buyer(buyer: Buyer):
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Buyer updated successfully."})
 
-@buyer_router.delete("/{buyer_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteBuyerResponseModelResponses)
-def delete_buyer(buyer_id: str):
-    """
-    Deletes a buyer by id.
-    """
-    buyer_db = BuyerDB()
-    result = buyer_db.delete_buyer_by_id(buyer_id)
-    if result == 400:
-        raise HTTPException(status_code=result, detail="Buyer ID is required.")
-    elif result == 404:
-        raise HTTPException(status_code=result, detail="Buyer not found.")
-    elif result == 200:
-        return JSONResponse(status_code=result, content={"detail": "Buyer deleted successfully."})
+# @buyer_router.delete("/{buyer_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteBuyerResponseModelResponses)
+# def delete_buyer(buyer_id: str):
+#     """
+#     Deletes a buyer by id.
+#     """
+#     buyer_db = BuyerDB()
+#     result = buyer_db.delete_buyer_by_id(buyer_id)
+#     if result == 400:
+#         raise HTTPException(status_code=result, detail="Buyer ID is required.")
+#     elif result == 404:
+#         raise HTTPException(status_code=result, detail="Buyer not found.")
+#     elif result == 200:
+#         return JSONResponse(status_code=result, content={"detail": "Buyer deleted successfully."})
 
 # Favourites
 
