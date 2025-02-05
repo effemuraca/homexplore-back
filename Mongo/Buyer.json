@@ -4,8 +4,7 @@
     "surname": "string",
     "email": "string",
     "password": "string",             
-    "phone_number": "string",   
-    "age": "number",
+    "phone_number": "string",
     "favourites": [
       {
         "_id": "unique_house_identifier",
