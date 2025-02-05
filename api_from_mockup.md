@@ -65,7 +65,7 @@ DA VEDERE CARLO
 
 - Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> FATTO (?)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
-- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/properties_on_sale/reservations
+- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/properties_on_sale/reservations -> CARLO AGGIUNGI UN COUNT DI QUANTI PRENOTATI CI SONO NEI MOCKUP
 - Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS + PREFERITI): POST /seller/sell_properties_on_sale
 - Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS + PREFERITI): DELETE /seller/properties_on_sale
 
