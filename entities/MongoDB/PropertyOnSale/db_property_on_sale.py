@@ -4,6 +4,7 @@ from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
 from entities.MongoDB.Seller.seller import SellerPropertyOnSale
+import logging
 
 
 class PropertyOnSaleDB:
@@ -33,10 +34,10 @@ class PropertyOnSaleDB:
                     mongo_client.PropertyOnSale.delete_one({"_id": ObjectId(self.property_on_sale.property_on_sale_id)})
                 except Exception as e:
                     # Log the error if needed
-                    print(f"Rollback failed, inconsistent database state: {e}")
+                    logging.error("Error during rollback for object creation of property_on_sale_id {}".format(self.property_on_sale.property_on_sale_id))
                 return 500
             return 201
-        return 500 #superfluo
+        return 500
     
     def get_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
         try:
