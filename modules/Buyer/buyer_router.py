@@ -191,7 +191,7 @@ def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHa
 
 # ReservationsBuyer
 
-@@buyer_router.post(
+@buyer_router.post(
     "/reservations",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.CreateReservationBuyerResponseModelResponses
