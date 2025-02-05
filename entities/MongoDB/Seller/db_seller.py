@@ -77,27 +77,71 @@ class SellerDB:
             return 404
         return 200
     
-    #CONSISTENT
-    def db_sell_property(self, id: ObjectId) -> int:
+    #FINIRE DI CONTROLLARE
+    def db_sell_property(self, property_to_sell_id : str, seller_id : str ) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
-        #retrive information of the property on sale from property_on_sale collection
-        property_on_sale = mongo_client.PropertyOnSale.find_one({"_id": id})
-        if property_on_sale is None:
+        id_p=ObjectId(property_to_sell_id)
+        id_s=ObjectId(seller_id)
+        #check if the property is in the properties_on_sale of the seller
+        try:
+            result = mongo_client.Seller.find_one({"_id": id_s, "properties_on_sale._id": id_p})
+        except Exception as e:
+            logger.error(f"Error checking if property is in 'properties_on_sale': {e}")
+            return 500
+        if result is None:
             return 404
+        property_to_delete = result
+        #retrive information of the property on sale from property_on_sale collection (missing type, area, registration_date)
+        try:
+            property_on_sale = mongo_client.PropertyOnSale.find_one({"_id": id_p})
+        except Exception as e:
+            logger.error(f"Error retrieving property from 'PropertyOnSale': {e}")
+            return 500
+        if property_on_sale is None:
+            return 500
         sold_property = SoldProperty(city=property_on_sale["city"], neighbourhood=property_on_sale["neighbourhood"],price=property_on_sale["price"],thumbnail=property_on_sale["thumbnail"],type=property_on_sale["type"],area=property_on_sale["area"],registration_date=property_on_sale["registration_date"],sell_date=datetime.now())
         #add the sold_property to the sold_properties of the seller
         data= sold_property.model_dump(exclude={"sold_property_id"})
         #add the _id field to data at the beginning of the dictionary
-        data = {"_id": id, **data}
-        #delete the property from the properties_on_sale of the seller 
-        result = mongo_client.Seller.update_one({"_id": ObjectId("67a24123e4e677efc3af0032")}, {"$pull": {"properties_on_sale": {"_id": id}}})
+        data = {"_id": id_p, **data}
+        try:
+            result = mongo_client.Seller.update_one({"_id": id_s},{"$push": {"sold_properties": data}})
+        except Exception as e:
+            logger.error(f"Error adding sold property: {e}")
+            return 500
         if result.matched_count == 0:
-            return 404
+            return 500
+        #delete the property from the properties_on_sale of the seller 
+        try:
+            result = mongo_client.Seller.update_one({"_id": id_s}, {"$pull": {"properties_on_sale": {"_id": id_p}}})
+        except Exception as e:
+            logger.error(f"Error removing property from 'properties_on_sale': {e}")
+            #rollback
+            try:
+                mongo_client.Seller.update_one({"_id": id_s}, {"$pull": {"sold_properties": {"_id": id_p}}})
+            except Exception as e:
+                logger.error(f"Error rolling back: {e}")
+                return 500
+            return 500
         #delete the property from the property_on_sale collection
-        result = mongo_client.PropertyOnSale.delete_one({"_id": id})
-        result = mongo_client.Seller.update_one({"_id": ObjectId("67a24123e4e677efc3af0032")}, {"$push": {"sold_properties": data}})
+        try:
+            result = mongo_client.PropertyOnSale.delete_one({"_id": id_p})
+        except Exception as e:
+            logger.error(f"Error removing property from 'PropertyOnSale': {e}")
+            #rollback all the previous operations
+            try:
+                mongo_client.Seller.update_one({"_id": id_s}, {"$pull": {"sold_properties": {"_id": id_p}}})
+            except Exception as e:
+                logger.error(f"Error rolling back: {e}")
+                return 500
+            try:
+                mongo_client.Seller.update_one({"_id": id_s}, {"$push": {"properties_on_sale": property_to_delete}})
+            except Exception as e:
+                logger.error(f"Error rolling back: {e}")
+                return 500
+            return 500
         return 200
     
     def get_sold_properties_by_price_desc(self) -> int:
@@ -109,6 +153,7 @@ class SellerDB:
         result["sold_properties"] = sorted(result["sold_properties"], key=lambda x: x["price"], reverse=True)
         self.seller = Seller(**result)
         return 200
+
 
 
         

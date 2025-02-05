@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from entities.MongoDB.Seller.seller import Seller
 from entities.MongoDB.Seller.db_seller import SellerDB
@@ -19,8 +19,13 @@ from bson.objectid import ObjectId
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
 
+from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
+import logging
+
 seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
+# Configura il logger
+logger = logging.getLogger(__name__)
 
 #Seller
 
@@ -34,18 +39,20 @@ seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 #         raise HTTPException(status_code=500, detail="Failed to create seller.")
 #     return JSONResponse(status_code=201, content={"detail": "Seller created successfully.", "seller_id": db_seller.seller.seller_id})
 
-# sell a property (move it from properties_on_sale to sold_properties of the seller & delete it from the property_on_sale collection)
+# Finire di controllare
+# sell a property 
+# (move it from properties_on_sale to sold_properties of the seller & delete it from the property_on_sale collection)
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel)
-def sell_property(seller_id: str, property_to_sell_id: str):
-    if not property_to_sell_id or not seller_id:
-        raise HTTPException(status_code=400, detail="Invalid property id or seller id.")
-    try:
-        property_id = ObjectId(property_to_sell_id)
-        seller_id = ObjectId(seller_id)
-    except:
-        raise HTTPException(status_code=404, detail="Invalid property id or seller id.")
+def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandler())):
+    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if seller_id is None or ObjectId.is_valid(seller_id) is False:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    if user_type != "seller":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    if ObjectId.is_valid(property_to_sell_id) is False:
+        raise HTTPException(status_code=404, detail="Invalid property id.")
     db_entity = SellerDB(Seller())
-    result = db_entity.db_sell_property(property_id)
+    result = db_entity.db_sell_property(property_to_sell_id, seller_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Property not found.")
     if result == 500:
@@ -412,4 +419,5 @@ def analytics_3(input : Analytics3Input):
     else:
         response="Aggregated data finished successfully"
     return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
+
 

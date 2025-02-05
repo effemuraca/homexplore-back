@@ -50,3 +50,4 @@ class Seller(BaseModel):
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
         return v
+

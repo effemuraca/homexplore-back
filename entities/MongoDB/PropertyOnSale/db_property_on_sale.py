@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from bson.objectid import ObjectId
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
@@ -6,11 +6,15 @@ from datetime import datetime
 import logging
 
 
+from modules.Guest.models.guest_models import FilteredSearchInput
+
 class PropertyOnSaleDB:
-    def __init__(self, property_on_sale: Optional[PropertyOnSale] = None):
+    def __init__(self, property_on_sale: Optional[PropertyOnSale] = None, property_on_sale_list: Optional[List[PropertyOnSale]] = None):
         self.property_on_sale = property_on_sale
+        self.property_on_sale_list = property_on_sale_list
     
     #CONSISTENT
+    #creazione di property_on_sale di seller
     def create_property_on_sale(self) -> int:
         if not self.property_on_sale:
             return 400
@@ -38,18 +42,25 @@ class PropertyOnSaleDB:
             return 201
         return 500
     
+    #get di property on sale by id  (CONTROLLATA) (guest)
     def get_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
-        try:
-            id=ObjectId(property_on_sale_id)
-        except:
+        if not ObjectId.is_valid(property_on_sale_id):
             return 400
+        id=ObjectId(property_on_sale_id)
         mongo_client = get_default_mongo_db()
-        result = mongo_client.PropertyOnSale.find_one({"_id": id})
+        if mongo_client is None:
+            return 500
+        try:
+            result = mongo_client.PropertyOnSale.find_one({"_id": id})
+        except Exception as e:
+            logging.error("Error retrieving property on sale with id: %s, error: %s", property_on_sale_id, e)
+            return 500
         if not result:
             return 404
         self.property_on_sale = PropertyOnSale(**result, property_on_sale_id=str(result["_id"]))
         return 200
     
+    #rimonazione di property_on_sale from seller
     def delete_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
         try:
             id=ObjectId(property_on_sale_id)
@@ -62,6 +73,7 @@ class PropertyOnSaleDB:
         return 200
     
     #CONSISTENT
+    #update of property_on_sale for seller
     def update_property_on_sale(self) -> int:
         try:
             id=ObjectId(self.property_on_sale.property_on_sale_id)
@@ -147,44 +159,74 @@ class PropertyOnSaleDB:
             return 404
         return 200
     
-    def filtered_search(self, city: str, max_price: int, neighbourhood: str, type: str, area: int, min_bed_number: int, min_bath_number: int) -> int:
+
+    #Ricerca filtrata delle proprietà in vendita (CONTOLLATA) (guest)
+    def filtered_search(self, input : FilteredSearchInput) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
         query = {}
-        if city:
-            query["city"] = city
-        if max_price:
-            query["price"] = {"$lte": max_price}
-        if neighbourhood:
-            query["neighbourhood"] = neighbourhood
-        if type:
-            query["type"] = type
-        if area:
-            query["area"] = {"$gte": area}
-        if min_bed_number:
-            query["bed_number"] = {"$gte": min_bed_number}
-        if min_bath_number:
-            query["bath_number"] = {"$gte": min_bath_number}
-        results = mongo_client.PropertyOnSale.find(query)
+        if input.city:
+            query["city"] = input.city
+        if input.max_price:
+            query["price"] = {"$lte": input.max_price}
+        if input.neighbourhood:
+            query["neighbourhood"] = input.neighbourhood
+        if input.type:
+            query["type"] = input.type
+        if input.min_area:
+            query["area"] = {"$gte": input.min_area}
+        if input.min_bed_number:
+            query["bed_number"] = {"$gte": input.min_bed_number}
+        if input.min_bath_number:
+            query["bath_number"] = {"$gte": input.min_bath_number}
+        try:
+            results = mongo_client.PropertyOnSale.find(query)
+        except Exception as e:
+            logging.error("Error while searching: %s", e)
+            return 500
         results_list = list(results)
-        properties = []
+        if not results_list:
+            return 404
+        self.property_on_sale_list = []
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
-            properties.append(PropertyOnSale(**result))
-        self.property_on_sale = properties
+            self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
     
+    #Ricerca di 10 proprietà casuali (CONTROLLATA) (guest
     def get_10_random_properties(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
-        results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 10}}])
+        try:
+            results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 10}}])
+        except Exception as e:
+            logging.error("Error while retrieving random properties: %s", e)
+            return 500
         results_list = list(results)
-        properties = []
+        if not results_list:
+            return 404
+        self.property_on_sale_list = []
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
-            properties.append(PropertyOnSale(**result))
-        self.property_on_sale = properties
+            self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
     
+    #Ricerca di una proprietà per indirizzo e città (CONTROLLATA) (guest)
+    def get_property_on_sale_by_address(self, city: str, address: str) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            return 500
+        try:
+            result = mongo_client.PropertyOnSale.find_one({"city": city, "address": address})
+        except Exception as e:
+            logging.error("Error while searching property by address: %s", e)
+            return 500
+        if not result:
+            return 404
+        result["property_on_sale_id"] = str(result["_id"])
+        self.property_on_sale = PropertyOnSale(**result)
+        return 200
+    
+

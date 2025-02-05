@@ -40,13 +40,13 @@ GetFilteredPropertiesOnSaleResponses = {
             }
         }
     },
-    400: {
+    404: {
         "model": ErrorModel,
-        "description": "Invalid search parameters.",
+        "description": "No properties found.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Invalid search parameters."
+                    "detail": "No properties found."
                 }
             }
         }
@@ -92,6 +92,17 @@ GetRandomPropertiesOnSaleResponses = {
                         }
                     }
                 ]
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "No properties found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "No properties found."
+                }
             }
         }
     },
@@ -162,39 +173,6 @@ GetPropertyOnSaleResponses = {
     }
 }
 
-DeletePropertyOnSaleResponses = {
-    200: {
-        "model": SuccessModel,
-        "description": "Property deleted successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Property deleted successfully."
-                }
-            }
-        }
-    },
-    400: {
-        "model": ErrorModel,
-        "description": "Invalid property id.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Invalid property id."
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "Property not found.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Property not found."
-                }
-            }
-        }
-    }
-}
+
+
 
