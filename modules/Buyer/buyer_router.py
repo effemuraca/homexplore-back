@@ -4,6 +4,7 @@ from typing import List
 import logging
 import json
 from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
+from bson import ObjectId
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
 from modules.Buyer.models import response_models as ResponseModels
 from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
@@ -93,6 +94,8 @@ def get_favorites(buyer_id: str):
     """
     Retrieves the favorite properties of a buyer by id.
     """
+    if not ObjectId.is_valid(buyer_id):
+        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
     buyer_db = BuyerDB()
     favorites = buyer_db.get_favorites(buyer_id)
     if favorites is None:
@@ -104,6 +107,10 @@ def add_favorite(buyer_id: str, favorite: FavouriteProperty):
     """
     Adds a favorite property for a buyer.
     """
+    if not favorite:
+        raise HTTPException(status_code=400, detail="Missing favorite info.")
+    if not ObjectId.is_valid(buyer_id):
+        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
     buyer_db = BuyerDB()
     result = buyer_db.add_favorite(buyer_id, favorite)
     if result == 400:
@@ -118,6 +125,8 @@ def delete_favorite(buyer_id: str, property_id: str):
     """
     Deletes a favorite property for a buyer.
     """
+    if not ObjectId.is_valid(buyer_id) or not ObjectId.is_valid(property_id):
+        raise HTTPException(status_code=400, detail="Invalid input.")
     buyer_db = BuyerDB()
     result = buyer_db.delete_favorite(buyer_id, property_id)
     if result == 400:
@@ -132,6 +141,10 @@ def update_favorite(buyer_id: str, property_id: str, favorite: FavouriteProperty
     """
     Updates a favorite property for a buyer.
     """
+    if not ObjectId.is_valid(buyer_id) or not ObjectId.is_valid(property_id):
+        raise HTTPException(status_code=400, detail="Invalid input.")
+    if not favorite:
+        raise HTTPException(status_code=400, detail="Missing favorite info.")
     buyer_db = BuyerDB()
     result = buyer_db.update_favorite(buyer_id, property_id, favorite.dict())
     if result == 400:
@@ -150,6 +163,9 @@ def update_favorite(buyer_id: str, property_id: str, favorite: FavouriteProperty
     responses=ResponseModels.CreateReservationBuyerResponseModelResponses
 )
 def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
+
+    if not reservations_buyer_info:
+        raise HTTPException(status_code=400, detail="Missing reservation info.")
     #Check if the buyer_id in the token is the same as the buyer_id in the request
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)    
     if user_type != "buyer":
@@ -215,6 +231,8 @@ def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, ac
     responses=ResponseModels.UpdateReservationsBuyerResponseModelResponses
 )
 def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer):
+    if not reservations_buyer_info:
+        raise HTTPException(status_code=400, detail="Missing reservation info.")
     reservations_buyer = ReservationsBuyer(
         buyer_id=reservations_buyer_info.buyer_id,
         reservations=[
@@ -249,6 +267,8 @@ def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer):
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
 def delete_reservations_buyer(buyer_id: str):
+    if not ObjectId.is_valid(buyer_id):
+        raise HTTPException(status_code=400, detail="Invalid buyer ID.")
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
@@ -270,6 +290,8 @@ def delete_reservations_buyer(buyer_id: str):
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
 def delete_reservation_buyer(buyer_id: str, property_on_sale_id: str):
+    if not ObjectId.is_valid(buyer_id) or not ObjectId.is_valid(property_on_sale_id):
+        raise HTTPException(status_code=400, detail="Invalid input.")
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:

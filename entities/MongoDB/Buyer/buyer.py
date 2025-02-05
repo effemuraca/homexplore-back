@@ -1,6 +1,6 @@
 import logging
 import re
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, Field, EmailStr, validator, field_validator
 from typing import Optional
 from bson.objectid import ObjectId
 
@@ -13,6 +13,38 @@ class FavouriteProperty(BaseModel):
     address: str
     price: int
     area: int
+
+    @field_validator('property_id')
+    def check_object_id(cls, value):
+        if not ObjectId.is_valid(value):
+            raise ValueError('Invalid ObjectId string')
+        return value
+    
+    @field_validator('thumbnail')
+    def validate_thumbnail(cls, value):
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', value):
+            raise ValueError('Invalid URL format.')
+        return value
+    
+    @field_validator('price')
+    def validate_price(cls, value):
+        if value <= 0:
+            raise ValueError('Price must be greater than zero.')
+        return value
+    
+    @field_validator('area')
+    def validate_area(cls, value):
+        if value <= 0:
+            raise ValueError('Area must be greater than zero.')
+        return value
+    
+    @field_validator('address')
+    def check_address(cls, v: str) -> str:
+        if not re.match(r'^[0-9]+ .+$', v):
+            raise ValueError('Invalid address format')
+        return v
+
+
 
 class Buyer(BaseModel):
     buyer_id: str = Field(None, example="60d5ec49f8d2e30b8c8b4567")
