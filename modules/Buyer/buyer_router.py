@@ -77,6 +77,11 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     if result == 404:
         raise HTTPException(status_code=result, detail="Buyer not found.")
     
+    if buyer.email:
+        buyer_db.get_buyer_by_email(buyer.email)
+        if buyer_db.buyer and buyer_db.buyer.buyer_id != buyer_id:
+            raise HTTPException(status_code=409, detail="Email already exists.")
+    
     # check if there's a password to crypt
     if buyer.password:
         buyer.password = hash_password(buyer.password)
