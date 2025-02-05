@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from setup.redis_setup.redis_setup import get_redis_client, WatchError
 from setup.mongo_setup.mongo_setup import get_mongo_client
@@ -10,6 +10,7 @@ from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSe
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from entities.MongoDB.Buyer.buyer import Buyer
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
+from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
 from bson.objectid import ObjectId
 from datetime import datetime
 import logging
@@ -25,27 +26,81 @@ logger = logging.getLogger(__name__)
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.ReservationDeletedResponses
 )
-def delete_reservation_by_user_and_property(user_id: str, property_on_sale_id: str):
+def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Delete a buyer reservation for a given user_id and 
+    Delete a buyer reservation for a given buyer_id and 
     property_on_sale_id and remove the seller reservation.
     """
+    try:
+        buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+        if not ObjectId.is_valid(property_on_sale_id):
+            raise HTTPException(status_code=400, detail="Invalid property_on_sale_id")
 
-# TO IMPLEMENT
+        reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
+        reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+        reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
+        reservations_seller_db = ReservationsSellerDB(reservations_seller)
 
+        status = reservations_buyer_db.get_reservations_by_user()
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Error decoding buyer reservations data")
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found for buyer")
 
+        status = reservations_seller_db.get_reservation_seller()
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Error decoding seller reservations data")
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found for seller")
+
+        # Check if the buyer has a reservation for the given property
+        buyer_reservations = reservations_buyer_db.reservations_buyer.reservations
+        if not buyer_reservations:
+            raise HTTPException(status_code=404, detail="No reservations found for buyer")
+        buyer_reservations = [res for res in buyer_reservations if res.property_on_sale_id == property_on_sale_id]
+        if not buyer_reservations:
+            raise HTTPException(status_code=404, detail="No reservations found for buyer")
+        
+        # Check if the seller has a reservation for the given buyer
+        seller_reservations = reservations_seller_db.reservations_seller.reservations
+        if not seller_reservations:
+            raise HTTPException(status_code=404, detail="No reservations found for seller")
+        seller_reservations = [res for res in seller_reservations if res.buyer_id == buyer_id]
+        if not seller_reservations:
+            raise HTTPException(status_code=404, detail="No reservations found for seller")
+        
+        # Delete the buyer reservation
+        status = reservations_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Error deleting buyer reservation")
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found for buyer")
+        
+        # Delete the seller reservation
+        status = reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Error deleting seller reservation")
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found for seller")
+        
+        return JSONResponse(status_code=200, content={"detail": "Reservation deleted successfully"})
+    
+    except Exception as e:
+        logger.error(f"Unhandled error in delete_reservation_by_buyer_and_property: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 @kvdb_router.post(
     "/book_now",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.BookNowResponses
 )
-def book_now(book_now_info: BookNow):
+def book_now(book_now_info: BookNow, access_token: str = Depends(JWTHandler())):
     try:
-        buyer = Buyer(buyer_id=book_now_info.buyer_id)
+        buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+        buyer = Buyer(buyer_id=buyer_id)
         buyer_db = BuyerDB(buyer)
         
-        status = buyer_db.get_contact_info(book_now_info.buyer_id)
+        status = buyer_db.get_contact_info(buyer_id)
         if status == 404:
             raise HTTPException(status_code=404, detail="Buyer not found")
         if status == 500:
@@ -56,7 +111,7 @@ def book_now(book_now_info: BookNow):
             logger.error("Incomplete buyer data for booking")
             raise HTTPException(status_code=500, detail="Incomplete buyer data")
 
-        reservations_buyer = ReservationsBuyer(buyer_id=book_now_info.buyer_id)
+        reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
         reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
         reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
         reservations_seller_db = ReservationsSellerDB(reservations_seller)
@@ -72,7 +127,7 @@ def book_now(book_now_info: BookNow):
             raise HTTPException(status_code=500, detail="Error decoding seller reservations data")
 
         new_reservation = ReservationS(
-            buyer_id=book_now_info.buyer_id, 
+            buyer_id=buyer_id, 
             full_name=f"{buyer.name} {buyer.surname}",
             email=buyer.email,
             phone=buyer.phone_number
@@ -85,7 +140,7 @@ def book_now(book_now_info: BookNow):
         status = reservations_seller_db.create_reservation_seller(
                     book_now_info.day,
                     book_now_info.time,
-                    book_now_info.buyer_id,
+                    buyer_id,
                     book_now_info.max_reservations
                 )
         if status == 500:

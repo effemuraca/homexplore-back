@@ -7,7 +7,6 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-
 ReservationDeletedResponses = {
     200: {
         "model": SuccessModel,
@@ -26,7 +25,7 @@ ReservationDeletedResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Reservation not found."
+                    "detail": "No reservations found for buyer or seller."
                 }
             }
         }
@@ -37,7 +36,7 @@ ReservationDeletedResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Failed to delete reservation."
+                    "detail": "Error deleting reservation in database."
                 }
             }
         }
@@ -58,7 +57,7 @@ BookNowResponses = {
     },
     400: {
         "model": ErrorModel,
-        "description": "Buyer already has a reservation.",
+        "description": "Buyer already has a reservation or invalid input.",
         "content": {
             "application/json": {
                 "example": {
@@ -109,14 +108,14 @@ GetReservationsResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "buyer_id": "1",
+                    "buyer_id": "example_buyer_id",
                     "reservations": [
                         {
-                            "property_on_sale_id": "1",
-                            "date": "2021-09-01",
-                            "time": "10:00",
-                            "thumbnail": "https://www.example.com/image.jpg",
-                            "address": "1234 Example St."
+                            "property_on_sale_id": "example_property_id",
+                            "date": "2023-01-01",
+                            "time": "12:00 PM",
+                            "thumbnail": "https://example.com/image.jpg",
+                            "address": "Example Address"
                         }
                     ]
                 }
@@ -140,7 +139,7 @@ GetReservationsResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Failed to retrieve reservations."
+                    "detail": "Error retrieving reservations."
                 }
             }
         }

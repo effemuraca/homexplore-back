@@ -9,7 +9,6 @@ class ErrorModel(BaseModel):
     detail: str
 
 class BookNow(BaseModel):
-    buyer_id: str = Field(example="615c44fdf641be001f0c1111")
     property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     day : str = Field(example="Monday")
     time: str = Field(example="10:00 AM")
@@ -17,6 +16,12 @@ class BookNow(BaseModel):
     address: str = Field(example="1234 Example St.")
     max_reservations : int = Field(example=10)
 
+    @field_validator('property_on_sale_id')
+    def validate_property_on_sale_id(cls, v):
+        if not re.match(r"^[a-f\d]{24}$", v):
+            raise ValueError('Invalid property_on_sale_id')
+        return v
+    
     @field_validator('day')
     def validate_day(cls, v):
         if v not in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
