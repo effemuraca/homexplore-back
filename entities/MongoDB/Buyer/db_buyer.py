@@ -32,8 +32,7 @@ class BuyerDB:
                 email=data["email"],
                 phone_number=data["phone_number"],
                 name=data["name"],
-                surname=data["surname"],
-                age=data["age"]
+                surname=data["surname"]
             )
             logger.debug(f"Buyer recuperato: {self.buyer}")
             return 200

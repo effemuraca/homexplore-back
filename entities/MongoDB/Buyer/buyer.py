@@ -53,7 +53,6 @@ class Buyer(BaseModel):
     phone_number: Optional[str] = Field(None, example="+1 1234567890")
     name: Optional[str] = Field(None, example="John")
     surname: Optional[str] = Field(None, example="Doe")
-    age: Optional[int] = Field(None, example=30)  # campo opzionale
     favourites: Optional[list[FavouriteProperty]] = Field(None, example=[{
         "property_id": "1",
         "thumbnail": "https://www.example.com/image.jpg",
