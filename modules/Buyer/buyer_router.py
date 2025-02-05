@@ -191,51 +191,56 @@ def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHa
 
 # ReservationsBuyer
 
-@buyer_router.post(
+@@buyer_router.post(
     "/reservations",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.CreateReservationBuyerResponseModelResponses
 )
 def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
-
-    if not reservations_buyer_info:
-        raise HTTPException(status_code=400, detail="Missing reservation info.")
-    #Check if the buyer_id in the token is the same as the buyer_id in the request
-    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)    
-    if user_type != "buyer":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if buyer_id != reservations_buyer_info.buyer_id:
-        raise HTTPException(status_code=401, detail="Invalid buyer_id")
-    
-    reservations_buyer = ReservationsBuyer(
-        buyer_id=buyer_id,
-        reservations=[
-            ReservationB(
-                property_on_sale_id=reservations_buyer_info.property_on_sale_id,
-                date=reservations_buyer_info.date,
-                time=reservations_buyer_info.time,
-                thumbnail=reservations_buyer_info.thumbnail,
-                address=reservations_buyer_info.address
-            )
-        ]
-    )
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        status = reservations_buyer_db.create_reservation_buyer()
+        if not reservations_buyer_info:
+            raise HTTPException(status_code=400, detail="Missing reservation info.")
+        try:
+            buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+        except Exception as token_err:
+            logger.error(f"Token verification error: {token_err}")
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        
+        if user_type != "buyer":
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        if buyer_id is None:
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        if buyer_id != reservations_buyer_info.buyer_id:
+            raise HTTPException(status_code=401, detail="Invalid buyer_id")
+        
+        reservations_buyer = ReservationsBuyer(
+            buyer_id=buyer_id,
+            reservations=[
+                ReservationB(
+                    property_on_sale_id=reservations_buyer_info.property_on_sale_id,
+                    date=reservations_buyer_info.date,
+                    time=reservations_buyer_info.time,
+                    thumbnail=reservations_buyer_info.thumbnail,
+                    address=reservations_buyer_info.address
+                )
+            ]
+        )
+        reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+        try:
+            status = reservations_buyer_db.create_reservation_buyer()
+        except Exception as db_err:
+            logger.error(f"Error creating buyer reservation: {db_err}")
+            raise HTTPException(status_code=500, detail="Error creating buyer reservation")
+        
+        if status == 409:
+            raise HTTPException(status_code=409, detail="Reservation already exists.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to create reservation.")
+        
+        return JSONResponse(status_code=201, content={"detail": "Buyer reservation created successfully."})
     except Exception as e:
-        logger.error(f"Error creating buyer reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error creating buyer reservation")
-    
-    if status == 409:
-        raise HTTPException(status_code=409, detail="Reservation already exists.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to create reservation.")
-    
-    return JSONResponse(status_code=201, content={"detail": "Buyer reservation created successfully."})
+        logger.error(f"Unhandled error in create_reservation_buyer: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 # @buyer_router.get(
 #     "/reservations/{buyer_id}",
@@ -265,43 +270,50 @@ def create_reservation_buyer(reservations_buyer_info: CreateReservationBuyer, ac
     responses=ResponseModels.UpdateReservationsBuyerResponseModelResponses
 )
 def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer, access_token: str = Depends(JWTHandler())):
-    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if user_type != "buyer":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if buyer_id != reservations_buyer_info.buyer_id:
-        raise HTTPException(status_code=401, detail="Invalid buyer_id")
-    
-    reservations_buyer = ReservationsBuyer(
-        buyer_id=buyer_id,
-        reservations=[
-            ReservationB(
-                property_on_sale_id=reservations_buyer_info.property_on_sale_id,
-                date=reservations_buyer_info.date,
-                time=reservations_buyer_info.time,
-                thumbnail=reservations_buyer_info.thumbnail,
-                address=reservations_buyer_info.address
-            )
-        ]
-    )
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        status = reservations_buyer_db.update_reservation_buyer()
+        try:
+            buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+        except Exception as token_err:
+            logger.error(f"Token verification error: {token_err}")
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        
+        if user_type != "buyer":
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        if buyer_id is None:
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        if buyer_id != reservations_buyer_info.buyer_id:
+            raise HTTPException(status_code=401, detail="Invalid buyer_id")
+        
+        reservations_buyer = ReservationsBuyer(
+            buyer_id=buyer_id,
+            reservations=[
+                ReservationB(
+                    property_on_sale_id=reservations_buyer_info.property_on_sale_id,
+                    date=reservations_buyer_info.date,
+                    time=reservations_buyer_info.time,
+                    thumbnail=reservations_buyer_info.thumbnail,
+                    address=reservations_buyer_info.address
+                )
+            ]
+        )
+        reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+        try:
+            status = reservations_buyer_db.update_reservation_buyer()
+        except Exception as db_err:
+            logger.error(f"Error updating buyer reservations: {db_err}")
+            raise HTTPException(status_code=500, detail="Error updating buyer reservations")
+        
+        if status == 404:
+            raise HTTPException(status_code=404, detail="Reservation not found.")
+        if status == 400:
+            raise HTTPException(status_code=400, detail="Invalid input data.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to update reservation.")
+        
+        return reservations_buyer_db.reservations_buyer
     except Exception as e:
-        logger.error(f"Error updating buyer reservations: {e}")
-        raise HTTPException(status_code=500, detail="Error updating buyer reservations")
-
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found.")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input data.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to update reservation.")
-    
-    return reservations_buyer_db.reservations_buyer
+        logger.error(f"Unhandled error in update_reservations_buyer: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 # @buyer_router.delete(
 #     "/reservations/{buyer_id}",
@@ -330,31 +342,39 @@ def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer, a
     responses=ResponseModels.DeleteReservationsBuyerResponseModelResponses
 )
 def delete_reservation_buyer(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
-    if ObjectId.is_valid(property_on_sale_id):
-        raise HTTPException(status_code=400, detail="Invalid input.")
-    
-    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if user_type != "buyer":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     try:
-        status = reservations_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)
+        # Verifica dell'input: se l'ID è valido, potrebbe essere un errore nella logica (o invertire la condizione)
+        if ObjectId.is_valid(property_on_sale_id):
+            raise HTTPException(status_code=400, detail="Invalid input.")
+        
+        try:
+            buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+        except Exception as token_err:
+            logger.error(f"Token verification error: {token_err}")
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        
+        if user_type != "buyer":
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        if buyer_id is None:
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        
+        reservations_buyer = ReservationsBuyer(buyer_id=buyer_id, reservations=[])
+        reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
+        try:
+            status = reservations_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)
+        except Exception as db_err:
+            logger.error(f"Error deleting buyer reservation: {db_err}")
+            raise HTTPException(status_code=500, detail="Error deleting buyer reservation")
+        
+        if status == 404:
+            raise HTTPException(status_code=404, detail="Reservation not found or delete failed.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to delete reservation.")
+        
+        return JSONResponse(status_code=200, content={"detail": "Buyer reservation deleted successfully."})
     except Exception as e:
-        logger.error(f"Error deleting buyer reservation: {e}")
-        raise HTTPException(status_code=500, detail="Error deleting buyer reservation")
-
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found or delete failed.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to delete reservation.")
-    
-    return JSONResponse(status_code=200, content={"detail": "Buyer reservation deleted successfully."})
-
+        logger.error(f"Unhandled error in delete_reservation_buyer: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
 
 # Analytics
 
