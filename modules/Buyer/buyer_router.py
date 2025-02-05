@@ -310,7 +310,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     return JSONResponse(status_code=201, content={"detail": "Reservation created successfully"})
 
 @buyer_router.delete(
-    "/reservations/{property_on_sale_id}",
+    "/reservation/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
     responses=ResponseModels.DeleteReservationsBuyerResponses
 )
