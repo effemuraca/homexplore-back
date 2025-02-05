@@ -75,8 +75,9 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     if user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
-    buyer_db = BuyerDB()
-    result = buyer_db.get_profile_info(buyer_id)
+    buyer_old = Buyer(buyer_id=buyer_id)
+    buyer_db = BuyerDB(buyer_old)
+    result = buyer_db.get_profile_info()
     if result == 404:
         raise HTTPException(status_code=result, detail="Buyer not found.")
     
@@ -241,7 +242,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     buyer = Buyer(buyer_id=buyer_id)
     buyer_db = BuyerDB(buyer)
     
-    status = buyer_db.get_profile_info(buyer_id)
+    status = buyer_db.get_profile_info()
     if status == 404:
         raise HTTPException(status_code=404, detail="Buyer not found")
     if status == 500:
