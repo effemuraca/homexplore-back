@@ -31,6 +31,11 @@ def delete_reservation_by_user_and_property(user_id: str, property_on_sale_id: s
     This is done atomically using Redis transactions (WATCH/MULTI/EXEC).
     """
    
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user_id")
+    if not ObjectId.is_valid(property_on_sale_id):
+        raise HTTPException(status_code=400, detail="Invalid property_on_sale_id")
+                            
     reservations_buyer = ReservationsBuyer(buyer_id=user_id)
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
     reservations_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
@@ -172,6 +177,9 @@ def get_reservations_by_buyer(buyer_id: str):
     before showing the buyer the reservations,
     check if some of them are expired and delete them.
     """
+
+    if not ObjectId.is_valid(buyer_id):
+        raise HTTPException(status_code=400, detail="Invalid buyer_id")
 
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
