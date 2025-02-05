@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Dict, Any, List
 from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
-from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer
+from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
 
 class SuccessModel(BaseModel):
     detail: str
@@ -308,14 +308,75 @@ DeleteFavouriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
 
 # ReservationsBuyer
 
-CreateReservationBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+GetReservationsBuyerResponses = {
+    200: {
+        "model": List[ReservationB],
+        "description": "Reservations retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "property_on_sale_id": "615c44fdf641be001f0c1111",
+                        "date": "2021-09-01",
+                        "time": "10:00",
+                        "thumbnail": "https://www.example.com/image",
+                        "address": "1234 Example St."
+                    }
+                ]
+            }
+        }
+    },
+        
+    404: {
+        "model": ErrorModel,
+        "description": "No reservations found for the buyer.",
+        "content": {
+            "application/json": {
+                "example": {"detail": "No reservations found for buyer"}
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Internal server error occurred.",
+        "content": {
+            "application/json": {
+                "example": {"detail": "Internal server error"}
+            }
+        }
+    }
+}
+
+CreateReservationBuyerResponses: Dict[int, Dict[str, Any]] = {
     201: {
         "model": SuccessModel,
         "description": "Reservation created successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Buyer reservation created successfully."
+                    "detail": "Reservation created successfully."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Buyer already has a reservation or invalid input.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Buyer already has a reservation."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Buyer not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Buyer not found."
                 }
             }
         }
@@ -333,18 +394,18 @@ CreateReservationBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Failed to create reservation.",
+        "description": "Internal server error.",
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "Failed to create reservation."
+                    "detail": "Internal server error."
                 }
             }
         }
     }
 }
 
-UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+UpdateReservationsBuyerResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": ReservationsBuyer,
         "description": "Reservation updated successfully.",
@@ -392,7 +453,7 @@ UpdateReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     }
 }
 
-DeleteReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
+DeleteReservationsBuyerResponses: Dict[int, Dict[str, Any]] = {
     200: {
         "model": SuccessModel,
         "description": "Reservation deleted successfully.",
@@ -427,41 +488,3 @@ DeleteReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
         }
     }
 }
-
-GetReservationsBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
-    200: {
-        "model": ReservationsBuyer,
-        "description": "Reservations retrieved successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "buyer_id": "615c44fdf641be001f0c1111",
-                    "reservations": []
-                }
-            }
-        }
-    },
-    404: {
-        "model": ErrorModel,
-        "description": "No reservations found.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "No reservations found."
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Failed to retrieve reservations.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Failed to retrieve reservations."
-                }
-            }
-        }
-    }
-}
-
