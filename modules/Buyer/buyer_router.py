@@ -146,12 +146,12 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Favourite added successfully."})
 
-@buyer_router.delete("/favourites/{property_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
-def delete_favourite(property_id: str, access_token: str = Depends(JWTHandler())):
+@buyer_router.delete("/favourites/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
+def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
     Deletes a favourite property for a buyer.
     """
-    if not ObjectId.is_valid(property_id):
+    if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid input.")
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -161,7 +161,7 @@ def delete_favourite(property_id: str, access_token: str = Depends(JWTHandler())
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     buyer_db = BuyerDB()
-    result = buyer_db.delete_favourite(buyer_id, property_id)
+    result = buyer_db.delete_favourite(buyer_id, property_on_sale_id)
     if result == 400:
         raise HTTPException(status_code=result, detail="Invalid input.")
     elif result == 500:
