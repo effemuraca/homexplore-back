@@ -259,12 +259,14 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     status = reservations_buyer_db.get_reservations_by_user()
     if status == 500:
         raise HTTPException(status_code=500, detail="Error decoding reservations data")
-    if status == 200:
-        raise HTTPException(status_code=400, detail="Buyer already has a reservation")
+    if status == 400:
+        raise HTTPException(status_code=400, detail="Invalid input data")
 
     status = reservations_seller_db.get_reservation_seller()
     if status == 500:
         raise HTTPException(status_code=500, detail="Error decoding seller reservations data")
+    if status == 400:
+        raise HTTPException(status_code=400, detail="Invalid input data")
 
     new_reservation = ReservationS(
         buyer_id=buyer_id, 
