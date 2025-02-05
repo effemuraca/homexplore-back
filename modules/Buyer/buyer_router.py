@@ -307,51 +307,6 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
 
     return JSONResponse(status_code=201, content={"detail": "Reservation created successfully"})
 
-@buyer_router.put(
-    "/reservations",
-    response_model=ReservationsBuyer,
-    responses=ResponseModels.UpdateReservationsBuyerResponses
-)
-def update_reservations_buyer(reservations_buyer_info: UpdateReservationBuyer, access_token: str = Depends(JWTHandler())):
-    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if buyer_id != reservations_buyer_info.buyer_id:
-        raise HTTPException(status_code=401, detail="Invalid buyer_id")
-    
-    reservations_buyer = ReservationsBuyer(
-        buyer_id=buyer_id,
-        reservations=[
-            ReservationB(
-                property_on_sale_id=reservations_buyer_info.property_on_sale_id,
-                date=reservations_buyer_info.date,
-                time=reservations_buyer_info.time,
-                thumbnail=reservations_buyer_info.thumbnail,
-                address=reservations_buyer_info.address
-            )
-        ]
-    )
-    reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    try:
-        status = reservations_buyer_db.update_reservation_buyer()
-    except Exception as db_err:
-        logger.error(f"Error updating buyer reservations: {db_err}")
-        raise HTTPException(status_code=500, detail="Error updating buyer reservations")
-    
-    if status == 404:
-        raise HTTPException(status_code=404, detail="Reservation not found.")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input data.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to update reservation.")
-    
-    return reservations_buyer_db.reservations_buyer
-
 @buyer_router.delete(
     "/reservations/{property_on_sale_id}",
     response_model=ResponseModels.SuccessModel,
