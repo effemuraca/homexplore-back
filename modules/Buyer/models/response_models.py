@@ -24,7 +24,6 @@ GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
                     "phone_number": "1234567890",
                     "name": "John",
                     "surname": "Doe",
-                    "age": 30
                 }
             }
         }
