@@ -128,3 +128,24 @@ class ReservationsBuyerDB:
             logger.error(f"Error deleting reservation: {e}")
             return 500
         
+    # update all reservations for a buyer, deleting all the expired ones
+    def update_expired_reservations(self) -> int:
+        redis_client = get_redis_client()
+        if redis_client is None:
+            logger.error("Failed to connect to Redis.")
+            return 500
+        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+        raw_data = redis_client.get(key)
+        if not raw_data:
+            logger.info(f"No reservations found for buyer_id={self.reservations_buyer.buyer_id}.")
+            return 404
+        try:
+            data = json.loads(raw_data)
+            new_data = [res for res in data if not ReservationB(**res).check_reservation_expired()]
+            redis_client.set(key, json.dumps(new_data))
+            self.reservations_buyer.reservations = new_data
+            logger.info(f"Expired reservations removed for buyer_id={self.reservations_buyer.buyer_id}.")
+            return 200
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.error(f"Error updating expired reservations: {e}")
+            return 500

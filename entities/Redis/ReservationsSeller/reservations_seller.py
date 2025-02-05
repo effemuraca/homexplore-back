@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, EmailStr
+from pydantic import BaseModel, Field, field_validator, EmailStr
 from typing import Optional, List
 from datetime import datetime, timedelta
 from bson import ObjectId
@@ -12,7 +12,7 @@ class ReservationS(BaseModel):
     email: Optional[EmailStr] = Field(None, example="john@example.com")
     phone: Optional[str] = Field(None, example="1234567890")
     
-    @validator('buyer_id')
+    @field_validator('buyer_id')
     def check_object_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
@@ -22,7 +22,7 @@ class ReservationsSeller(BaseModel):
     property_on_sale_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
     reservations: Optional[List[ReservationS]] = []
     
-    @validator('property_on_sale_id')
+    @field_validator('property_on_sale_id')
     def check_object_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')

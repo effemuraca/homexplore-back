@@ -1,6 +1,5 @@
-from pydantic import BaseModel
-from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer
-
+from pydantic import BaseModel, Field
+from typing import List, Optional
 class SuccessModel(BaseModel):
     detail: str
 
@@ -103,19 +102,19 @@ BookNowResponses = {
 
 GetReservationsResponses = {
     200: {
-        "model": ReservationsBuyer,
-        "description": "Reservations retrieved successfully.",
+        "model": SuccessModel,
+        "description": "Reservations for the buyer were retrieved successfully.",
         "content": {
             "application/json": {
                 "example": {
-                    "buyer_id": "example_buyer_id",
+                    "buyer_id": "buyer123",
                     "reservations": [
                         {
-                            "property_on_sale_id": "example_property_id",
-                            "date": "2023-01-01",
+                            "property_on_sale_id": "property123",
+                            "date": "2023-12-31",
                             "time": "12:00 PM",
                             "thumbnail": "https://example.com/image.jpg",
-                            "address": "Example Address"
+                            "address": "123 Main St, City"
                         }
                     ]
                 }
@@ -124,23 +123,19 @@ GetReservationsResponses = {
     },
     404: {
         "model": ErrorModel,
-        "description": "No reservations found.",
+        "description": "No reservations found for the buyer.",
         "content": {
             "application/json": {
-                "example": {
-                    "detail": "No reservations found."
-                }
+                "example": {"detail": "No reservations found for buyer"}
             }
         }
     },
     500: {
         "model": ErrorModel,
-        "description": "Failed to retrieve reservations.",
+        "description": "Internal server error occurred.",
         "content": {
             "application/json": {
-                "example": {
-                    "detail": "Error retrieving reservations."
-                }
+                "example": {"detail": "Internal server error"}
             }
         }
     }
