@@ -7,21 +7,13 @@ from datetime import datetime
 # Seller
 class UpdateSeller(BaseModel):
     agency_name: Optional[str] = Field(None, example="Agency Name")
-    email: Optional[str] = Field(None, example="email@example.com")
+    email: Optional[EmailStr] = Field(None, example="email@example.com")
     password: Optional[str] = Field(None, example="password123")
-    
-    @field_validator("email")
-    def validate_email(cls, value):
-        email_pattern = re.compile(
-            r"^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|"
-            r"([-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+(?:\.[-!#\$%&'\*\+/=\?\^`\{\}\|~\w]+)*)"
-            r")@((?:[A-Z0-9-]+\.)+[A-Z]{2,})$", re.IGNORECASE)
-        if not email_pattern.match(value):
-            raise ValueError("Invalid email format. Expected format: email@example.com")
-        return value
 
 
 # PropertyOnSale
+
+#CONSISTENT
 class CreateDisponibility(BaseModel):
     day: str = Field(example="Monday")
     time: str = Field(example="10:00-11:00 AM")
@@ -40,7 +32,7 @@ class CreateDisponibility(BaseModel):
         if not time_pattern.match(value):
             raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
         return value
-
+    
 class CreatePropertyOnSale(BaseModel):
     city: str = Field(example="New York")
     neighbourhood: str = Field(example="Bronx")
@@ -55,6 +47,11 @@ class CreatePropertyOnSale(BaseModel):
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
     disponibility: Optional[CreateDisponibility] = None   
 
+
+
+
+
+#CONSISTENT
 class UpdateDisponibility(BaseModel):
     day: Optional[str] = Field(None, example="Monday")
     time: Optional[str] = Field(None, example="10:00-11:00 AM")
@@ -73,7 +70,7 @@ class UpdateDisponibility(BaseModel):
         if not time_pattern.match(value):
             raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
         return value
-
+    
 class UpdatePropertyOnSale(BaseModel):
     property_on_sale_id: str = Field(None, example="5f4f4f4f4f4f4f4f4f4f4f4f")
     city: Optional[str] = Field(None, example="New York")
@@ -89,6 +86,19 @@ class UpdatePropertyOnSale(BaseModel):
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
     disponibility: Optional[UpdateDisponibility] = None   
 
+    #create validator for property_on_sale_id to be a valid ObjectId
+    @field_validator("property_on_sale_id")
+    def validate_property_on_sale_id(cls, value):
+        if not ObjectId.is_valid(value):
+            raise ValueError("Invalid property_on_sale_id")
+        return value
+
+
+
+
+
+
+
 class FilteredSearchPropertyOnSale(BaseModel):
     city: Optional[str] = Field(None, example="New York")
     max_price: Optional[int] = Field(None, example=500000)
@@ -99,6 +109,10 @@ class FilteredSearchPropertyOnSale(BaseModel):
     min_bath_number: Optional[int] = Field(None, example=2)
 
 
+
+
+
+
 # Analytics
 
 class AnalyticsResponseModel(BaseModel):
@@ -106,7 +120,6 @@ class AnalyticsResponseModel(BaseModel):
     result: List[dict]
 
 class Analytics2Input(BaseModel):
-    agency_id: str = Field(example="5f4f4f4f4f4f4f4f4f4f4f4f")
     city: str = Field(example="New York")
     start_date: str = Field(example="2021-01-01")
     end_date: str = Field(example="2021-12-31")
@@ -127,7 +140,6 @@ class Analytics2Input(BaseModel):
         return value
     
 class Analytics3Input(BaseModel):
-    agency_id: str = Field(example="5f4f4f4f4f4f4f4f4f4f4f4f")
     city: str = Field(example="New York")
     start_date: str = Field(example="2021-01-01")
 
@@ -139,38 +151,5 @@ class Analytics3Input(BaseModel):
             raise ValueError("Invalid date format. Expected format: YYYY-MM-DD")
         return value
     
-    #check if agency is a valid ObjectId
-    @field_validator("agency_id")
-    def validate_agency(cls, value):
-        if not ObjectId.is_valid(value):
-            raise ValueError("Invalid agency_id")
-        return value
-    
-class Analytics6Input(BaseModel):
-    agency_id: str = Field(example="5f4f4f4f4f4f4f4f4f4f4f4f")
-    city: str = Field(example="New York")
-    start_hour: str = Field(example="10:00 AM")
-    end_hour: str = Field(example="12:00 PM")
-
-    #create validator for hour
-    @field_validator("start_hour")
-    def validate_start_hour(cls, value):
-        hour_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
-        if not hour_pattern.match(value):
-            raise ValueError("Invalid hour format. Expected format: HH:MM AM/PM")
-        return value
-    
-    @field_validator("end_hour")
-    def validate_end_hour(cls, value, values):
-        hour_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
-        if not hour_pattern.match(value):
-            raise ValueError("Invalid hour format. Expected format: HH:MM AM/PM")
-        start_time = datetime.strptime(values["start_hour"], "%I:%M %p")
-        end_time = datetime.strptime(value, "%I:%M %p")
-        if start_time >= end_time:
-            raise ValueError("end_hour must be after start_hour")
-        return value
-    
-
    
     

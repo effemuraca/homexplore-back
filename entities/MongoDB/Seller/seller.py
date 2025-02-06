@@ -29,25 +29,13 @@ class SellerPropertyOnSale(BaseModel):
     price: Optional[int] = None
     thumbnail: Optional[str] = None
     disponibility: Optional[Disponibility] = None
-    
-    @validator('property_on_sale_id')
-    def check_object_id(cls, v: str) -> str:
-        if not ObjectId.is_valid(v):
-            raise ValueError('Invalid ObjectId string')
-        return v
+
 
 class Seller(BaseModel):
     seller_id: Optional[str] = None
     agency_name: Optional[str] = None
     email: Optional[EmailStr]=None
     password: Optional[str] = None
-    phone_number: Optional[str] = None
     properties_on_sale: Optional[List[SellerPropertyOnSale]] = None
     sold_properties: Optional[List[SoldProperty]] = None
     
-    @validator('seller_id')
-    def check_object_id(cls, v: str) -> str:
-        if not ObjectId.is_valid(v):
-            raise ValueError('Invalid ObjectId string')
-        return v
-

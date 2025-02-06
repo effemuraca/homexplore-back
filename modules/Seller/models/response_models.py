@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from entities.MongoDB.Seller.seller import Seller
+from entities.MongoDB.Seller.seller import Seller, SoldProperty, SellerPropertyOnSale
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller
 from typing import List, Dict, Any
@@ -125,9 +125,9 @@ DeleteSellerResponses = {
     }
 }
 
-GetSoldPropertiesByPriceDescResponses = {
+GetSoldPropertiesResponses = {
     200: {
-        "model": Seller,
+        "model": List[SoldProperty],
         "description": "Sold properties retrieved successfully.",
         "content": {
             "application/json": {
@@ -177,6 +177,55 @@ GetSoldPropertiesByPriceDescResponses = {
         }
     }
 }
+
+GetPropertiesOnSaleResponses = {
+    200: {
+        "model": List[PropertyOnSale],
+        "description": "Properties on sale retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "property_on_sale_id": "60d5ec49f8d2e30b8c8b4567",
+                        "city": "New York",
+                        "neighbourhood": "Brooklyn",
+                        "address": "1234 Brooklyn St.",
+                        "price": 500000,
+                        "thumbnail": "https://www.example.com/thumbnail.jpg",
+                        "disponibility": {
+                            "day": "Monday",
+                            "time": "10:00-11:00 AM",
+                            "max_attendees": 5
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Seller not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Seller not found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Internal error.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "An error occurred."
+                }
+            }
+        }
+    }
+}
+
 
 
 # SellerReservations
@@ -462,6 +511,42 @@ UpdatePropertyOnSaleResponses = {
                 }
             }
         }
+    }
+}
+
+SellPropertyOnSaleResponses = {
+    200: {
+        "model": SuccessModel,
+        "description": "Property sold successfully.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Property sold successfully."
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid property id.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid property id."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to sell property.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to sell property."
+                }
+            }
+        }       
     }
 }
 
