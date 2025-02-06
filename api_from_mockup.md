@@ -43,7 +43,7 @@ DA VEDERE CARLO
 
 ### seller.html
 
-- Edit seller information --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS)
+- Edit seller information --> PARZIALMENTE FATTO DA ALE / FATTO FERDI (REDIS)
 - View sold houses  --> PARZIALMENTE FATTO DA ALE
 - View property on sale --> PARZIALMENTE FATTO DA ALE
 
@@ -53,7 +53,7 @@ DA VEDERE CARLO
 
 ### edit_profile.html
 
-- Un utente (buyer o seller) modifica i propri dati -> DA FARE FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO : PUT /seller/
+- Un utente (buyer o seller) modifica i propri dati -> FATTO FERDI / QUALCUN ALTRO DEVE FARE MONGO : PUT /seller/
 
 ### seller_sold.html
 
@@ -100,7 +100,7 @@ DA VEDERE CARLO
 
 ### edit_profile.html (buyer)
 
-- Un buyer modifica i propri dati -> DA FARE FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO: PUT /buyer
+- Un buyer modifica i propri dati -> FATTO FERDI (REDIS) / QUALCUN ALTRO DEVE FARE MONGO: PUT /buyer
 
 ### buyer_reservations.html
 
