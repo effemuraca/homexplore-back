@@ -22,7 +22,7 @@ class ReservationsBuyerDB:
         key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
         try:
             existing_data = redis_client.get(key)
-            new_reservations = [res.dict() if hasattr(res, "dict") else res for res in (self.reservations_buyer.reservations or [])]
+            new_reservations = [res.model_dump() if hasattr(res, "dict") else res for res in (self.reservations_buyer.reservations or [])]
             if existing_data:
                 stored = json.loads(existing_data)
                 reservations = stored + new_reservations
@@ -72,7 +72,7 @@ class ReservationsBuyerDB:
             reservation_to_update = self.reservations_buyer.reservations[0]
             for idx, res in enumerate(data):
                 if res.get("property_on_sale_id") == reservation_to_update.property_on_sale_id:
-                    data[idx] = reservation_to_update.dict()
+                    data[idx] = reservation_to_update.model_dump()
                     updated = True
                     break
             if not updated:

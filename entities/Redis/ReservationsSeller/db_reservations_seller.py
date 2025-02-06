@@ -24,7 +24,7 @@ class ReservationsSellerDB:
             # Get existing reservations data from redis
             existing_data = redis_client.get(key)
             if self.reservations_seller.reservations and len(self.reservations_seller.reservations) > 0:
-                new_reservation_dict = self.reservations_seller.reservations[0].dict()
+                new_reservation_dict = self.reservations_seller.reservations[0].model_dumps()
             else:
                 new_reservation_dict = {"buyer_id": buyer_id}
             
@@ -44,7 +44,7 @@ class ReservationsSellerDB:
                 data["reservations"] = reservations_list
             else:
                 # No existing data: use current data from self.reservations_seller
-                data = self.reservations_seller.dict()
+                data = self.reservations_seller.model_dump()
                 data["reservations"] = [new_reservation_dict]
             redis_client.setex(key, ttl, json.dumps(data))
             return 200
