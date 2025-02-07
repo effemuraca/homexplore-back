@@ -4,17 +4,20 @@ from entities.MongoDB.Seller.seller import Seller, SoldProperty, SellerPropertyO
 from entities.MongoDB.Seller.db_seller import SellerDB
 from modules.Seller.models.seller_models import UpdateSeller
 from modules.Seller.models import response_models as ResponseModels
-from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS
+from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, next_weekday
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
+from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuyer, ReservationB
+from entities.Redis.ReservationsBuyer.db_reservations_buyer import ReservationsBuyerDB
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.Seller.models.seller_models import CreatePropertyOnSale, UpdatePropertyOnSale
 from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input
 from typing import List, Optional
 from bson.objectid import ObjectId
-
+from apscheduler.schedulers.background import BackgroundScheduler
+import psutil
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
 import logging
@@ -23,6 +26,10 @@ seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
 # Configura il logger
 logger = logging.getLogger(__name__)
+
+# Avvia scheduler all'avvio dell'applicazione
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 #Seller
 
@@ -186,6 +193,96 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
     return JSONResponse(status_code=201, content={"detail": "Property created successfully.", "property_id": db_property_on_sale.property_on_sale.property_on_sale_id})
 
 
+# Function to check and update the reservations when the load is low
+def check_and_update_when_low_load(not_updated_ids: list, property_id: str, disponibility, address):
+    # psutil.cpu_percent() checks the current CPU load
+    current_load = psutil.cpu_percent(interval=1)
+    logger.info(f"Actual load of the CPU: {current_load}%")
+    if current_load < 30:
+        # if the load is low, update the reservations
+        for buyer_id in not_updated_ids:
+            reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
+            reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
+            status = reservation_buyer_db.get_reservations_by_user()
+            if status != 200:
+                logger.error(f"Retry: impossibile to retrieve the buyer reservation {buyer_id}.")
+                continue
+            for reservation in reservation_buyer_db.reservations_buyer.reservations:
+                if reservation.property_on_sale_id == property_id:
+                    if disponibility is not None:
+                        reservation.date = next_weekday(disponibility.day)
+                        reservation.time = disponibility.time
+                    if address is not None:
+                        reservation.address = address
+            status = reservation_buyer_db.update_reservation_buyer()
+            # if the update do not fail, remove the buyer_id from the list
+            if status == 200:
+                not_updated_ids.remove(buyer_id)
+
+        if not_updated_ids:
+            logger.info(f"Retry: some reservations could not be updated: {not_updated_ids}.")
+            # if there are still reservations to update, re-schedule the update
+            next_run = datetime.now() + timedelta(minutes=5)
+            scheduler.add_job(
+                check_and_update_when_low_load,
+                'date',
+                run_date=next_run,
+                args=[not_updated_ids, property_id, disponibility, address]
+            )
+            logger.info(f"Retry: job re-scheduled for {next_run}.")
+
+    else:
+        # if the load is still high, re-schedule the update
+        next_run = datetime.now() + timedelta(minutes=5)
+        scheduler.add_job(
+            check_and_update_when_low_load,
+            'date',
+            run_date=next_run,
+            args=[not_updated_ids, property_id, disponibility, address]
+        )
+        logger.info(f"Load too high ({current_load}%). Reschedule the job for {next_run}.")
+
+# Function to check and delete the reservations when the load is low
+def check_and_delete_when_low_load(not_deleted_ids: list, property_id: str):
+    # psutil.cpu_percent() checks the current CPU load
+    current_load = psutil.cpu_percent(interval=1)
+    logger.info(f"Actual load of the CPU: {current_load}%")
+    if current_load < 30:
+        # if the load is low, update the reservations
+        for buyer_id in not_deleted_ids:
+            reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
+            reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
+            status = reservation_buyer_db.get_reservations_by_user()
+            if status != 200:
+                logger.error(f"Retry: impossibile to retrieve the buyer reservation {buyer_id}.")
+                continue
+            status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_id)    
+            # if the delete do not fail, remove the buyer_id from the list
+            if status == 200:
+                not_deleted_ids.remove(buyer_id)
+
+        if not_deleted_ids:
+            logger.info(f"Retry: some reservations could not be updated: {not_deleted_ids}.")
+            # if there are still reservations to delete, re-schedule the delete
+            next_run = datetime.now() + timedelta(minutes=5)
+            scheduler.add_job(
+                check_and_delete_when_low_load,
+                'date',
+                run_date=next_run,
+                args=[not_deleted_ids, property_id]
+            )
+            logger.info(f"Retry: job re-scheduled for {next_run}.")
+    else:
+        # if the load is still high, re-schedule the delete
+        next_run = datetime.now() + timedelta(minutes=5)
+        scheduler.add_job(
+            check_and_delete_when_low_load,
+            'date',
+            run_date=next_run,
+            args=[not_deleted_ids, property_id]
+        )
+        logger.info(f"Load too high ({current_load}%). Reschedule the job for {next_run}.")
+
 #CONSISTENT
 @seller_router.put("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdatePropertyOnSaleResponses)
 def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access_token: str = Depends(JWTHandler())):
@@ -227,8 +324,101 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
             else:
                 logging.error("Rollback successed.")
         raise HTTPException(status_code=response, detail="Failed to update property.")
+    
+    # handling redis part of the update
+    if input_property_on_sale.disponibility is None or input_property_on_sale.address is None:
+        # if input_property_on_sale.disponibility is None and input_property_on_sale.address is None, nothing to update in the reservations
+        return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
+    
+    reservation_seller = ReservationsSeller(property_on_sale_id=input_property_on_sale.property_on_sale_id)
+    reservation_seller_db = ReservationsSellerDB(reservation_seller)
+
+    # get the reservations for the property
+    status = reservation_seller_db.get_reservation_seller()
+    if status == 404:
+        raise HTTPException(status_code=404, detail="No reservations found.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to fetch reservations.")
+
+
+     # if disponibility has changed, update the ttl in the reservations seller
+    if input_property_on_sale.disponibility is not None:
+        status = reservation_seller_db.update_day_and_time(input_property_on_sale.disponibility.day, input_property_on_sale.disponibility.time)
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to update disponibility.")
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found.")
+
+    # save all the buyer_ids of the reservations
+    buyer_ids = [reservation.buyer_id for reservation in reservation_seller_db.reservations_seller.reservations]
+
+    # for each reservation buyer, update the disponibility and address
+    not_updated_ids = []
+    for buyer_id in buyer_ids.copy():
+        reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
+        reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
+        status = reservation_buyer_db.get_reservations_by_user()
+        if status == 404:
+            raise HTTPException(status_code=404, detail="No reservations found.")
+        if status == 500:
+            raise HTTPException(status_code=500, detail="Failed to fetch reservations.")
+        for reservation in reservation_buyer_db.reservations_buyer.reservations:
+            if reservation.property_on_sale_id == input_property_on_sale.property_on_sale_id:
+                if input_property_on_sale.disponibility is not None:
+                    reservation.date = next_weekday(input_property_on_sale.disponibility.day)
+                    reservation.time = input_property_on_sale.disponibility.time
+                if input_property_on_sale.address is not None:
+                    reservation.address = input_property_on_sale.address
+        status = reservation_buyer_db.update_reservation_buyer()
+        # if the update do not fail, remove the buyer_id from the list
+        if status == 200:
+            buyer_ids.remove(buyer_id)
+        else: 
+            not_updated_ids.append(buyer_id)            
+            
+    if not_updated_ids:
+            run_date = datetime.now() + timedelta(minutes=5)
+            scheduler.add_job(
+                check_and_update_when_low_load,
+                'date',
+                run_date=run_date,
+                args=[not_updated_ids, input_property_on_sale.property_on_sale_id, input_property_on_sale.disponibility, input_property_on_sale.address]
+            )
+            logger.info(f"Update scheduled for {run_date} for some reservations that could not be updated.")
+            
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
 
+# Function to handle the reservations when a property is sold or deleted
+def handleReservations(property_id: str) -> int:
+    reservation_seller = ReservationsSeller(property_on_sale_id=property_id)
+    reservation_seller_db = ReservationsSellerDB(reservation_seller)
+    status = reservation_seller_db.get_reservation_seller()
+    if status == 404:
+        return 404
+    if status == 500:
+        return 500
+    buyer_ids = [reservation.buyer_id for reservation in reservation_seller_db.reservations_seller.reservations]
+
+    not_deleted_ids = []
+    for buyer_id in buyer_ids:
+        reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
+        reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
+        status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_id)
+        if status == 200:
+            buyer_ids.remove(buyer_id)
+        else: 
+            not_deleted_ids.append(buyer_id)   
+
+    if not_deleted_ids:
+        run_date = datetime.now() + timedelta(minutes=5)
+        scheduler.add_job(
+            check_and_delete_when_low_load,
+            'date',
+            run_date=run_date,
+            args=[not_deleted_ids, property_id]
+        )
+        logger.info(f"Delete scheduled for {run_date} for some reservations that could not be deleted.")
+    return 200
 
 #CONSISTENT 
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.SellPropertyOnSaleResponses)
@@ -276,6 +466,13 @@ def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandl
             logging.error("Rollback successed.")
         raise HTTPException(status_code=500, detail=detail)
 
+    
+    # call a function that handles the reservations
+    status = handleReservations(property_to_sell_id)
+    if status == 404:
+        raise HTTPException(status_code=404, detail="No reservations found.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to handle reservations.")
     return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
     
     
@@ -324,6 +521,13 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
             else:
                 logger.error("Rollback successed.")
         raise HTTPException(status_code=response, detail="Failed to delete property.")
+    
+    # call a function that handles the reservations
+    status = handleReservations(property_on_sale_id)
+    if status == 404:
+        raise HTTPException(status_code=404, detail="No reservations found.")
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Failed to handle reservations.")
     return JSONResponse(status_code=200, content={"detail": "Property deleted successfully."})
 
 # ReservationsSeller
