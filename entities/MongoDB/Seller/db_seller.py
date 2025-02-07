@@ -99,43 +99,86 @@ class SellerDB:
     
 
     # route del seller (get_properties_on_sale) CONSISTENT
-    def get_properties_on_sale(self, seller: str) -> dict:
+    def get_properties_on_sale(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
-            return {"status": 500}
+            return 500
         try:
-            result = mongo_client.Seller.find_one({"_id": ObjectId(seller)}, {"properties_on_sale": 1})
+            result = mongo_client.Seller.find_one({"_id": ObjectId(self.seller.seller_id)}, {"properties_on_sale": 1})
         except Exception as e:
             logger.error(f"Error retrieving properties on sale: {e}")
-            return {"status": 500}
+            return 500
         if not result:
-            return {"status": 404}
+            return 404
         #change the name of the key "_id" to "property_on_sale_id"
         for property_on_sale in result["properties_on_sale"]:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
-        return {"status": 200, "properties_on_sale": result["properties_on_sale"]}
+        self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in result["properties_on_sale"]]
+        return 200
 
     
     #route del seller (get_sold_properties) CONSISTENT
-    def get_sold_properties(self, seller : str) -> dict:
+    def get_sold_properties(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
-            return {"status": 500}
+            return 500
         try:
-            result = mongo_client.Seller.find_one({"_id": ObjectId(seller)}, {"sold_properties": 1})
+            result = mongo_client.Seller.find_one({"_id": ObjectId(self.seller.seller_id)}, {"sold_properties": 1})
         except Exception as e:
             logger.error(f"Error retrieving sold properties: {e}")
-            return {"status": 500}
+            return 500
         if not result:
-            return {"status": 404}
+            return 404
         
         #order the sold properties by sell_date
         result["sold_properties"] = sorted(result["sold_properties"], key=lambda x: x["sell_date"], reverse=True)
         #change the name of the key "_id" to "sold_property_id"
         for sold_property in result["sold_properties"]:
             sold_property["sold_property_id"] = str(sold_property.pop("_id"))
-        return {"status": 200, "sold_properties": result["sold_properties"]}
+        self.seller.sold_properties = [SoldProperty(**sold_property) for sold_property in result["sold_properties"]]
+        return 200
     
+
+    #route del seller (get_property_on_sale_filtered) CONSISTENT
+    def get_property_on_sale_filtered(self, city: str, neighbourhood: str, address: str) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            return 500
+        pipeline = [
+            { "$match": { "_id": ObjectId(self.seller.seller_id) } },
+            { "$project": {
+                "_id": 0,
+                "properties_on_sale": {
+                    "$filter": {
+                        "input": "$properties_on_sale",
+                        "as": "property",
+                        "cond": {
+                            "$and": [
+                                { "$eq": ["$$property.city", city] } if city else {},
+                                { "$eq": ["$$property.neighbourhood", neighbourhood] } if neighbourhood else {},
+                                { "$eq": ["$$property.address", address] } if address else {}
+                            ]
+                        }
+                    }
+                }
+            }}
+        ]
+        try:
+            result = mongo_client.Seller.aggregate(pipeline)
+        except Exception as e:
+            logger.error(f"Error retrieving filtered properties: {e}")
+            return 500
+        #extract the properties_on_sale array from the result
+        properties = list(result)[0].get("properties_on_sale", [])
+        if not properties:
+            return 404
+        #change the name of the key "_id" to "property_on_sale_id"
+        for property_on_sale in properties:
+            property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
+        self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in properties]
+        return 200
+      
+      
 
 
 
@@ -156,7 +199,7 @@ class SellerDB:
             logger.error(f"Error inserting property on sale: {e}")
             return 500
         if result.matched_count == 0:
-            return 500 #l'utente c'era fino ad un momento fa, quindi se non lo trovo è un errore
+            return 404
         return 200
     
     # route del seller (update_property_on_sale) CONSISTENT
@@ -202,52 +245,8 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error updating property on sale: {e}")
             return 500
-        if result.matched_count == 0:
+        if result.matched_count == 0 or result.modified_count == 0:
             return 404 
-        return 200
-
-
-    # route del seller (sell_property) CONSISTENT
-    def sell_property(self, property : SoldProperty) -> int:
-        mongo_client = get_default_mongo_db()
-        if mongo_client is None:
-            return 500
-        id_p=ObjectId(property.sold_property_id)
-        id_s=ObjectId(self.seller.seller_id)
-        
-        #insert the sold property in the sold_properties collection
-        try:
-            result = mongo_client.Seller.update_one({"_id": id_s},{"$push": {"sold_properties": {"_id":id_p,**property.model_dump(exclude={"sold_property_id"})}}})
-        except Exception as e:
-            logger.error(f"Error adding sold property: {e}")
-            return 500
-        if result.matched_count == 0:
-            return 404 #non existent seller
-        
-        #remove the property from the properties_on_sale collection
-        try:
-            mongo_client.Seller.update_one({"_id": id_s}, {"$pull": {"properties_on_sale": {"_id": id_p}}})
-        except Exception as e:
-            logger.error(f"Error removing property from 'properties_on_sale': {e}")
-            #rollback all the previous operations
-            try:
-                mongo_client.Seller.update_one({"_id": id_s}, {"$pull": {"sold_properties": {"_id": id_p}}})
-            except Exception as e:
-                logger.error(f"Error rolling back: {e}")
-                return 500
-            logger.error("Rollback successful")
-            return 500
-        
-        #property not on seller collection
-        if result.matched_count == 0:
-            #rollback all the previous operations
-            try:
-                mongo_client.Seller.update_one({"_id": id_s}, {"$pull": {"sold_properties": {"_id": id_p}}})
-            except Exception as e:
-                logger.error(f"Error rolling back: {e}")
-                return 500
-            logger.error("Rollback successful")
-            return 404
         return 200
     
     # route del seller (delete_property_on_sale) CONSISTENT
@@ -263,10 +262,48 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error deleting property on sale: {e}")
             return 500
-        if result.matched_count == 0:
+        if result.matched_count == 0 or result.modified_count == 0:
             return 404
         return 200
-        
-
-
     
+    # route del seller (sell_property) CONSISTENT
+    def sell_property(self, property: SoldProperty) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            return 500
+
+        id_p = ObjectId(property.sold_property_id)
+        id_s = ObjectId(self.seller.seller_id)
+
+        try:
+            result = mongo_client.Seller.update_one(
+                {"_id": id_s},
+                {
+                    "$push": {"sold_properties": {"_id": id_p, **property.model_dump(exclude={"sold_property_id"})}},
+                    "$pull": {"properties_on_sale": {"_id": id_p}}
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error selling property: {e}")
+            return 500
+        return 200
+    
+
+    #route del seller (sell_property) CONSISTENT
+    def check_property_on_sale(self, property_on_sale_id: str) -> int:
+        id_p = ObjectId(property_on_sale_id)
+        id_s = ObjectId(self.seller.seller_id)
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            return 500
+        try:
+            result = mongo_client.Seller.find_one(
+                {"_id": id_s, "properties_on_sale._id": id_p},
+                {"properties_on_sale.$": 1}
+            )
+        except Exception as e:
+            logger.error(f"Error selling property: {e}")
+            return 500
+        if not result:
+            return 404
+        return 200

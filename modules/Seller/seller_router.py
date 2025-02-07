@@ -53,7 +53,7 @@ def get_seller(access_token: str = Depends(JWTHandler())):
     return db_seller.seller
 
 
-#NON MI TORNA TROPPO
+#CONSISTENT
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler())):
     """
@@ -68,19 +68,20 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
     
     seller_old = Seller(seller_id=seller_id)
     seller_db = SellerDB(seller_old)
-    result = seller_db.get_profile_info()
-    if result == 404:
-        raise HTTPException(status_code=result, detail="Seller not found.")
     
     if seller.email:
-        seller_db.get_seller_by_email(seller.email)
-        if seller_db.seller and seller_db.seller.seller_id != seller_id:
-            raise HTTPException(status_code=409, detail="Email already exists.")
+        result=seller_db.get_seller_by_email(seller.email)
+        if result == 200 and seller_db.seller.seller_id != seller_id:
+            raise HTTPException(status_code=400, detail="Email already in use.")
+        if result == 500:
+            raise HTTPException(status_code=500, detail="Failed to update seller.")
+        
     
     # check if there's a password to crypt
     if seller.password:
         seller.password = hash_password(seller.password)
     
+    seller_db.seller.seller_id = seller_id
     result = seller_db.update_seller(seller)
     if result == 400:
         raise HTTPException(status_code=result, detail="Seller ID is required.")
@@ -128,9 +129,9 @@ def get_sold_properties(access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
     return db_seller.seller.sold_properties
 
-#find property on sale in seller collection by city, neighbourhood and address
 
-@seller_router.get("/property_on_sale", response_model=List[SellerPropertyOnSale])
+#CONSISTENT
+@seller_router.get("/property_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Optional[str] = None, address: Optional[str] = None, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:

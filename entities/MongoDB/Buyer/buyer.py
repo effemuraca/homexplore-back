@@ -75,3 +75,4 @@ class Buyer(BaseModel):
                 raise ValueError('Invalid phone number format.')
         return value
 
+

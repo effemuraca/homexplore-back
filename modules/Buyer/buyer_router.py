@@ -20,9 +20,9 @@ buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 # Configura il logger
 logger = logging.getLogger(__name__)
 
-
 # Buyer
 
+# CONSISTENT
 @buyer_router.get("/profile_info", response_model=Buyer, responses=ResponseModels.GetBuyerResponseModelResponses)
 def get_buyer(access_token: str = Depends(JWTHandler())):
     """
@@ -63,6 +63,7 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
 #     elif result == 201:
 #         return JSONResponse(status_code=201, content={"detail": "Buyer created successfully.", "buyer_id": buyer_db.buyer.buyer_id})
 
+# CONSISTENT
 @buyer_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateBuyerResponseModelResponses)
 def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     """
@@ -77,14 +78,14 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     
     buyer_old = Buyer(buyer_id=buyer_id)
     buyer_db = BuyerDB(buyer_old)
-    result = buyer_db.get_profile_info()
-    if result == 404:
-        raise HTTPException(status_code=result, detail="Buyer not found.")
     
+    # check if email already exists on another buyer
     if buyer.email:
-        buyer_db.get_buyer_by_email(buyer.email)
-        if buyer_db.buyer and buyer_db.buyer.buyer_id != buyer_id:
-            raise HTTPException(status_code=409, detail="Email already exists.")
+        response=buyer_db.get_buyer_by_email(buyer.email)
+        if response == 500:
+            raise HTTPException(status_code=response, detail="Failed to update buyer.")
+        if response == 200 and buyer_db.buyer.buyer_id != buyer_id:
+            raise HTTPException(status_code=409, detail="Email already exists on another buyer.")
     
     # check if there's a password to crypt
     if buyer.password:
@@ -116,6 +117,7 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
 
 # Favourites
 
+# CONSISTENT
 @buyer_router.get("/favourites", response_model=List[FavouriteProperty], responses=ResponseModels.GetFavouritesResponseModelResponses)
 def get_favourites(access_token: str = Depends(JWTHandler())):
     """
@@ -128,12 +130,17 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
     if user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
-    buyer_db = BuyerDB()
-    favourites = buyer_db.get_favourites(buyer_id)
-    if favourites is None:
-        raise HTTPException(status_code=404, detail="Favourites not found.")
-    return favourites
+    temp_buyer = Buyer(buyer_id=buyer_id)
+    buyer_db = BuyerDB(temp_buyer)
+    result=buyer_db.get_favourites()
+    if result == 404:
+        raise HTTPException(status_code=404, detail="Favourites not found or buyer not found.")
+    if result == 500:
+        raise HTTPException(status_code=500, detail="Failed to retrieve favourites.")
+    return buyer_db.buyer.favourites
 
+# CONSISTENT (cosa possiamo assumere che il front end abbia?)
+# non facciamo un controllo se la casa esiste veraimente
 @buyer_router.post("/favourite", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
 def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
@@ -155,6 +162,7 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Favourite added successfully."})
 
+# CONSISTENT
 @buyer_router.delete("/favourite/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
 def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
@@ -383,5 +391,5 @@ def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_to
     
     return JSONResponse(status_code=200, content={"detail": "Reservation deleted successfully"})
 
-# Analytics
+
 

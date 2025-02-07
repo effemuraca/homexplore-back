@@ -14,7 +14,7 @@ class ErrorModel(BaseModel):
 
 GetSellerResponses = {
     200: {
-        "model": dict,
+        "model": Seller,
         "description": "Seller found.",
         "content": {
             "application/json": {
@@ -125,6 +125,7 @@ DeleteSellerResponses = {
     }
 }
 
+#CONSISTENT
 GetSoldPropertiesResponses = {
     200: {
         "model": List[SoldProperty],
@@ -156,7 +157,7 @@ GetSoldPropertiesResponses = {
     },
     404: {
         "model": ErrorModel,
-        "description": "Seller not found.",
+        "description": "Input error or data error.",
         "content": {
             "application/json": {
                 "example": {
@@ -167,7 +168,7 @@ GetSoldPropertiesResponses = {
     },
     500: {
         "model": ErrorModel,
-        "description": "Failed to retrieve sold properties.",
+        "description": "Internal error.",
         "content": {
             "application/json": {
                 "example": {
@@ -178,6 +179,7 @@ GetSoldPropertiesResponses = {
     }
 }
 
+#CONSISTENT
 GetPropertiesOnSaleResponses = {
     200: {
         "model": List[PropertyOnSale],
@@ -204,7 +206,7 @@ GetPropertiesOnSaleResponses = {
     },
     404: {
         "model": ErrorModel,
-        "description": "Seller not found.",
+        "description": "Input error or data error.",
         "content": {
             "application/json": {
                 "example": {
@@ -219,7 +221,7 @@ GetPropertiesOnSaleResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "detail": "An error occurred."
+                    "detail": "Failed to retrieve properties on sale."
                 }
             }
         }
