@@ -304,8 +304,11 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
         )
     ]
     status = reservations_buyer_db.create_reservation_buyer()
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Error creating buyer reservation")
+    
+    # if error occurs, rollback the reservation
+    if status != 201:
+        reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
+        return JSONResponse(status_code=500, content={"detail": "Error creating reservation"})
 
     return JSONResponse(status_code=201, content={"detail": "Reservation created successfully"})
 
@@ -371,10 +374,12 @@ def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_to
     
     # Delete the seller reservation
     status = reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Error deleting seller reservation")
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found for seller")
+    
+    # if error occurs, rollback the reservation
+    if status != 200:
+        reservations_buyer_db.create_reservation_buyer()
+        return JSONResponse(status_code=500, content={"detail": "Error deleting reservation"})
+
     
     return JSONResponse(status_code=200, content={"detail": "Reservation deleted successfully"})
 
