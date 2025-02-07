@@ -45,6 +45,8 @@ def get_seller(access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=404, detail="Seller not found.")
     return db_seller.seller
 
+
+#NON MI TORNA TROPPO
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler())):
     """
@@ -92,14 +94,14 @@ def get_properties_on_sale(access_token: str = Depends(JWTHandler())):
     
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    db_seller = SellerDB()
-    result = db_seller.get_properties_on_sale(seller_id)
-    if result["status"] == 404:
+    temp_seller = Seller(seller_id=seller_id)
+    db_seller = SellerDB(temp_seller)
+    result = db_seller.get_properties_on_sale()
+    if result == 404:
         raise HTTPException(status_code=404, detail="Seller not found.")
-    if result["status"]== 500:
+    if result== 500:
         raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
-    return result["properties_on_sale"]
+    return db_seller.seller.properties_on_sale
 
 #CONSISTENT
 @seller_router.get("/sold_properties", response_model=List[SoldProperty], responses=ResponseModels.GetSoldPropertiesResponses)
@@ -110,13 +112,36 @@ def get_sold_properties(access_token: str = Depends(JWTHandler())):
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
-    db_seller = SellerDB()
-    result=db_seller.get_sold_properties(seller_id)
-    if result["status"] == 404:
+    temp_seller = Seller(seller_id=seller_id)
+    db_seller = SellerDB(temp_seller)
+    result=db_seller.get_sold_properties()
+    if result == 404:
         raise HTTPException(status_code=404, detail="Seller not found.")
-    if result["status"]== 500:
+    if result== 500:
         raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
-    return result["sold_properties"]
+    return db_seller.seller.sold_properties
+
+#find property on sale in seller collection by city, neighbourhood and address
+
+@seller_router.get("/property_on_sale", response_model=List[SellerPropertyOnSale])
+def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Optional[str] = None, address: Optional[str] = None, access_token: str = Depends(JWTHandler())):
+    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if seller_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    if user_type != "seller":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if not city and not neighbourhood and not address:
+        raise HTTPException(status_code=400, detail="City or neighbourhood or address is required.")
+    
+    temp_seller = Seller(seller_id=seller_id)
+    db_seller = SellerDB(temp_seller)
+    result = db_seller.get_property_on_sale_filtered(city, neighbourhood, address)
+    if result == 404:
+        raise HTTPException(status_code=404, detail="No seller found or no property found.")
+    if result == 500:
+        raise HTTPException(status_code=500, detail="Failed to fetch property.")
+    return db_seller.seller.properties_on_sale
 
 
 # Properties on sale
@@ -131,23 +156,33 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
+    #insert the property on the property_on_sale collection
     property_on_sale = PropertyOnSale(**input_property_on_sale.model_dump())
     db_property_on_sale = PropertyOnSaleDB(property_on_sale)
     response = db_property_on_sale.create_property_on_sale()
-    if response != 200:
+    if response == 400:
+        raise HTTPException(status_code=response, detail="Data required.")
+    if response == 500:
         raise HTTPException(status_code=response, detail="Failed to create property.")
+    
+    #insert the property on the seller collection
     seller= Seller(seller_id=seller_id)
     seller_db= SellerDB(seller)
     embedded_property_on_sale = SellerPropertyOnSale(**input_property_on_sale.model_dump(exclude={"type", "area", "bed_number", "bath_number", "description", "photos"}))
     embedded_property_on_sale.property_on_sale_id=db_property_on_sale.property_on_sale.property_on_sale_id
     response=seller_db.insert_property_on_sale(embedded_property_on_sale)
-    if response != 200:
+    if response != 200: 
+        if response == 500:
+            detail="Failed to create property."
+        else:
+            detail="Seller not found."
         #rollback
         response=db_property_on_sale.delete_property_on_sale_by_id(db_property_on_sale.property_on_sale.property_on_sale_id)
         if response==200:
-            raise HTTPException(status_code=500, detail="Failed to create property, rollback successed.")
+            logging.error("Rollback successed.")
         else:
-            raise HTTPException(status_code=500, detail="Failed to create property, rollback failed.")
+            logging.error("Rollback failed.")
+        raise HTTPException(status_code=500, detail=detail)
     return JSONResponse(status_code=201, content={"detail": "Property created successfully.", "property_id": db_property_on_sale.property_on_sale.property_on_sale_id})
 
 
@@ -159,31 +194,43 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
         raise HTTPException(status_code=401, detail="Invalid access token")
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
-    #update on the property_on_sale collection
-    property_on_sale = PropertyOnSale(**input_property_on_sale.model_dump())
-    db_property_on_sale = PropertyOnSaleDB(property_on_sale)
-    response = db_property_on_sale.update_property_on_sale()
-    if response == 404:
-        raise HTTPException(status_code=response, detail="Property not found.")
-    if response == 500:
-        raise HTTPException(status_code=response, detail="Failed to update property.")
+    
     #update on the seller collection
     seller= Seller(seller_id=seller_id)
     db_seller= SellerDB(seller)
     embedded_property_on_sale = SellerPropertyOnSale(**input_property_on_sale.model_dump(exclude={"type", "area", "bed_number", "bath_number", "description", "photos"}))
     response=db_seller.update_property_on_sale(embedded_property_on_sale)
     if response == 404:
-        #rollback required (inconsistency between the two collections priviously existing)
-        logging.error("Failed to update property on the seller collection, rollback required.")
-        raise HTTPException(status_code=response, detail="Property not found.")
+        detail="Seller not found or property not found in the properties_on_sale of seller collection."
     if response == 500:
-        #rollback required 
-        logging.error("Failed to update property on the seller collection, rollback required.")
+        detail="Failed to update property."
+    if response != 200:
+        raise HTTPException(status_code=response, detail=detail)
+    
+    #update on the property_on_sale collection
+    property_on_sale = PropertyOnSale(**input_property_on_sale.model_dump())
+    db_property_on_sale = PropertyOnSaleDB(property_on_sale)
+    response = db_property_on_sale.update_property_on_sale()
+    if response == 404:
+        logging.error("Missing property on property_on_sale collection, inconistencies in the database before operation, rollback impossible.")
+        raise HTTPException(status_code=response, detail="Property not found in property_on_sale collection.")
+    if response == 500:
+        #rollback
+        response=db_property_on_sale.get_property_on_sale_by_id(property_on_sale.property_on_sale_id)
+        if response != 200:
+            logging.error("Rollback failed.")
+        else:
+            embedded_property_on_sale = SellerPropertyOnSale(db_property_on_sale.property_on_sale)
+            response=db_seller.update_property_on_sale(embedded_property_on_sale)
+            if response != 200:
+                logging.error("Rollback failed.")
+            else:
+                logging.error("Rollback successed.")
         raise HTTPException(status_code=response, detail="Failed to update property.")
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
 
 
-#CONSISTENT
+#CONSISTENT 
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.SellPropertyOnSaleResponses)
 def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
@@ -195,32 +242,43 @@ def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandl
     if ObjectId.is_valid(property_to_sell_id) is False:
         raise HTTPException(status_code=400, detail="Invalid property id.")
     
+    #check if property belongs to the seller
+    seller= Seller(seller_id=seller_id)
+    db_seller = SellerDB(seller)
+    response=db_seller.check_property_on_sale(property_to_sell_id)
+    if response == 404:
+        raise HTTPException(status_code=404, detail="Property not found or seller not found.")
+    if response == 500:
+        raise HTTPException(status_code=500, detail="Failed to sell property.")
+
     #retrive info about the property to sell
     property_to_sell=PropertyOnSale(property_on_sale_id=property_to_sell_id)
     db_property_on_sale=PropertyOnSaleDB(property_to_sell)
-    result=db_property_on_sale.get_property_on_sale_by_id(property_to_sell_id)
+    result=db_property_on_sale.delete_and_return_property(property_to_sell_id)
     if result == 404:
         raise HTTPException(status_code=404, detail="Property not found.")
     if result == 500:
         raise HTTPException(status_code=500, detail="Failed to sell property.")
     
     #move the property from properties_on_sale to sold_properties
-    seller= Seller(seller_id=seller_id)
-    db_seller = SellerDB(seller)
     embedded_sold_property = SoldProperty(sell_date=datetime.now(),sold_property_id=property_to_sell.property_on_sale_id,**db_property_on_sale.property_on_sale.model_dump(include={"city", "neighbourhood", "price", "thumbnail", "type", "area", "registration_date"}))
     result = db_seller.sell_property(embedded_sold_property)
-    if result == 404:
-        raise HTTPException(status_code=404, detail="Property not found.")
-    if result == 500:
-        raise HTTPException(status_code=500, detail="Failed to sell property.")
-    
-    #delete the property from the property_on_sale collection
-    result=db_property_on_sale.delete_property_on_sale_by_id(property_to_sell_id)
     if result != 200:
-        logger.error("Failed to delete property from the property_on_sale collection.")
-        raise HTTPException(status_code=500, detail="Failed to sell property.")
-    return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
+        if result == 500:
+            detail="Failed to sell property."
+        if result == 404:
+            detail="Seller not found or property not found in the seller collection."
+        #rollback
+        result=db_property_on_sale.insert_property()
+        if result != 200:
+            logging.error("Rollback failed.")
+        else:
+            logging.error("Rollback successed.")
+        raise HTTPException(status_code=500, detail=detail)
 
+    return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
+    
+    
 #CONSISTENT
 @seller_router.delete("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeletePropertyOnSaleResponses)
 def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
@@ -233,12 +291,15 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
     if ObjectId.is_valid(property_on_sale_id) is False:
         raise HTTPException(status_code=400, detail="Invalid property id.")
     
-    #delete the property from the properties_on_sale collection
+    if ObjectId.is_valid(property_on_sale_id) is False:
+        raise HTTPException(status_code=400, detail="Invalid property id.")
+    
+    #delete the property from the seller collection
     seller= Seller(seller_id=seller_id)
     db_seller= SellerDB(seller)
     response=db_seller.delete_embedded(property_on_sale_id)
     if response == 404:
-        raise HTTPException(status_code=response, detail="Property not found.")
+        raise HTTPException(status_code=response, detail="Property not found or seller not found.")
     if response == 500:
         raise HTTPException(status_code=response, detail="Failed to delete property.")
     
@@ -246,47 +307,24 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     response = db_property_on_sale.delete_property_on_sale_by_id(property_on_sale_id)
     if response == 404:
-        logger.error("Inconsistency between the two collections, rollback required.")
+        #rollback impossible
+        logger.error("Privious state of the database is inconsistent, rollback impossible, property eliminated from all the collections.")
         raise HTTPException(status_code=response, detail="Property not found.")
     if response == 500:
+        #rollback
         logger.error("Failed to delete property from the property_on_sale collection.")
+        response=db_property_on_sale.get_property_on_sale_by_id(property_on_sale_id)
+        if response != 200:
+            logger.error("Rollback failed.")
+        else:
+            embedded_property_on_sale = SellerPropertyOnSale(db_property_on_sale.property_on_sale)
+            response=db_seller.insert_property_on_sale(embedded_property_on_sale)
+            if response != 200:
+                logger.error("Rollback failed.")
+            else:
+                logger.error("Rollback successed.")
         raise HTTPException(status_code=response, detail="Failed to delete property.")
     return JSONResponse(status_code=200, content={"detail": "Property deleted successfully."})
-
-#NON CAPITA MI SA CHE è GIA IMPLEMENTATA
-@seller_router.get("/properties_on_sale/search", response_model=List[PropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
-def filtered_search(
-    city: Optional[str] = None,
-    max_price: Optional[int] = None,
-    neighbourhood: Optional[str] = None,
-    type: Optional[str] = None,
-    area: Optional[int] = None,
-    min_bed_number: Optional[int] = None,
-    min_bath_number: Optional[int] = None,
-    access_token: str = Depends(JWTHandler())
-):
-    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    # TODO: BISOGNA RENDERE QUESTA QUERY FILTRATA PER IL SELLER
-    
-    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
-    result_code = db_property_on_sale.filtered_search(
-        city=city if city else "",
-        max_price=max_price if max_price is not None else 0,
-        neighbourhood=neighbourhood if neighbourhood else "",
-        type=type if type else "",
-        area=area if area is not None else 0,
-        min_bed_number=min_bed_number if min_bed_number is not None else 0,
-        min_bath_number=min_bath_number if min_bath_number is not None else 0
-    )
-    if result_code == 500:
-        raise HTTPException(status_code=500, detail="Internal server error.")
-    return db_property_on_sale.property_on_sale
 
 # ReservationsSeller
 
