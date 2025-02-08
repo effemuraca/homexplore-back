@@ -299,7 +299,7 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
     embedded_property_on_sale = SellerPropertyOnSale(**input_property_on_sale.model_dump(exclude={"type", "area", "bed_number", "bath_number", "description", "photos"}))
     response=db_seller.update_property_on_sale(embedded_property_on_sale)
     if response == 404:
-        detail="Seller not found or property not found in the properties_on_sale of seller collection."
+        detail="Seller not found or property not found."
     if response == 500:
         detail="Failed to update property."
     if response != 200:
@@ -442,7 +442,7 @@ def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandl
     if response == 500:
         raise HTTPException(status_code=500, detail="Failed to sell property.")
 
-    #retrive info about the property to sell
+    #retrieve info about the property to sell
     property_to_sell=PropertyOnSale(property_on_sale_id=property_to_sell_id)
     db_property_on_sale=PropertyOnSaleDB(property_to_sell)
     result=db_property_on_sale.delete_and_return_property(property_to_sell_id)
