@@ -6,7 +6,7 @@ from typing import Dict, Any
 from neo4j import GraphDatabase
 from config.config import settings
 
-NEO4J_URI = environ.get('NEO4J_URI')
+NEO4J_URI = environ.get('NEO4J_URL')
 NEO4J_USER = environ.get('NEO4J_USER')
 NEO4J_PASSWORD = environ.get('NEO4J_PASSWORD')
 
