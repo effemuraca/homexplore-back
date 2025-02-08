@@ -14,10 +14,17 @@
 
 - GET /guest/map/properties_near_property
 - GET /guest/map/pois_near_property
+- GET /guest/map/city_and_neighborhood
 
 - GET /guest/properties_on_sale/random
 - GET /guest/properties_on_sale/search
 - GET /guest/property_on_sale
+
+## REGISTERED USER
+
+- POST /seller/analytics/analytics_1
+- POST /seller/analytics/analytics_4
+- POST /seller/analytics/analytics_5
 
 ## BUYER
 
