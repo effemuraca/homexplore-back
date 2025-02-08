@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
+from entities.Neo4J.City.city import City
+from entities.Neo4J.Neighbourhood.neighbourhood import Neighbourhood
+from entities.Neo4J.POI.poi import POI
+from entities.Neo4J.PropertyOnSaleNeo4J.property_on_sale_neo4j import PropertyOnSaleNeo4J
 from typing import List, Dict, Any
 
 class SuccessModel(BaseModel):
@@ -174,5 +178,160 @@ GetPropertyOnSaleResponses = {
 }
 
 
+# Map
 
+class CityAndNeighbourhood(BaseModel):
+    city: City
+    neighbourhood: Neighbourhood
 
+GetCityAndNeighbourhoodResponses = {
+    200: {
+        "model": CityAndNeighbourhood,
+        "description": "City and neighbourhood found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "city": {
+                        "name": "New York",
+                        "coordinates": {
+                            "latitude": 40.7128,
+                            "longitude": -74.0060
+                        },
+                        "safety_index": 70.5,
+                        "health_care_index": 75.3,
+                        "cost_of_living_index": 80.2,
+                        "pollution_index": 60.8
+                    },
+                    "neighbourhood": {
+                        "name": "Brooklyn",
+                        "coordinates": {
+                            "latitude": 40.6782,
+                            "longitude": -73.9442
+                        }
+                    }
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "City or neighbourhood not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "City or neighbourhood not found."
+                }
+            }
+        }
+    }
+}
+
+GetPOIsResponses = {
+    200: {
+        "model": List[POI],
+        "description": "POIs found.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "name": "School Yankees",
+                        "type": "school",
+                        "coordinates": {
+                            "latitude": 40.7128,
+                            "longitude": -74.0060
+                        }
+                    },
+                    {
+                        "name": "Hospital Amber",
+                        "type": "hospital",
+                        "coordinates": {
+                            "latitude": 40.7128,
+                            "longitude": -74.0060
+                        },
+                    }
+                ]
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid property id.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid property id."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Property not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Property not found."
+                }
+            }
+        }
+    }
+}
+
+            
+
+GetNearPropertiesResponses = {
+    200: {
+        "model": List[PropertyOnSaleNeo4J],
+        "description": "Near properties found.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "property_on_sale_id": "60d5ec49f8d2e30b8c8b4567",
+                        "coordinates": {
+                            "latitude": 40.7128,
+                            "longitude": -74.0060
+                        },
+                        "price": 500000,
+                        "type": "House",
+                        "thumbnail": "https://www.example.com/thumbnail.jpg",
+                        "score": 67.89,
+                    },
+                    {
+                        "property_on_sale_id": "60d5ec49f8d2e30b8c8b4568",
+                        "coordinates": {
+                            "latitude": 40.7128,
+                            "longitude": -74.0060
+                        },
+                        "price": 600000,
+                        "type": "Apartment",
+                        "thumbnail": "https://www.example.com/thumbnail.jpg",
+                        "score": 70.12,
+                    }
+                ]
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid property id.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid property id."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Property not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Property not found."
+                }
+            }
+        }
+    }   
+}
