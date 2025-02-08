@@ -148,6 +148,7 @@ def create_near_relationships():
             """
         ))
         print("NEAR relationships between properties and POIs created.")
+    return True
 
 def create_near_property_relationships():
     """
@@ -167,6 +168,7 @@ def create_near_property_relationships():
             """
         ))
         print("NEAR_PROPERTY relationships between properties created.")
+    return True
 
 def calculate_livability_score(poi_weights, distances, counts):
     """
