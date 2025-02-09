@@ -1,6 +1,3 @@
-# purpose:
-#     this file creates an instance of the mongo client that can be used to interact with the mongo database.
-
 from os import environ
 from pymongo import MongoClient
 from bson.objectid import ObjectId

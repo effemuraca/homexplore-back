@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from bson import ObjectId
 from datetime import datetime
+import re
 
 class ReservationB(BaseModel):
     property_on_sale_id: Optional[str] = None

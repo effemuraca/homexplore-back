@@ -2,6 +2,7 @@ from pydantic import BaseModel, field_validator
 from typing import List, Optional, Dict, Any, Set
 from datetime import datetime
 from bson import ObjectId
+import re
 
 
 
@@ -77,7 +78,7 @@ class PropertyOnSale(BaseModel):
         return v
     
     def convert_to_seller_property(self) -> Dict[str, Any]:
-        #create a dictionary with the property fields
+        # Create a dictionary with the property fields
         data = {
             "_id": ObjectId(self.property_on_sale_id),
             "city": self.city,

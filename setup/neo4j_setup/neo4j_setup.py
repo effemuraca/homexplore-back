@@ -1,6 +1,3 @@
-# purpose:
-#     this file creates an instance of the Neo4j client that can be used to interact with the Neo4j database.
-
 from os import environ
 from typing import Dict, Any
 from neo4j import GraphDatabase

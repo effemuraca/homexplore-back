@@ -1,6 +1,3 @@
-# purpose:
-#     this file creates an instance of the Redis client that can be used to interact with the Redis database.
-
 from os import environ
 import redis
 from redis import exceptions

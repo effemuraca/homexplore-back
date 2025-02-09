@@ -36,7 +36,7 @@ class ReservationsSeller(BaseModel):
             reservations=reservations
         )
 
-# Usa il fuso orario di Londra per calcolare l'intervallo di tempo
+# Use London timezone to calculate time interval
 def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
     """
     Converte il giorno e l'orario nell'intervallo di secondi da ora all'evento.

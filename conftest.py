@@ -1,6 +1,3 @@
-# purpose:
-#     this file contains the setup for the pytest framework, each faked entity should be created(and destroyed) here.
-
 import pathlib
 import sys
 from dotenv import load_dotenv
@@ -39,7 +36,7 @@ def pytest_sessionstart(session):
             print(e)
             session.rollback()
             
-    #Create user user
+    # Create user user
     user = User(
         email="testUser@test.com",
         first_name="testUser",
@@ -56,7 +53,7 @@ def pytest_sessionstart(session):
             print(e)
             session.rollback()
     
-    #Create guest user
+    # Create guest user
     guest = User(
         email="testGuest@test.com",
         first_name="testGuest",
@@ -77,15 +74,15 @@ def pytest_sessionstart(session):
 def decrement_sequence_value(sequence_name: str, decrement_by: int):
     with get_db_session() as session:
         try:
-            # Ottieni il valore corrente della sequence
+            # Get the current value of the sequence
             current_value = session.execute(text(f"SELECT last_value FROM {sequence_name};")).scalar()
-            
-            # Calcola il nuovo valore
+
+            # Calculate the new value
             new_value = current_value - decrement_by
             if new_value < 1:
-                new_value = 1  # Il valore della sequence non dovrebbe scendere sotto 1
+                new_value = 1  # Avoid negative values
 
-            # Imposta il nuovo valore della sequence
+            # Set the new value of the sequence
             session.execute(text(f"ALTER SEQUENCE {sequence_name} RESTART {new_value};"))
             session.commit()
             print(f"Sequence {sequence_name} value decremented by {decrement_by}, new value is {new_value}.")
@@ -115,7 +112,7 @@ def pytest_sessionfinish(session, exitstatus):
                 print(f"Error deleting user with email {email}: {e}")
                 sessionDb.rollback()
     
-    #Reset user counter
+    # Reset user counter
     # decrement_sequence_value('user_id_seq', 4)
 
     

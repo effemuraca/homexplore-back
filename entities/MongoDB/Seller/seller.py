@@ -3,6 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from entities.MongoDB.PropertyOnSale.property_on_sale import Disponibility
 from bson import ObjectId
+import re
 
 class SoldProperty(BaseModel):
     sold_property_id: Optional[str] = None
