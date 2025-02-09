@@ -14,6 +14,11 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @auth_router.post("/login", response_model=ResponseModels.LoginResponseModel, responses= ResponseModels.LoginResponseModelResponses)
 def login(login_info: AuthModels.Login, user_type: str):
+    """
+    Logs in the user and returns the access and refresh tokens
+    :param login_info: The login information
+    :param user_type: The type of the user (buyer or seller)
+    """
     if user_type not in ["buyer", "seller"]:
         raise HTTPException(status_code=400, detail="Invalid user type")
     
@@ -48,6 +53,10 @@ def login(login_info: AuthModels.Login, user_type: str):
     
 @auth_router.post("/jwt/refresh", response_model=ResponseModels.RefreshAccessTokenResponseModel, responses= ResponseModels.RefreshAccessTokenResponseModelResponses)
 def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
+    """
+    Refreshes the access token using the refresh token
+    :param refresh_token: The refresh token
+    """
     user_id, user_type = JWTHandler.verifyRefreshToken(refresh_token)
     if user_id is None:
         raise HTTPException(status_code=401, detail="invalid refresh token")
@@ -61,6 +70,10 @@ def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
 
 @auth_router.post("/signup/buyer", response_model=ResponseModels.SuccessModel, responses=ResponseModels.RegisterResponseModelResponses)
 def register_buyer(user_info: AuthModels.CreateBuyer):
+    """
+    Registers a buyer
+    :param user_info: The buyer information
+    """
     # Check if the email already exists in the buyer database
     buyer_db = BuyerDB()
     existing_check = buyer_db.get_buyer_by_email(user_info.email)
@@ -87,6 +100,11 @@ def register_buyer(user_info: AuthModels.CreateBuyer):
 
 @auth_router.post("/signup/seller", response_model=ResponseModels.SuccessModel, responses=ResponseModels.RegisterResponseModelResponses)
 def register_seller(user_info: AuthModels.CreateSeller):
+    """
+    Registers a seller
+    :param user_info: The seller information
+    """
+    
     # Check if the email already exists in the seller database
     seller_db = SellerDB()
     existing_check = seller_db.get_seller_by_email(user_info.email)

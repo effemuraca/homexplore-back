@@ -24,6 +24,7 @@ buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 def get_buyer(access_token: str = Depends(JWTHandler())):
     """
     Retrieves a buyer by id.
+    :param access_token: The JWT access token
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -47,6 +48,8 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
 def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     """
     Updates an existing buyer.
+    :param buyer: The buyer data to update
+    :param access_token: The JWT access token
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -58,7 +61,7 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     buyer_old = Buyer(buyer_id=buyer_id)
     buyer_db = BuyerDB(buyer_old)
     
-    # check if email already exists on another buyer
+    # Check if email already exists on another buyer
     if buyer.email:
         response=buyer_db.get_buyer_by_email(buyer.email)
         if response == 500:
@@ -66,7 +69,7 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
         if response == 200 and buyer_db.buyer.buyer_id != buyer_id:
             raise HTTPException(status_code=409, detail="Email already exists on another buyer.")
     
-    # check if there's a password to crypt
+    # Check if there's a password to crypt
     if buyer.password:
         buyer.password = hash_password(buyer.password)
     
@@ -86,6 +89,7 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
 def get_favourites(access_token: str = Depends(JWTHandler())):
     """
     Retrieves the favourite properties of a buyer by id.
+    :param access_token: The JWT access token
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -107,6 +111,8 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
 def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
     Adds a favourite property for a buyer.
+    :param favourite: The favourite property to add
+    :param access_token: The JWT access token
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -128,6 +134,8 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
 def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
     Deletes a favourite property for a buyer.
+    :param property_on_sale_id: The property_on_sale_id to delete
+    :param access_token: The JWT access token
     """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid input.")
@@ -160,6 +168,7 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
     Get reservations for a given buyer_id, 
     before showing the buyer the reservations,
     check if some of them are expired and delete them.
+    :param access_token: The JWT access token
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     
@@ -186,7 +195,11 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
 def create_reservation(book_now_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     
-    
+    """
+    Create a reservation for a buyer and a seller.
+    :param book_now_info: The reservation data
+    :param access_token: The JWT access token
+    """
     if buyer_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
     
@@ -258,7 +271,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     ]
     status = reservations_buyer_db.create_reservation_buyer()
     
-    # if error occurs, rollback the reservation
+    # If error occurs, rollback the reservation
     if status != 201:
         reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
         return JSONResponse(status_code=500, content={"detail": "Error creating reservation"})
@@ -274,6 +287,8 @@ def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_to
     """
     Delete a buyer reservation for a given buyer_id and 
     property_on_sale_id and remove the seller reservation.
+    :param property_on_sale_id: The property_on_sale_id to delete
+    :param access_token: The JWT access token
     """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id")
@@ -328,7 +343,7 @@ def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_to
     # Delete the seller reservation
     status = reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
     
-    # if error occurs, rollback the reservation
+    # If error occurs, rollback the reservation
     if status != 200:
         reservations_buyer_db.create_reservation_buyer()
         return JSONResponse(status_code=500, content={"detail": "Error deleting reservation"})

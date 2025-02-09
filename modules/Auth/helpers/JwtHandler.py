@@ -19,7 +19,11 @@ class JWTHandler(HTTPBearer):
 
     @staticmethod
     def get_secret_by_user_type(user_type: str) -> str:
-        """Returns the appropriate secret key based on the user type."""
+        """
+        Returns the appropriate secret key based on the user type.
+        :param user_type: The type of user (seller or buyer)
+        :return: The secret key for the user type
+        """
         if user_type == "seller":
             return JWTHandler.secret_seller
         elif user_type == "buyer":
@@ -31,6 +35,11 @@ class JWTHandler(HTTPBearer):
     def createAccessToken(subject: Union[str, Any], user_type: str, expires_delta: Union[int, None] = None, tokenType: str = "access") -> str:
         """
         Creates a JWT token with the given subject, user type, and expiration time.
+        :param subject: The subject of the token (e.g. user ID)
+        :param user_type: The type of user (seller or buyer)
+        :param expires_delta: The expiration time in minutes
+        :param tokenType: The type of token (access or refresh)
+        :return: The JWT token
         """
         if expires_delta is not None:
             expires = datetime.utcnow() + timedelta(minutes=expires_delta)
@@ -50,6 +59,8 @@ class JWTHandler(HTTPBearer):
     def verifyAccessToken(token: str) -> Union[tuple[str, str], None]:
         """
         Verifies the given token and returns its subject and user type if the token is valid, otherwise None.
+        :param token: The JWT token to verify
+        :return: The subject and user type of the token if valid, otherwise None
         """
         try:
             # Use get_unverified_claims to extract the payload without verifying the signature.
@@ -68,6 +79,11 @@ class JWTHandler(HTTPBearer):
 
     @staticmethod
     def verifyRefreshToken(token: str) -> Union[str, None]:
+        """
+        Verifies the given token and returns its subject and user type if the token is valid, otherwise None.
+        :param token: The JWT token to verify
+        :return: The subject and user type of the token if valid, otherwise None
+        """
         try:
             unverified_payload = jwt.get_unverified_claims(token)
             user_type = unverified_payload.get("user_type")
@@ -87,9 +103,11 @@ class JWTHandler(HTTPBearer):
     async def __call__(self, request: Request) -> Union[str, None]:
         """
         Verifies the token in the Authorization header of the request and returns the token if it is valid.
-        
+        :param request: The request object
+        :return: The token if valid, otherwise None
+
         Raises:
-            HTTPException: 401 - Invalid token, expired token, or incorrect authentication scheme.
+            HTTPException: If the token is missing, invalid, or expired
         """
         try:
             credentials: Union[HTTPAuthorizationCredentials, None] = await super(JWTHandler, self).__call__(request)
