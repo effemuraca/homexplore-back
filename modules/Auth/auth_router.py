@@ -47,7 +47,6 @@ def login(login_info: AuthModels.Login, user_type: str):
     
 @auth_router.post("/jwt/refresh", response_model=ResponseModels.RefreshAccessTokenResponseModel, responses= ResponseModels.RefreshAccessTokenResponseModelResponses)
 def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
-    print(refresh_token)
     user_id, user_type = JWTHandler.verifyRefreshToken(refresh_token)
     if user_id is None:
         raise HTTPException(status_code=401, detail="invalid refresh token")
