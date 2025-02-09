@@ -36,18 +36,20 @@ class ReservationsSeller(BaseModel):
             reservations=reservations
         )
 
-# Use London timezone to calculate time interval
-def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
+def convert_to_seconds(day: str, time: str) -> Optional[int]:
     """
-    Convert a day and a start time to seconds from now
+    Convert a day and a time interval (e.g. "10:00-11:00 AM") to seconds from now,
+    using only the end time of the interval.
     """
     try:
-        if not day or not start_time:
+        if not day or not time:
             return None
+        
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         day = day.capitalize()
         if day not in days:
             return None
+        
         day_index = days.index(day)
         today = datetime.now()
         current_weekday = today.weekday()
@@ -55,15 +57,22 @@ def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
         if days_ahead < 0:
             days_ahead += 7
         event_date = today + timedelta(days=days_ahead)
-        # start_time es. "12:00 PM"
-        time_obj = datetime.strptime(start_time, "%I:%M %p")
+        
+        time_parts = time.split("-")
+        if len(time_parts) != 2:
+            return None
+        end_time_str = time_parts[1].strip()
+        
+        time_obj = datetime.strptime(end_time_str, "%I:%M %p")
         event_datetime = datetime.combine(event_date.date(), time_obj.time())
+        
         delta = (event_datetime - today).total_seconds()
         if delta <= 0:
             event_datetime += timedelta(days=7)
             delta = (event_datetime - today).total_seconds()
+            
         return int(delta)
-    except Exception as e:
+    except Exception:
         return None
 
 def next_weekday(target_day: str) -> Optional[str]:

@@ -29,7 +29,7 @@ class ReservationsBuyerDB:
             else:
                 reservations = new_reservations
             redis_client.set(key, json.dumps(reservations))
-            return 200
+            return 201
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
             logger.error(f"Error creating buyer reservation for buyer_id={self.reservations_buyer.buyer_id}: {e}")
             return 500

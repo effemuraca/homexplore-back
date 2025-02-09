@@ -18,7 +18,6 @@ buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 
 # Buyer
 
-# CONSISTENT
 @buyer_router.get("/profile_info", response_model=Buyer, responses=ResponseModels.GetBuyerResponseModelResponses)
 def get_buyer(access_token: str = Depends(JWTHandler())):
     """
@@ -42,7 +41,6 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=500, detail="Internal server error.")
     return buyer_db.buyer
 
-# CONSISTENT
 @buyer_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateBuyerResponseModelResponses)
 def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     """
@@ -82,7 +80,6 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
 
 # Favourites
 
-# CONSISTENT
 @buyer_router.get("/favourites", response_model=List[FavouriteProperty], responses=ResponseModels.GetFavouritesResponseModelResponses)
 def get_favourites(access_token: str = Depends(JWTHandler())):
     """
@@ -104,7 +101,6 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=500, detail="Failed to retrieve favourites.")
     return buyer_db.buyer.favourites
 
-# CONSISTENT (cosa possiamo assumere che il front end abbia?)
 @buyer_router.post("/favourite", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
 def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
@@ -126,7 +122,6 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Favourite added successfully."})
 
-# CONSISTENT
 @buyer_router.delete("/favourite/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
 def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
