@@ -78,7 +78,9 @@ class PropertyOnSale(BaseModel):
         return v
     
     def convert_to_seller_property(self) -> Dict[str, Any]:
-        # Create a dictionary with the property fields
+        """
+        Converts the PropertyOnSale object to a dictionary with the same fields
+        """
         data = {
             "_id": ObjectId(self.property_on_sale_id),
             "city": self.city,
