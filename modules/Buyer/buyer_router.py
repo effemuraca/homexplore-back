@@ -12,7 +12,9 @@ from entities.Redis.ReservationsBuyer.reservations_buyer import ReservationsBuye
 from entities.Redis.ReservationsSeller.db_reservations_seller import ReservationsSellerDB
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, next_weekday
 from modules.Buyer.models.buyer_models import CreateReservationBuyer, UpdateReservationBuyer
-from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
+
+from modules.Auth.helpers.JwtHandler import JWTHandler
+from modules.Auth.helpers.auth_helpers import hash_password
 
 buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 

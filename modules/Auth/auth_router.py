@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password, verify_hashed_password
+from modules.Auth.helpers.JwtHandler import JWTHandler
+from modules.Auth.helpers.auth_helpers import hash_password, verify_hashed_password
 from entities.MongoDB.Buyer.db_buyer import BuyerDB
 from entities.MongoDB.Seller.db_seller import SellerDB
 from entities.MongoDB.Buyer.buyer import Buyer
