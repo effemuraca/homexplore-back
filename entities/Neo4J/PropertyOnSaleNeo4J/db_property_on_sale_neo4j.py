@@ -31,7 +31,7 @@ class PropertyOnSaleNeo4JDB:
                     property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id
                 )
             except Exception as e:
-                logger.error("Error while retrieving property on sale with id %s: %s", 
+                logger.error("Error while retrieving property on sale on Neo4j with id %s: %s", 
                             self.property_on_sale_neo4j.property_on_sale_id, e)
                 return 500
             result_list = list(result)
@@ -119,7 +119,7 @@ class PropertyOnSaleNeo4JDB:
                 session.write_transaction(tx_func)
             return 201
         except Exception as e:
-            logger.error("Error while creating property on sale with id %s: %s", 
+            logger.error("Error while creating property on sale on Neo4j with id %s: %s", 
                         self.property_on_sale_neo4j.property_on_sale_id, e)
             return 500
 
@@ -146,7 +146,7 @@ class PropertyOnSaleNeo4JDB:
                 session.write_transaction(tx_func)
             return 200
         except Exception as e:
-            logger.error("Error while updating property on sale with id %s: %s", 
+            logger.error("Error while updating property on sale on Neo4j with id %s: %s", 
                         self.property_on_sale_neo4j.property_on_sale_id, e)
             return 500
     
@@ -169,7 +169,7 @@ class PropertyOnSaleNeo4JDB:
                 session.write_transaction(tx_func)
             return 200
         except Exception as e:
-            logger.error("Error while deleting property on sale with id %s: %s", 
+            logger.error("Error while deleting property on sale on Neo4j with id %s: %s", 
                         self.property_on_sale_neo4j.property_on_sale_id, e)
             return 500
 
