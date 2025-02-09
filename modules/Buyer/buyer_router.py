@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from typing import List
-import logging
 import json
 from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
 from bson import ObjectId
@@ -16,9 +15,6 @@ from modules.Buyer.models.buyer_models import CreateReservationBuyer, UpdateRese
 from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
 
 buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 # Buyer
 
@@ -211,7 +207,6 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
 
     buyer = buyer_db.buyer
     if not all([buyer.name, buyer.surname, buyer.email, buyer.phone_number]):
-        logger.error("Incomplete buyer data for booking")
         raise HTTPException(status_code=500, detail="Incomplete buyer data")
 
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
