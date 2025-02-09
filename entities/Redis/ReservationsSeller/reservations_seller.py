@@ -2,9 +2,6 @@ from pydantic import BaseModel, Field, field_validator, EmailStr
 from typing import Optional, List
 from datetime import datetime, timedelta
 from bson import ObjectId
-import logging
-
-logger = logging.getLogger(__name__)
 
 class ReservationS(BaseModel):
     buyer_id: Optional[str] = None
@@ -68,7 +65,6 @@ def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
             delta = (event_datetime - today).total_seconds()
         return int(delta)
     except Exception as e:
-        logger.error(f"Error in convert_to_seconds: {e}")
         return None
 
 def next_weekday(target_day: str) -> Optional[str]:

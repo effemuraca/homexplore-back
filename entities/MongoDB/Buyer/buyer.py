@@ -1,11 +1,7 @@
-import logging
 import re
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from bson.objectid import ObjectId
-
-# Configura il logger
-logger = logging.getLogger(__name__)
 
 class FavouriteProperty(BaseModel):
     property_id: str
