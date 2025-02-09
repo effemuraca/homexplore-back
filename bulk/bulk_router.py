@@ -6,6 +6,9 @@ bulk_router = APIRouter(prefix="/bulk", tags=["bulk"])
 
 @bulk_router.post("/neo4j")
 def populate_neo4j():
+    """
+    This function populates the Neo4j database with the data from the MongoDB database.
+    """
     try:
         populate_neo4j_db()
         print(os.curdir)
@@ -16,6 +19,9 @@ def populate_neo4j():
 
 @bulk_router.put("/neo4j/score")
 def update_score():
+    """
+    This function updates the livability scores in the Neo4j database.
+    """
     try:
         update_livability_scores()
     except Exception as e:
@@ -24,6 +30,9 @@ def update_score():
 
 @bulk_router.delete("/neo4j")
 def delete_neo4j():
+    """
+    This function deletes the Neo4j database.
+    """
     try:
         reset_neo4j_db()
     except Exception as e:

@@ -6,11 +6,22 @@ import math
 def create_nodes(tx, query, parameters):
     tx.run(query, parameters)
 
-# Simple parser for latitude and longitude strings (if needed)
 def parse_coordinates(latitude: str, longitude: str) -> dict:
+    """
+    Parse latitude and longitude strings into a dictionary.
+    :param latitude: The latitude as a string.
+    :param longitude: The longitude as a string.
+    :return: A dictionary with the latitude and longitude as floats.
+    """
     return {"latitude": float(latitude), "longitude": float(longitude)}
 
 def populate_neo4j_db():
+    """
+    Populate the Neo4j database with the data from the CSV files.
+    This function creates nodes for cities, neighbourhoods, properties, and POIs.
+    It also establishes relationships between the nodes based on proximity.
+    """
+    
     cities_df = pd.read_csv('bulk/files/cities.csv')
     neighbourhoods_df = pd.read_csv('bulk/files/neighbourhoods.csv')
     # Remove neighbourhood rows with name "Unknown"
@@ -266,6 +277,9 @@ def update_livability_scores():
             print(f"Updated property {property_id} with livability score {score:.2f}")
 
 def reset_neo4j_db():
+    """
+    Reset the Neo4j database by deleting all nodes and relationships.
+    """
     try:
         neo4j_driver = get_neo4j_driver()
         with neo4j_driver.session() as session:

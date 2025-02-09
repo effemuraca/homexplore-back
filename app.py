@@ -28,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.include_router(guest_router)
 app.include_router(auth_router)
 app.include_router(registered_user_router)
