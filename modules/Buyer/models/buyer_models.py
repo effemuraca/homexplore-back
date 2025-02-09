@@ -43,7 +43,7 @@ class CreateReservationBuyer(BaseModel):
     
     @field_validator('time')
     def validate_time(cls, v):
-        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
+        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9]-(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
             raise ValueError('Invalid time')
         return v
     
