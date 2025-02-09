@@ -26,9 +26,9 @@ class ReservationB(BaseModel):
         return v
     
     @field_validator('time')
-    def validate_time(cls, v: str) -> str:
-        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
-            raise ValueError('Invalid time format.')
+    def validate_time(cls, v):
+        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9]-(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
+            raise ValueError('Invalid time')
         return v
     
     @field_validator('thumbnail')
