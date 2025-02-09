@@ -39,8 +39,7 @@ class ReservationsSeller(BaseModel):
 # Use London timezone to calculate time interval
 def convert_to_seconds(day: str, start_time: str) -> Optional[int]:
     """
-    Converte il giorno e l'orario nell'intervallo di secondi da ora all'evento.
-    Restituisce None se i campi non sono validi.
+    Convert a day and a start time to seconds from now
     """
     try:
         if not day or not start_time:
