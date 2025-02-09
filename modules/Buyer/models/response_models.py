@@ -175,7 +175,7 @@ GetFavouritesResponseModelResponses: Dict[int, Dict[str, Any]] = {
             "application/json": {
                 "example": [
                     {
-                        "property_id": "1",
+                        "property_on_sale_id": "1",
                         "thumbnail": "https://www.example.com/image.jpg",
                         "address": "1234 Example St.",
                         "price": 100000,

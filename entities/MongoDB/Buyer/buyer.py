@@ -4,13 +4,13 @@ from typing import Optional
 from bson.objectid import ObjectId
 
 class FavouriteProperty(BaseModel):
-    property_id: str
+    property_on_sale_id: str
     thumbnail: str
     address: str
     price: int
     area: int
 
-    @field_validator('property_id')
+    @field_validator('property_on_sale_id')
     def check_object_id(cls, value):
         if not ObjectId.is_valid(value):
             raise ValueError('Invalid ObjectId string')

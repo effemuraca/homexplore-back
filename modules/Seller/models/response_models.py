@@ -405,7 +405,7 @@ DeleteReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
 
 class CreatePropertyOnSaleResponseModel(BaseModel):
     detail: str
-    property_id: str
+    property_on_sale_id: str
 
 CreatePropertyOnSaleResponses = {
     201: {
@@ -415,7 +415,7 @@ CreatePropertyOnSaleResponses = {
             "application/json": {
                 "example": {
                     "detail": "Property created successfully.",
-                    "property_id": "60d5ec49f8d2e30b8c8b4567"
+                    "property_on_sale_id": "60d5ec49f8d2e30b8c8b4567"
                 }
             }
         }
