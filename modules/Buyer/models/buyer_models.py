@@ -49,9 +49,10 @@ class CreateReservationBuyer(BaseModel):
     
     @field_validator('thumbnail')
     def validate_thumbnail(cls, v):
-        if not v.startswith('https://'):
-            raise ValueError('Invalid thumbnail')
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', v):
+            raise ValueError('Invalid URL format.')
         return v
+    
     
     @field_validator('max_attendees')
     def validate_max_attendees(cls, v):
