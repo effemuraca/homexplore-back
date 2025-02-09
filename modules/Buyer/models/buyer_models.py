@@ -1,22 +1,8 @@
-from pydantic import BaseModel, Field, validator, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from pydantic.networks import EmailStr
 from bson import ObjectId
 import re
-
-class FavouriteProperty(BaseModel):
-    property_id: str
-    thumbnail: str
-    address: str
-    price: int
-    area: int
-
-# class CreateBuyer(BaseModel):
-#     email: EmailStr = Field(None, example="john.doe@example.com")
-#     password: str = Field(None, example="SecureP@ssw0rd")
-#     name: str = Field(None, example="John")
-#     surname: str = Field(None, example="Doe")
-#     phone_number: Optional[str] = Field(None, example="+1 1234567890")
 
 class UpdateBuyer(BaseModel):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
@@ -25,7 +11,7 @@ class UpdateBuyer(BaseModel):
     surname: Optional[str] = Field(None, example="Doe")
     phone_number: Optional[str] = Field(None, example="+1 1234567890")
     
-    @validator('phone_number')
+    @field_validator('phone_number')
     def validate_phone_number(cls, value):
         if value:
             phone_pattern = re.compile(r'^\+\d{1,3}\s?\d{7,14}$')
@@ -41,7 +27,7 @@ class CreateReservationBuyer(BaseModel):
     time: str = Field(example="10:00 AM")
     thumbnail: str = Field(example="https://www.example.com/image")
     address: str = Field(example="1234 Example St.")
-    max_reservations : int = Field(example=10)
+    max_attendees : int = Field(example=10)
 
     @field_validator('property_on_sale_id')
     def validate_property_on_sale_id(cls, v):
@@ -67,16 +53,10 @@ class CreateReservationBuyer(BaseModel):
             raise ValueError('Invalid thumbnail')
         return v
     
-    @field_validator('address')
-    def validate_address(cls, v):
-        if not re.match(r"^\d{1,5} [A-Z][a-z]+ [A-Z][a-z]+", v):
-            raise ValueError('Invalid address')
-        return v
-    
-    @field_validator('max_reservations')
-    def validate_max_reservations(cls, v):
+    @field_validator('max_attendees')
+    def validate_max_attendees(cls, v):
         if v < 1 or v > 1000:
-            raise ValueError('Invalid max_reservations')
+            raise ValueError('Invalid max_attendees')
         return v
     
 
@@ -89,13 +69,13 @@ class UpdateReservationBuyer(BaseModel):
     address: str = Field(example="1234 Example St.")
     
     @field_validator('property_on_sale_id')
-    def check_object_id(cls, v: str) -> str:
+    def check_property_on_sale_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
         return v
 
     @field_validator('buyer_id')
-    def check_object_id(cls, v: str) -> str:
+    def check_buyer_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
         return v
@@ -117,10 +97,4 @@ class UpdateReservationBuyer(BaseModel):
     def check_url(cls, v: str) -> str:
         if not re.match(r'^http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+$', v):
             raise ValueError('Invalid URL format')
-        return v
-    
-    @field_validator('address')
-    def check_address(cls, v: str) -> str:
-        if not re.match(r'^[0-9]+ .+$', v):
-            raise ValueError('Invalid address format')
         return v

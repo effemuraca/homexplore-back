@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
@@ -10,11 +10,27 @@ class FilteredSearchInput(BaseModel):
     min_area: Optional[int] = Field(None, example=2000)
     min_bed_number: Optional[int] = Field(None, example=3)
     min_bath_number: Optional[int] = Field(None, example=2)
-
-    #check type of property is in a range of value using validator
-    @validator("type")
-    def validate_type(cls, value):
-        valid_types = {"House", "Apartment", "Condo"}
-        if value not in valid_types:
-            raise ValueError("Invalid type. Must be one of: " + ", ".join(valid_types))
+    
+    @field_validator('max_price')
+    def validate_max_price(cls, value):
+        if value and value < 0:
+            raise ValueError('Price must be positive.')
+        return value
+    
+    @field_validator('min_area')
+    def validate_min_area(cls, value):
+        if value and value < 0:
+            raise ValueError('Area must be positive.')
+        return value
+    
+    @field_validator('min_bed_number')
+    def validate_min_bed_number(cls, value):
+        if value and value < 0:
+            raise ValueError('Bed number must be positive.')
+        return value
+    
+    @field_validator('min_bath_number')
+    def validate_min_bath_number(cls, value):
+        if value and value < 0:
+            raise ValueError('Bath number must be positive.')
         return value

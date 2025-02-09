@@ -15,9 +15,9 @@ class UpdateSeller(BaseModel):
 
 #CONSISTENT
 class CreateDisponibility(BaseModel):
-    day: str = Field(example="Monday")
-    time: str = Field(example="10:00-11:00 AM")
-    max_attendees: int = Field(example=5)
+    day: str = Field(..., example="Monday")
+    time: str = Field(..., example="10:00-11:00 AM")
+    max_attendees: int = Field(..., example=5)
 
     @field_validator("day")
     def validate_day(cls, value):
@@ -33,19 +33,63 @@ class CreateDisponibility(BaseModel):
             raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
         return value
     
+    @field_validator('max_attendees')
+    def validate_max_attendees(cls, v):
+        if v < 1 or v > 1000:
+            raise ValueError('Invalid max_attendees')
+        return v
+    
 class CreatePropertyOnSale(BaseModel):
-    city: str = Field(example="New York")
-    neighbourhood: str = Field(example="Bronx")
-    address: str = Field(example="123 Main St")
-    price: int = Field(example=270000)
-    thumbnail: str = Field(example="http://example.com/photo.jpg")
-    type: str = Field(example="condo")
-    area: int = Field(example=100)
+    city: str = Field(..., example="New York")
+    neighbourhood: str = Field(..., example="Bronx")
+    address: str = Field(..., example="123 Main St")
+    price: int = Field(..., example=270000)
+    thumbnail: str = Field(..., example="http://example.com/photo.jpg")
+    type: str = Field(..., example="condo")
+    area: int = Field(..., example=100)
     bed_number: Optional[int] = Field(None, example=3) 
     bath_number: Optional[int] = Field(None, example=2) 
     description: Optional[str] = Field(None, example="Beautiful home") 
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
-    disponibility: Optional[CreateDisponibility] = None   
+    disponibility: Optional[CreateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00-11:00 AM", "max_attendees": 5})   
+    
+    @field_validator("price")
+    def validate_price(cls, value):
+        if value < 0:
+            raise ValueError("Price must be positive")
+        return value
+    
+    @field_validator("thumbnail")
+    def validate_thumbnail(cls, value):
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', value):
+            raise ValueError("Invalid URL format")
+        return value
+    
+    @field_validator("area")
+    def validate_area(cls, value):
+        if value < 0:
+            raise ValueError("Area must be positive")
+        return value
+    
+    @field_validator("bed_number")
+    def validate_bed_number(cls, value):
+        if value < 0:
+            raise ValueError("Bed number must be positive")
+        return value
+    
+    @field_validator("bath_number")
+    def validate_bath_number(cls, value):
+        if value < 0:
+            raise ValueError("Bath number must be positive")
+        return value
+    
+    @field_validator("photos")
+    def validate_photos(cls, value):
+        for photo in value:
+            if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', photo):
+                raise ValueError("Invalid URL format")
+        return value
+        
 
 
 
@@ -71,6 +115,12 @@ class UpdateDisponibility(BaseModel):
             raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
         return value
     
+    @field_validator('max_attendees')
+    def validate_max_attendees(cls, v):
+        if v < 1 or v > 1000:
+            raise ValueError('Invalid max_attendees')
+        return v
+    
 class UpdatePropertyOnSale(BaseModel):
     property_on_sale_id: str = Field(None, example="5f4f4f4f4f4f4f4f4f4f4f4f")
     city: Optional[str] = Field(None, example="New York")
@@ -84,7 +134,7 @@ class UpdatePropertyOnSale(BaseModel):
     bath_number: Optional[int] = Field(None, example=2) 
     description: Optional[str] = Field(None, example="Beautiful home") 
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
-    disponibility: Optional[UpdateDisponibility] = None   
+    disponibility: Optional[UpdateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00-11:00 AM", "max_attendees": 5})   
 
     #create validator for property_on_sale_id to be a valid ObjectId
     @field_validator("property_on_sale_id")
@@ -92,37 +142,52 @@ class UpdatePropertyOnSale(BaseModel):
         if not ObjectId.is_valid(value):
             raise ValueError("Invalid property_on_sale_id")
         return value
-
-
-
-
-
-
-
-class FilteredSearchPropertyOnSale(BaseModel):
-    city: Optional[str] = Field(None, example="New York")
-    max_price: Optional[int] = Field(None, example=500000)
-    neighbourhood: Optional[str] = Field(None, example="Brooklyn")
-    type: Optional[str] = Field(None, example="House")
-    area: Optional[int] = Field(None, example=2000)
-    min_bed_number: Optional[int] = Field(None, example=3)
-    min_bath_number: Optional[int] = Field(None, example=2)
-
-
-
+    
+    @field_validator("price")
+    def validate_price(cls, value):
+        if value < 0:
+            raise ValueError("Price must be positive")
+        return value
+    
+    @field_validator("thumbnail")
+    def validate_thumbnail(cls, value):
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', value):
+            raise ValueError("Invalid URL format")
+        return value
+    
+    @field_validator("area")
+    def validate_area(cls, value):
+        if value < 0:
+            raise ValueError("Area must be positive")
+        return value
+    
+    @field_validator("bed_number")
+    def validate_bed_number(cls, value):
+        if value < 0:
+            raise ValueError("Bed number must be positive")
+        return value
+    
+    @field_validator("bath_number")
+    def validate_bath_number(cls, value):
+        if value < 0:
+            raise ValueError("Bath number must be positive")
+        return value
+    
+    @field_validator("photos")
+    def validate_photos(cls, value):
+        for photo in value:
+            if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', photo):
+                raise ValueError("Invalid URL format")
+        return value
 
 
 
 # Analytics
 
-class AnalyticsResponseModel(BaseModel):
-    detail: str
-    result: List[dict]
-
 class Analytics2Input(BaseModel):
-    city: str = Field(example="New York")
-    start_date: str = Field(example="2021-01-01")
-    end_date: str = Field(example="2021-12-31")
+    city: str = Field(..., example="New York")
+    start_date: str = Field(..., example="2021-01-01")
+    end_date: str = Field(..., example="2021-12-31")
 
     #create validator for date
     @field_validator("start_date")
@@ -140,8 +205,8 @@ class Analytics2Input(BaseModel):
         return value
     
 class Analytics3Input(BaseModel):
-    city: str = Field(example="New York")
-    start_date: str = Field(example="2021-01-01")
+    city: str = Field(..., example="New York")
+    start_date: str = Field(..., example="2021-01-01")
 
     #create validator for date
     @field_validator("start_date")

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from typing import List, Optional, Dict, Any, Set
 from datetime import datetime
 from bson import ObjectId
@@ -9,6 +9,24 @@ class Disponibility(BaseModel):
     day: Optional[str] = None
     time: Optional[str] = None
     max_attendees: Optional[int] = None
+    
+    @field_validator('day')
+    def validate_day(cls, v):
+        if v not in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+            raise ValueError('Invalid day')
+        return v
+    
+    @field_validator('time')
+    def validate_time(cls, v):
+        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
+            raise ValueError('Invalid time')
+        return v
+    
+    @field_validator('max_attendees')
+    def validate_max_attendees(cls, v):
+        if v < 1 or v > 1000:
+            raise ValueError('Invalid max_attendees')
+        return v
 
 
 class PropertyOnSale(BaseModel):
@@ -27,10 +45,35 @@ class PropertyOnSale(BaseModel):
     photos: Optional[List[str]] = None
     disponibility: Optional[Disponibility] = None
  
-    @validator('property_on_sale_id')
+    @field_validator('property_on_sale_id')
     def check_object_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
+        return v
+    
+    @field_validator('thumbnail')
+    def validate_thumbnail(cls, v: str) -> str:
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', v):
+            raise ValueError('Invalid URL format.')
+        return v
+    
+    @field_validator('price')
+    def validate_price(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError('Price must be positive.')
+        return v
+    
+    @field_validator('area')
+    def validate_area(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError('Area must be positive.')
+        return v
+    
+    @field_validator("photos")
+    def validate_photos(cls, v):
+        for photo in v:
+            if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', photo):
+                raise ValueError("Invalid URL format")
         return v
     
     def convert_to_seller_property(self) -> Dict[str, Any]:

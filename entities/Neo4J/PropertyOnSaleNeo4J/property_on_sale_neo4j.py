@@ -26,3 +26,21 @@ class PropertyOnSaleNeo4J(BaseModel):
     thumbnail: Optional[str] = None
     score: Optional[float] = None
     
+    @field_validator('property_on_sale_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
+    
+    @field_validator('thumbnail')
+    def validate_thumbnail(cls, v: str) -> str:
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', v):
+            raise ValueError('Invalid URL format.')
+        return v
+    
+    @field_validator('price')
+    def validate_price(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError('Price must be positive.')
+        return v
+    

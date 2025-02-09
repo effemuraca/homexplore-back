@@ -7,10 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ReservationS(BaseModel):
-    buyer_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
-    full_name: Optional[str] = Field(None, example="John Doe")
-    email: Optional[EmailStr] = Field(None, example="john@example.com")
-    phone: Optional[str] = Field(None, example="1234567890")
+    buyer_id: Optional[str] = None
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
     
     @field_validator('buyer_id')
     def check_object_id(cls, v: str) -> str:
@@ -19,7 +19,7 @@ class ReservationS(BaseModel):
         return v
 
 class ReservationsSeller(BaseModel):
-    property_on_sale_id: Optional[str] = Field(None, example="615c44fdf641be001f0c1111")
+    property_on_sale_id: Optional[str] = None
     reservations: Optional[List[ReservationS]] = []
     
     @field_validator('property_on_sale_id')

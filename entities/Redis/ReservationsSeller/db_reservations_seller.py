@@ -13,7 +13,7 @@ class ReservationsSellerDB:
     def __init__(self, reservations_seller: Optional[ReservationsSeller] = None):
         self.reservations_seller = reservations_seller
 
-    def create_reservation_seller(self, day: str, time: str, buyer_id :str, max_reservations : int) -> int:
+    def create_reservation_seller(self, day: str, time: str, buyer_id :str, max_attendees : int) -> int:
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -37,7 +37,7 @@ class ReservationsSellerDB:
                         logger.error("Reservation for this buyer already exists.")
                         return 409
                 # Check if max reservations has been reached
-                if len(reservations_list) >= max_reservations:
+                if len(reservations_list) >= max_attendees:
                     logger.error("Max reservations reached.")
                     return 400
                 reservations_list.append(new_reservation_dict)

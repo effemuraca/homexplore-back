@@ -4,16 +4,36 @@ from bson import ObjectId
 from datetime import datetime
 
 class ReservationB(BaseModel):
-    property_on_sale_id: Optional[str] = Field(None, example=1)
-    date: Optional[str] = Field(None, example="2021-09-01")
-    time: Optional[str] = Field(None, example="10:00")
-    thumbnail: Optional[str] = Field(None, example="https://www.example.com/image.jpg")
-    address: Optional[str] = Field(None, example="1234 Example St.")
+    property_on_sale_id: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+    thumbnail: Optional[str] = None
+    address: Optional[str] = None
     
     @field_validator('property_on_sale_id')
     def check_object_id(cls, v: str) -> str:
         if not ObjectId.is_valid(v):
             raise ValueError('Invalid ObjectId string')
+        return v
+    
+    @field_validator('date')
+    def validate_date(cls, v: str) -> str:
+        try:
+            datetime.strptime(v, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError('Invalid date format.')
+        return v
+    
+    @field_validator('time')
+    def validate_time(cls, v: str) -> str:
+        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
+            raise ValueError('Invalid time format.')
+        return v
+    
+    @field_validator('thumbnail')
+    def validate_thumbnail(cls, v: str) -> str:
+        if not re.match(r'^https?://.*\.(?:png|jpg|jpeg|gif)$', v):
+            raise ValueError('Invalid URL format.')
         return v
     
     def check_reservation_expired(self) -> bool:
@@ -25,5 +45,11 @@ class ReservationB(BaseModel):
     
 
 class ReservationsBuyer(BaseModel):
-    buyer_id: Optional[str] = Field(None, example=1)
+    buyer_id: Optional[str] = None
     reservations: Optional[List[ReservationB]] = None
+    
+    @field_validator('buyer_id')
+    def check_object_id(cls, v: str) -> str:
+        if not ObjectId.is_valid(v):
+            raise ValueError('Invalid ObjectId string')
+        return v
