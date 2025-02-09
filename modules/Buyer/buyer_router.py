@@ -109,7 +109,6 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
     return buyer_db.buyer.favourites
 
 # CONSISTENT (cosa possiamo assumere che il front end abbia?)
-# non facciamo un controllo se la casa esiste veraimente
 @buyer_router.post("/favourite", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
 def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
