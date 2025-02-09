@@ -15,12 +15,20 @@ class SellerDB:
         if not self.seller:
             return 400
         mongo_client = get_default_mongo_db()
-        result = mongo_client.Seller.insert_one(
-            self.seller.model_dump(exclude_none=True, exclude={"seller_id"})
-        )
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            result = mongo_client.Seller.insert_one(
+                self.seller.model_dump(exclude_none=True, exclude={"seller_id"})
+            )
+        except Exception as e:
+            logger.error(f"Error inserting seller: {e}")
+            return 500
         if result.inserted_id:
             self.seller.seller_id = str(result.inserted_id)
             return 201
+        logger.error("Creation of seller with email %s failed.", self.seller.email)
         return 500
     
     # route del seller (get_profile_info) CONSISTENT
@@ -31,11 +39,12 @@ class SellerDB:
             return 400
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.Seller.find_one({"_id": id}, {"properties_on_sale": 0, "sold_properties": 0})
         except Exception as e:
-            logger.error(f"Error retrieving seller: {e}")
+            logger.error(f"Error retrieving seller with id {self.seller.seller_id}: {e}")
             return 500
         if not result:
             return 404
@@ -50,7 +59,14 @@ class SellerDB:
         except:
             return 400
         mongo_client = get_default_mongo_db()
-        result = mongo_client.Seller.find_one({"_id": id})
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            result = mongo_client.Seller.find_one({"_id": id})
+        except Exception as e:
+            logger.error(f"Error retrieving seller with id {self.seller.seller_id}: {e}")
+            return 500
         if not result:
             return 404
         #change name of the key "_id" to "seller_id"
@@ -60,16 +76,20 @@ class SellerDB:
     
     def get_seller_by_email(self, email: str) -> int:
         if not email:
-            logger.error("Email not given.")
             return 400
         mongo_client = get_default_mongo_db()
-        result = mongo_client.Seller.find_one({"email": email}, {"properties_on_sale": 0, "sold_properties": 0})
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            result = mongo_client.Seller.find_one({"email": email}, {"properties_on_sale": 0, "sold_properties": 0})
+        except Exception as e:
+            logger.error(f"Error retrieving seller with email {email}: {e}")
+            return 500
         if not result:
-            logger.warning(f"Seller with email {email} not found.")
             return 404
         result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
-        logger.debug(f"Seller retrieved: {self.seller}")
         return 200
 
     def update_seller_by_id(self) -> int:
@@ -78,10 +98,17 @@ class SellerDB:
         except:
             return 400
         mongo_client = get_default_mongo_db()
-        result = mongo_client.Seller.update_one(
-            {"_id": id},
-            {"$set": self.seller.model_dump(exclude_none=True, exclude={"seller_id"})}
-        )
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            result = mongo_client.Seller.update_one(
+                {"_id": id},
+                {"$set": self.seller.model_dump(exclude_none=True, exclude={"seller_id"})}
+            )
+        except Exception as e:
+            logger.error(f"Error updating seller with id {self.seller.seller_id}: {e}")
+            return 500
         if result.matched_count == 0:
             return 404
         return 200
@@ -92,7 +119,14 @@ class SellerDB:
         except:
             return 400
         mongo_client = get_default_mongo_db()
-        result = mongo_client.Seller.delete_one({"_id": id})
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            result = mongo_client.Seller.delete_one({"_id": id})
+        except Exception as e:
+            logger.error(f"Error deleting seller with id {self.seller.seller_id}: {e}")
+            return 500
         if result.deleted_count == 0:
             return 404
         return 200
@@ -102,11 +136,12 @@ class SellerDB:
     def get_properties_on_sale(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.Seller.find_one({"_id": ObjectId(self.seller.seller_id)}, {"properties_on_sale": 1})
         except Exception as e:
-            logger.error(f"Error retrieving properties on sale: {e}")
+            logger.error(f"Error retrieving properties on sale: for seller {self.seller.seller_id}: {e}")
             return 500
         if not result:
             return 404
@@ -121,11 +156,12 @@ class SellerDB:
     def get_sold_properties(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.Seller.find_one({"_id": ObjectId(self.seller.seller_id)}, {"sold_properties": 1})
         except Exception as e:
-            logger.error(f"Error retrieving sold properties: {e}")
+            logger.error(f"Error retrieving sold properties for seller {self.seller.seller_id}: {e}")
             return 500
         if not result:
             return 404
@@ -143,6 +179,7 @@ class SellerDB:
     def get_property_on_sale_filtered(self, city: str, neighbourhood: str, address: str) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         pipeline = [
             { "$match": { "_id": ObjectId(self.seller.seller_id) } },
@@ -166,7 +203,7 @@ class SellerDB:
         try:
             result = mongo_client.Seller.aggregate(pipeline)
         except Exception as e:
-            logger.error(f"Error retrieving filtered properties: {e}")
+            logger.error(f"Error retrieving filtered properties for seller {self.seller.seller_id}: {e}")
             return 500
         #extract the properties_on_sale array from the result
         properties = list(result)[0].get("properties_on_sale", [])

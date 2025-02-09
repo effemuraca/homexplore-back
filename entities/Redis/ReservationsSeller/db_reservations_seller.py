@@ -34,11 +34,9 @@ class ReservationsSellerDB:
                 # Check if this buyer already has a reservation
                 for reservation in reservations_list:
                     if reservation.get("buyer_id") == new_reservation_dict.get("buyer_id"):
-                        logger.error("Reservation for this buyer already exists.")
                         return 409
                 # Check if max reservations has been reached
                 if len(reservations_list) >= max_attendees:
-                    logger.error("Max reservations reached.")
                     return 400
                 reservations_list.append(new_reservation_dict)
                 data["reservations"] = reservations_list
@@ -49,7 +47,7 @@ class ReservationsSellerDB:
             redis_client.setex(key, ttl, json.dumps(data))
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
-            logger.error(f"Error creating seller reservation: {e}")
+            logger.error(f"Error creating seller reservation for property_on_sale_id={self.reservations_seller.property_on_sale_id}: {e}")
             return 500
 
     def get_reservation_seller(self) -> int:
@@ -60,7 +58,6 @@ class ReservationsSellerDB:
         key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.info(f"No reservations found for property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 404
         try:
             data = json.loads(raw_data)
@@ -70,7 +67,7 @@ class ReservationsSellerDB:
             )
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError, TypeError) as e:
-            logger.error(f"Error retrieving seller reservation: {e}")
+            logger.error(f"Error retrieving seller reservation for property_on_sale_id={self.reservations_seller.property_on_sale_id}: {e}")
             return 500
 
     def update_reservation_seller(self, buyer_id: str, updated_data: dict) -> int:
@@ -81,7 +78,6 @@ class ReservationsSellerDB:
         key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.warning(f"No reservations found for update on property_on_sale_id={self.reservations_seller.property_on_sale_id}.")
             return 404
         try:
             data = json.loads(raw_data)
@@ -92,11 +88,10 @@ class ReservationsSellerDB:
                     updated = True
                     break
             if not updated:
-                logger.warning(f"Reservation for buyer_id={buyer_id} not found.")
                 return 404
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
-            logger.error(f"Error updating seller reservation: {e}")
+            logger.error(f"Error updating seller reservation with buyer_id={buyer_id}: {e}")
             return 500
 
     def delete_reservation_seller_by_buyer_id(self, buyer_id: str) -> int:
@@ -107,7 +102,6 @@ class ReservationsSellerDB:
         key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
         raw_data = redis_client.get(key)
         if not raw_data:
-            logger.warning("No reservations found for deletion.")
             return 404
         try:
             data = json.loads(raw_data)
@@ -116,7 +110,7 @@ class ReservationsSellerDB:
             redis_client.set(key, json.dumps(data))
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
-            logger.error(f"Error deleting seller reservation by buyer_id: {e}")
+            logger.error(f"Error deleting seller reservation with buyer_id={buyer_id}: {e}")
             return 500
 
     def delete_entire_reservation_seller(self) -> int:
@@ -129,7 +123,7 @@ class ReservationsSellerDB:
             redis_client.delete(key)
             return 200
         except redis.exceptions.RedisError as e:
-            logger.error(f"Error deleting entire seller reservation: {e}")
+            logger.error(f"Error deleting entire seller reservation for property_on_sale_id={self.reservations_seller.property_on_sale_id}: {e}")
             return 500
         
     def update_day_and_time(self, day: str, time: str) -> int:
@@ -142,10 +136,9 @@ class ReservationsSellerDB:
             ttl = convert_to_seconds(day, time)
             raw_data = redis_client.get(key)
             if not raw_data:
-                logger.warning("No reservations found for update.")
                 return 404
             redis_client.expire(key, ttl)
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
-            logger.error(f"Error updating day and time: {e}")
+            logger.error(f"Error updating day and time for property_on_sale_id={self.reservations_seller.property_on_sale_id}: {e}")
             return 500

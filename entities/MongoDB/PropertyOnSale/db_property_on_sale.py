@@ -18,6 +18,7 @@ class PropertyOnSaleDB:
     def filtered_search(self, input : FilteredSearchInput) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         query = {}
         if input.city:
@@ -37,7 +38,7 @@ class PropertyOnSaleDB:
         try:
             results = mongo_client.PropertyOnSale.find(query)
         except Exception as e:
-            logging.error("Error while searching: %s", e)
+            logger.error("Error while searching: %s", e)
             return 500
         results_list = list(results)
         if not results_list:
@@ -52,11 +53,12 @@ class PropertyOnSaleDB:
     def get_10_random_properties(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 10}}])
         except Exception as e:
-            logging.error("Error while retrieving random properties: %s", e)
+            logger.error("Error while retrieving random properties: %s", e)
             return 500
         results_list = list(results)
         if not results_list:
@@ -71,11 +73,12 @@ class PropertyOnSaleDB:
     def get_property_on_sale_by_address(self, city: str, address: str) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.PropertyOnSale.find({"city": city, "address": address})
         except Exception as e:
-            logging.error("Error while searching property by address: %s", e)
+            logger.error("Error while searching property by address: %s", e)
             return 500
         if not result:
             return 404
@@ -89,8 +92,8 @@ class PropertyOnSaleDB:
                 #remove disponibility from the result
                 result["disponibility"] = None
             self.property_on_sale_list.append(PropertyOnSale(**result))
+        return 200
     
-    #route del seller (create_property_on_sale) CONSINTENT
     #route del seller (delete_property_on_sale) CONSISTENT
     def delete_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
         try:
@@ -99,11 +102,12 @@ class PropertyOnSaleDB:
             return 400
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.PropertyOnSale.delete_one({"_id": id})
         except Exception as e:
-            logging.error("Error deleting property on sale: %s", e)
+            logger.error("Error deleting property on sale: %s", e)
             return 500
         if result.deleted_count == 0:
             return 404
@@ -116,22 +120,24 @@ class PropertyOnSaleDB:
         self.property_on_sale.registration_date = datetime.now()
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.PropertyOnSale.insert_one(self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"}))
         except Exception as e:
-            logging.error("Error during property creation: %s", e)
+            logger.error("Error during property creation: %s", e)
             return 500
         if result.inserted_id:
             self.property_on_sale.property_on_sale_id = str(result.inserted_id)
             return 200
-        logging.error("Property not created")
+        logger.error("Property not created")
         return 500
     
     # route seller (update_property_on_sale) CONSISTENT
     def update_property_on_sale(self) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         #data preparation
         id=ObjectId(self.property_on_sale.property_on_sale_id)
@@ -181,11 +187,12 @@ class PropertyOnSaleDB:
         id=ObjectId(property_on_sale_id)
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.PropertyOnSale.find_one({"_id": id})
         except Exception as e:
-            logging.error("Error retrieving property on sale with id: %s, error: %s", property_on_sale_id, e)
+            logger.error("Error retrieving property on sale with id: %s, error: %s", property_on_sale_id, e)
             return 500
         if not result:
             return 404
@@ -197,11 +204,12 @@ class PropertyOnSaleDB:
         id=ObjectId(property_on_sale_id)
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result = mongo_client.PropertyOnSale.find_one_and_delete({"_id": id})
         except Exception as e:
-            logging.error("Error deleting property on sale with id: %s, error: %s", property_on_sale_id, e)
+            logger.error("Error deleting property on sale with id: %s, error: %s", property_on_sale_id, e)
             return 500
         if not result:
             return 404
@@ -215,13 +223,15 @@ class PropertyOnSaleDB:
             return 400
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
+            logger.error("Mongo client not initialized.")
             return 500
         try:
             result=mongo_client.PropertyOnSale.insert_one({"_id": ObjectId(self.property_on_sale.property_on_sale_id), **self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id"})})
         except Exception as e:
-            logging.error("Error inserting property on sale: %s", e)
+            logger.error("Error inserting property on sale: %s", e)
             return 500
         if result.inserted_id == self.property_on_sale.property_on_sale_id:
             return 200
         else:
+            logger.error("Error inserting property on sale with id: %s", self.property_on_sale.property_on_sale_id)
             return 500
