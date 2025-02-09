@@ -4,9 +4,8 @@ from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
 import logging
-
-
 from modules.Guest.models.guest_models import FilteredSearchInput
+
 logger = logging.getLogger(__name__)
 
 class PropertyOnSaleDB:
@@ -89,7 +88,7 @@ class PropertyOnSaleDB:
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
             if result["disponibility"]:
-                #remove disponibility from the result
+                # remove disponibility from the result
                 result["disponibility"] = None
             self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
@@ -139,7 +138,7 @@ class PropertyOnSaleDB:
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
             return 500
-        #data preparation
+        # data preparation
         id=ObjectId(self.property_on_sale.property_on_sale_id)
         single_data = self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id", "photos", "disponibility"})
         a= (self.property_on_sale.city is not None or self.property_on_sale.neighbourhood is not None or self.property_on_sale.address is not None or self.property_on_sale.price is not None or self.property_on_sale.thumbnail is not None or self.property_on_sale.type is not None or self.property_on_sale.area is not None or self.property_on_sale.registration_date is not None or self.property_on_sale.bed_number is not None or self.property_on_sale.bath_number is not None or self.property_on_sale.description is not None)

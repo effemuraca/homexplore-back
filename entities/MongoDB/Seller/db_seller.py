@@ -48,7 +48,7 @@ class SellerDB:
             return 500
         if not result:
             return 404
-        #change name of the key "_id" to "seller_id"
+        #c hange name of the key "_id" to "seller_id"
         result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
         return 200
@@ -69,7 +69,7 @@ class SellerDB:
             return 500
         if not result:
             return 404
-        #change name of the key "_id" to "seller_id"
+        # change name of the key "_id" to "seller_id"
         result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
         return 200
@@ -145,7 +145,7 @@ class SellerDB:
             return 500
         if not result:
             return 404
-        #change the name of the key "_id" to "property_on_sale_id"
+        # change the name of the key "_id" to "property_on_sale_id"
         for property_on_sale in result["properties_on_sale"]:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
         self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in result["properties_on_sale"]]
@@ -166,9 +166,9 @@ class SellerDB:
         if not result:
             return 404
         
-        #order the sold properties by sell_date
+        # order the sold properties by sell_date
         result["sold_properties"] = sorted(result["sold_properties"], key=lambda x: x["sell_date"], reverse=True)
-        #change the name of the key "_id" to "sold_property_id"
+        # change the name of the key "_id" to "sold_property_id"
         for sold_property in result["sold_properties"]:
             sold_property["sold_property_id"] = str(sold_property.pop("_id"))
         self.seller.sold_properties = [SoldProperty(**sold_property) for sold_property in result["sold_properties"]]
@@ -205,11 +205,11 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error retrieving filtered properties for seller {self.seller.seller_id}: {e}")
             return 500
-        #extract the properties_on_sale array from the result
+        # extract the properties_on_sale array from the result
         properties = list(result)[0].get("properties_on_sale", [])
         if not properties:
             return 404
-        #change the name of the key "_id" to "property_on_sale_id"
+        # change the name of the key "_id" to "property_on_sale_id"
         for property_on_sale in properties:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
         self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in properties]
@@ -244,7 +244,7 @@ class SellerDB:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
-        #data preparation 
+        # data preparation 
         a=(property_on_sale.city is not None or property_on_sale.neighbourhood is not None or property_on_sale.address is not None or property_on_sale.price is not None or property_on_sale.thumbnail is not None)
         b=(property_on_sale.disponibility is not None)
         if a: 
@@ -326,7 +326,7 @@ class SellerDB:
         return 200
     
 
-    #route del seller (sell_property) CONSISTENT
+    # route del seller (sell_property) CONSISTENT
     def check_property_on_sale(self, property_on_sale_id: str) -> int:
         id_p = ObjectId(property_on_sale_id)
         id_s = ObjectId(self.seller.seller_id)

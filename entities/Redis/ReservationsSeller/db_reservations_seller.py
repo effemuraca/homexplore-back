@@ -5,6 +5,7 @@ import logging
 from entities.Redis.ReservationsSeller.reservations_seller import ReservationsSeller, ReservationS, convert_to_seconds
 from setup.redis_setup.redis_setup import get_redis_client
 
+# Configure logger
 logger = logging.getLogger(__name__)
 
 class ReservationsSellerDB:

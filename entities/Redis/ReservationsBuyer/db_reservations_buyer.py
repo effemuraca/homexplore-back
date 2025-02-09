@@ -5,7 +5,7 @@ import json
 import redis
 import logging
 
-# Configura il logger
+# Configure logger
 logger = logging.getLogger(__name__)
 
 class ReservationsBuyerDB:
