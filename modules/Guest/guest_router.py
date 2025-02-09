@@ -55,7 +55,7 @@ def search_by_address(city: str, address: str):
 
 @guest_router.get("/map/city_and_neighborhood", response_model= ResponseModels.CityAndNeighbourhood, responses=ResponseModels.GetCityAndNeighbourhoodResponses)
 def get_city_and_neighbourhood(property_on_sale_id:str):
-    #check validity of property_on_sale_id
+    # check validity of property_on_sale_id
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))
@@ -70,7 +70,7 @@ def get_city_and_neighbourhood(property_on_sale_id:str):
 
 @guest_router.get("/map/pois_near_property", response_model=List[POI], responses=ResponseModels.GetPOIsResponses)
 def get_pois(property_on_sale_id:str):
-    #check validity of property_on_sale_id
+    # check validity of property_on_sale_id
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))
@@ -85,7 +85,7 @@ def get_pois(property_on_sale_id:str):
 
 @guest_router.get("/map/properties_near_property", response_model=List[PropertyOnSaleNeo4J], responses=ResponseModels.GetNearPropertiesResponses)
 def get_near_properties(property_on_sale_id:str):
-    #check validity of property_on_sale_id
+    # check validity of property_on_sale_id
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))

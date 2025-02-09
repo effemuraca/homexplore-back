@@ -57,7 +57,7 @@ def analytics_5(citta : str, quartiere : str):
         raise HTTPException(status_code=500, detail="Database client not found")
     try:
         pipeline = [
-           #numero medio di letti, bagni e metri quadri per ciascun tipo di immobile
+           # average bed_number, bath_number and area for each type of property
             {"$match": {"city": citta, "neighbourhood": quartiere}},
             {"$group": {"_id": "$type", "avg_bed_number": {"$avg": "$bed_number"}, "avg_bath_number": {"$avg": "$bath_number"}, "avg_area": {"$avg": "$area"}}}
         ]
