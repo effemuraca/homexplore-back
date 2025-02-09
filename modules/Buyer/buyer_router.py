@@ -17,7 +17,7 @@ from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
 
 buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 
-# Configura il logger
+# Configure logging
 logger = logging.getLogger(__name__)
 
 # Buyer
@@ -45,23 +45,6 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
     elif result == 500:
         raise HTTPException(status_code=500, detail="Internal server error.")
     return buyer_db.buyer
-
-# @buyer_router.post("/", response_model=ResponseModels.CreateBuyerResponseModel, responses=ResponseModels.CreateBuyerResponseModelResponses)
-# def create_buyer(buyer: CreateBuyer):
-#     """
-#     Creates a new buyer.
-#     """
-#     if not buyer:
-#         raise HTTPException(status_code=400, detail="Missing buyer info.")
-    
-#     buyer_db = BuyerDB(Buyer(**buyer.dict()))
-#     result = buyer_db.create_buyer()
-#     if result == 400:
-#         raise HTTPException(status_code=result, detail="Invalid buyer info.")
-#     elif result == 500:
-#         raise HTTPException(status_code=result, detail="Failed to create buyer.")
-#     elif result == 201:
-#         return JSONResponse(status_code=201, content={"detail": "Buyer created successfully.", "buyer_id": buyer_db.buyer.buyer_id})
 
 # CONSISTENT
 @buyer_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateBuyerResponseModelResponses)
@@ -100,20 +83,6 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=result, detail="Failed to update buyer.")
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Buyer updated successfully."})
-
-# @buyer_router.delete("/{buyer_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteBuyerResponseModelResponses)
-# def delete_buyer(buyer_id: str):
-#     """
-#     Deletes a buyer by id.
-#     """
-#     buyer_db = BuyerDB()
-#     result = buyer_db.delete_buyer_by_id(buyer_id)
-#     if result == 400:
-#         raise HTTPException(status_code=result, detail="Buyer ID is required.")
-#     elif result == 404:
-#         raise HTTPException(status_code=result, detail="Buyer not found.")
-#     elif result == 200:
-#         return JSONResponse(status_code=result, content={"detail": "Buyer deleted successfully."})
 
 # Favourites
 
@@ -185,21 +154,6 @@ def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHa
         raise HTTPException(status_code=result, detail="Failed to delete favourite.")
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Favourite deleted successfully."})
-
-# @buyer_router.put("/{buyer_id}/favourites/{property_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateFavouriteResponseModelResponses)
-# def update_favourite(buyer_id: str, property_id: str, favourite: FavouriteProperty):
-#     """
-#     Updates a favourite property for a buyer.
-#     """
-#     buyer_db = BuyerDB()
-#     result = buyer_db.update_favourite(buyer_id, property_id, favourite.dict())
-#     if result == 400:
-#         raise HTTPException(status_code=result, detail="Invalid input.")
-#     elif result == 500:
-#         raise HTTPException(status_code=result, detail="Failed to update favourite.")
-#     elif result == 200:
-#         return JSONResponse(status_code=result, content={"detail": "Favourite updated successfully."})
-
 
 # ReservationsBuyer
 
@@ -293,7 +247,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
                 book_now_info.day,
                 book_now_info.time,
                 buyer_id,
-                book_now_info.max_reservations
+                book_now_info.max_attendees
             )
     if status == 500:
         raise HTTPException(status_code=500, detail="Error creating seller reservation")
