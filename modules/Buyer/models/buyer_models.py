@@ -24,7 +24,7 @@ class UpdateBuyer(BaseModel):
 class CreateReservationBuyer(BaseModel):
     property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     day : str = Field(example="Monday")
-    time: str = Field(example="10:00 AM")
+    time: str = Field(example="10:00-11:00 AM")
     thumbnail: str = Field(example="https://www.example.com/image")
     address: str = Field(example="1234 Example St.")
     max_attendees : int = Field(example=10)
@@ -65,7 +65,7 @@ class UpdateReservationBuyer(BaseModel):
     property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     buyer_id: str = Field(example="615c44fdf641be001f0c1111")
     date: str = Field(example="2021-09-01")
-    time: str = Field(example="10:00")
+    time: str = Field(example="10:00-11:00 AM")
     thumbnail: str = Field(example="https://www.example.com/image")
     address: str = Field(example="1234 Example St.")
     
