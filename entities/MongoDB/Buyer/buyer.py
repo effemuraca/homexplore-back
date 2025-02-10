@@ -37,7 +37,7 @@ class FavouriteProperty(BaseModel):
 
 
 class Buyer(BaseModel):
-    buyer_id: str
+    buyer_id: Optional[str] = None
     password: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None

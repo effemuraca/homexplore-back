@@ -143,3 +143,53 @@ class ReservationsSellerDB:
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
             logger.error(f"Error updating day and time for property_on_sale_id={self.reservations_seller.property_on_sale_id}: {e}")
             return 500
+        
+    def handle_book_now_transaction(self, reservation: ReservationS, day: str, time: str, buyer_id: str, max_attendees: int) -> int:
+        """
+        This function is called when a new reservation_buyer is created to handle the reservation_seller side of the operation.
+        This part is handled as a transaction, to avoid concurrency issues.
+        """
+        redis_client = get_redis_client()
+        if redis_client is None:
+            logger.error("Failed to connect to Redis.")
+            return 500
+        key = f"property_on_sale_id:{self.reservations_seller.property_on_sale_id}:reservations_seller"
+        ttl = convert_to_seconds(day, time)
+        if ttl is None:
+            return 400
+        
+        # I want to do this: get the data, if reservations_seller_db.reservations_seller.reservations is None
+        # then set it to an empty list, append the new reservation, and create the key in redis
+
+        with redis_client.pipeline() as pipe:
+            try:
+                pipe.watch(key)
+                raw_data = pipe.get(key)
+                initial_data = pipe.execute()  
+                raw_data = initial_data
+
+                if raw_data:
+                    data = json.loads(raw_data)
+                    reservations_list = data.get("reservations", [])
+                    for rsv in reservations_list:
+                        if rsv.get("buyer_id") == reservation.buyer_id:
+                            return 409
+                    if len(reservations_list) >= max_attendees:
+                        return 400
+                    reservations_list.append(reservation.model_dump())
+                    data["reservations"] = reservations_list
+                else:
+                    data = self.reservations_seller.model_dump()
+                    data["reservations"] = [reservation.model_dump()]
+
+                pipe.multi()
+                pipe.setex(key, ttl, json.dumps(data))
+                pipe.execute()
+                return 200
+
+            except redis.exceptions.WatchError:
+                logger.error(f"Transaction conflict on key={key}.")
+                return 500
+            except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
+                logger.error(f"Error in handle_book_now_transaction: {e}")
+                return 500

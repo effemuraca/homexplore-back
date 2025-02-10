@@ -221,20 +221,15 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
 
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
     reservations_buyer_db = ReservationsBuyerDB(reservations_buyer)
-    reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
-    reservations_seller_db = ReservationsSellerDB(reservations_seller)
-
+    
     status = reservations_buyer_db.get_reservations_by_user()
     if status == 500:
         raise HTTPException(status_code=500, detail="Error decoding reservations data")
     if status == 400:
         raise HTTPException(status_code=400, detail="Invalid input data")
 
-    status = reservations_seller_db.get_reservation_seller()
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Error decoding seller reservations data")
-    if status == 400:
-        raise HTTPException(status_code=400, detail="Invalid input data")
+    reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
+    reservations_seller_db = ReservationsSellerDB(reservations_seller)
 
     new_reservation = ReservationS(
         buyer_id=buyer_id, 
@@ -243,21 +238,14 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
         phone=buyer.phone_number
     )
 
-    if reservations_seller_db.reservations_seller.reservations is None:
-        reservations_seller_db.reservations_seller.reservations = []
-    reservations_seller_db.reservations_seller.reservations.append(new_reservation)
-
-    status = reservations_seller_db.create_reservation_seller(
-                book_now_info.day,
-                book_now_info.time,
-                buyer_id,
-                book_now_info.max_attendees
-            )
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Error creating seller reservation")
+    status = reservations_seller_db.handle_book_now_transaction(new_reservation, book_now_info.day, book_now_info.time, buyer_id, book_now_info.max_attendees)
+    if status == 400:
+        raise HTTPException(status_code=400, detail="Invalid input data")
     if status == 409:
         raise HTTPException(status_code=409, detail="Reservation already exists")
-
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Error creating reservation")
+    
     date = next_weekday(book_now_info.day)
 
     reservations_buyer_db.reservations_buyer.reservations = [
