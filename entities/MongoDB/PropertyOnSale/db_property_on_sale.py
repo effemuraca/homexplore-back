@@ -5,6 +5,7 @@ from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
 import logging
 from modules.Guest.models.guest_models import FilteredSearchInput
+from modules.RegisteredUser.models.registered_user_models import Analytics1Input
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,9 @@ class PropertyOnSaleDB:
     def __init__(self, property_on_sale: Optional[PropertyOnSale] = None, property_on_sale_list: Optional[List[PropertyOnSale]] = None):
         self.property_on_sale = property_on_sale
         self.property_on_sale_list = property_on_sale_list
+        self.analytics_1_result = None
+        self.analytics_4_result = None
+        self.analytics_5_result = None
 
     #guest route (filtered_search) CONSISTENT
     def filtered_search(self, input : FilteredSearchInput) -> int:
@@ -234,3 +238,71 @@ class PropertyOnSaleDB:
         else:
             logger.error("Error inserting property on sale with id: %s", self.property_on_sale.property_on_sale_id)
             return 500
+        
+    def get_analytics_1(self, input: Analytics1Input) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            pipeline = [
+                {"$match": input.model_dump(exclude_none=True, exclude={"order_by"})},
+                {"$project": {"neighbourhood": 1, "price_per_square_meter": {"$divide": ["$price", "$area"]}}},
+                {"$group": {"_id": "$neighbourhood", "avg_price": {"$avg": "$price_per_square_meter"}}},
+                {"$project": {"neighbourhood": "$_id", "avg_price": 1, "_id": 0}},
+                {"$sort": {"avg_price": input.order_by}}
+            ]
+            aggregation_result = mongo_client.PropertyOnSale.aggregate(pipeline)
+        except Exception as e:
+            logger.error("Error during analytics_1: %s", e)
+            return 500
+        
+        if not aggregation_result:
+            return 404
+        
+        self.analytics_1_result = list(aggregation_result)
+        return 200
+    
+    
+    def get_analytics_4(self, city: str):
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            pipeline = [
+                {"$match": {"city": city}},
+                {"$project": {"type": 1, "price": 1}},
+                {"$group": {"_id": "$type", "avg_price": {"$avg": "$price"}, "count": {"$sum": 1}}},
+                {"$project": {"type": "$_id", "avg_price": 1, "_id": 0, "count": 1}}
+            ]
+            aggregation_result = mongo_client.PropertyOnSale.aggregate(pipeline)
+        except Exception as e:
+            logger.error("Error during analytics_4: %s", e)
+            return 500
+        if not aggregation_result:
+            return 404
+        self.analytics_4_result = list(aggregation_result)
+        return 200
+        
+    def get_analytics_5(self, city: str, neighbourhood: str):
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            pipeline = [
+            # average bed_number, bath_number and area for each type of property
+                {"$match": {"city": city, "neighbourhood": neighbourhood}},
+                {"$group": {"_id": "$type", "avg_bed_number": {"$avg": "$bed_number"}, "avg_bath_number": {"$avg": "$bath_number"}, "avg_area": {"$avg": "$area"}}},
+                {"$project": {"type": "$_id", "avg_bed_number": 1, "avg_bath_number": 1, "avg_area": 1, "_id": 0}}
+            ]
+            aggregation_result = mongo_client.PropertyOnSale.aggregate(pipeline)
+        except Exception as e:
+            logger.error("Error during analytics_5: %s", e)
+            return 500
+        if not aggregation_result:
+            return 404
+        self.analytics_5_result = list(aggregation_result)
+        return 200
+        

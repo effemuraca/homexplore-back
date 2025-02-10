@@ -1,76 +1,62 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
+from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.RegisteredUser.models.registered_user_models import Analytics1Input
 from modules.RegisteredUser.models import response_models as ResponseModels
+
+from modules.Auth.helpers.JwtHandler import JWTHandler
 
 registered_user_router = APIRouter(prefix="/registered-user", tags=["RegisteredUser"])
 
 
-@registered_user_router.post("/Analytics 1", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics1Responses)
-def analytics_1(input : Analytics1Input):
-    mongo_client = get_default_mongo_db()
-    if mongo_client is None:
-        raise HTTPException(status_code=500, detail="Database client not found")
-    try:
-        pipeline = [
-            {"$match": input.model_dump(exclude_none=True, exclude={"order_by"})},
-            {"$project": {"neighbourhood": 1, "price_per_square_meter": {"$divide": ["$price", "$area"]}}},
-            {"$group": {"_id": "$neighbourhood", "avg_price": {"$avg": "$price_per_square_meter"}}},
-            {"$sort": {"avg_price": input.order_by}}
-        ]
-        aggregation_result = mongo_client.PropertyOnSale.aggregate(pipeline)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    aggregation_result = list(aggregation_result)
-    if not aggregation_result:
-        response = "No data found"
+@registered_user_router.post("/analytics_1", response_model=ResponseModels.Analytics1ResponseModel, responses=ResponseModels.Analytics1Responses)
+def analytics_1(input: Analytics1Input, access_token: str = Depends(JWTHandler())):
+    user_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    property_on_sale_db = PropertyOnSaleDB()
+    status = property_on_sale_db.get_analytics_1(input)
+    
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    elif status == 404:
+        raise HTTPException(status_code=404, detail="No data found")
     else:
-        response="Aggregated data finished successfully"
-    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
+        return JSONResponse(status_code=200,content={"detail": "Data found successfully", "result": property_on_sale_db.analytics_1_result})
 
-@registered_user_router.post("/Analytics 4", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics4Responses)
-def analytics_4(input : str):
-    mongo_client = get_default_mongo_db()
-    if mongo_client is None:
-        raise HTTPException(status_code=500, detail="Database client not found")
-    try:
-        pipeline = [
-            {"$match": {"city": input}},
-            {"$project": {"type": 1, "price": 1}},
-            {"$group": {"_id": "$type", "avg_price": {"$avg": "$price"}, "count": {"$sum": 1}}}
-        ]
-        aggregation_result = mongo_client.PropertyOnSale.aggregate(pipeline)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    aggregation_result = list(aggregation_result)
-    if not aggregation_result:
-        response = "No data found"
+@registered_user_router.post("/analytics_4", response_model=ResponseModels.Analytics4ResponseModel, responses=ResponseModels.Analytics4Responses)
+def analytics_4(city: str, access_token: str = Depends(JWTHandler())):
+    user_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    property_on_sale_db = PropertyOnSaleDB()
+    status = property_on_sale_db.get_analytics_4(city)
+    
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    elif status == 404:
+        raise HTTPException(status_code=404, detail="No data found")
     else:
-        response="Aggregated data finished successfully"
-    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
+        return JSONResponse(status_code=200,content={"detail": "Data found successfully", "result": property_on_sale_db.analytics_4_result})
 
-@registered_user_router.post("/Analytics 5", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics5Responses)
-def analytics_5(citta : str, quartiere : str):
-    mongo_client = get_default_mongo_db()
-    if mongo_client is None:
-        raise HTTPException(status_code=500, detail="Database client not found")
-    try:
-        pipeline = [
-           # average bed_number, bath_number and area for each type of property
-            {"$match": {"city": citta, "neighbourhood": quartiere}},
-            {"$group": {"_id": "$type", "avg_bed_number": {"$avg": "$bed_number"}, "avg_bath_number": {"$avg": "$bath_number"}, "avg_area": {"$avg": "$area"}}}
-        ]
-        aggregation_result = mongo_client.PropertyOnSale.aggregate(pipeline)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    aggregation_result = list(aggregation_result)
-    if not aggregation_result:
-        response = "No data found"
+@registered_user_router.post("/analytics_5", response_model=ResponseModels.Analytics5ResponseModel, responses=ResponseModels.Analytics5Responses)
+def analytics_5(city: str, neighbourhood: str, access_token: str = Depends(JWTHandler())):
+    user_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    property_on_sale_db = PropertyOnSaleDB()
+    status = property_on_sale_db.get_analytics_5(city, neighbourhood)
+    
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    elif status == 404:
+        raise HTTPException(status_code=404, detail="No data found")
     else:
-        response="Aggregated data finished successfully"
-    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
-
+        return JSONResponse(status_code=200,content={"detail": "Data found successfully", "result": property_on_sale_db.analytics_5_result})
 
 
 

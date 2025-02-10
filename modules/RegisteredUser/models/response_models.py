@@ -7,13 +7,17 @@ class SuccessModel(BaseModel):
 class ErrorModel(BaseModel):
     detail: str
 
-class AnalyticsResponseModel(BaseModel):
+
+class GroupedNeighbourhoodResponseModel(BaseModel):
+    avg_price: float
+    neighbourhood: str
+class Analytics1ResponseModel(BaseModel):
     detail: str
-    result: List[dict]
+    result: List[GroupedNeighbourhoodResponseModel]
 
 Analytics1Responses = {
     200: {
-        "model": AnalyticsResponseModel,
+        "model": Analytics1ResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
@@ -21,11 +25,11 @@ Analytics1Responses = {
                     "detail": "Aggregated data finished successfully",
                     "result": [
                         {
-                            "_id": "Brooklyn",
+                            "neighbourhood": "Brooklyn",
                             "avg_price": 2300.5
                         },
                         {
-                            "_id": "Manhattan",
+                            "neighbourhood": "Manhattan",
                             "avg_price": 2500.5
                         }
                     ]
@@ -46,9 +50,18 @@ Analytics1Responses = {
     }
 }
 
+class GroupedPropertiesResponseModel(BaseModel):
+    avg_price: float
+    count: int
+    type: str
+
+class Analytics4ResponseModel(BaseModel):
+    detail: str
+    result: List[GroupedPropertiesResponseModel]
+    
 Analytics4Responses = {
     200: {
-        "model": AnalyticsResponseModel,
+        "model": Analytics4ResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
@@ -81,9 +94,20 @@ Analytics4Responses = {
     }
 }
 
+class GroupedPropertiesWithAreaResponseModel(BaseModel):
+    avg_bed_number: float
+    avg_bath_number: float
+    avg_area: float
+    type: str
+
+class Analytics5ResponseModel(BaseModel):
+    detail: str
+    result: List[GroupedPropertiesWithAreaResponseModel]
+
+
 Analytics5Responses = {
     200: {
-        "model": AnalyticsResponseModel,
+        "model": Analytics5ResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
