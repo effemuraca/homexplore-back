@@ -19,7 +19,7 @@ class ReservationsBuyerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations_buyer"
         try:
             existing_data = redis_client.get(key)
             new_reservations = [res.model_dump() if hasattr(res, "dict") else res for res in (self.reservations_buyer.reservations or [])]
@@ -39,7 +39,7 @@ class ReservationsBuyerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations_buyer"
         raw_data = redis_client.get(key)
         if not raw_data:
             return 404
@@ -59,7 +59,7 @@ class ReservationsBuyerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations_buyer"
         try:
             raw_data = redis_client.get(key)
             if not raw_data:
@@ -86,7 +86,7 @@ class ReservationsBuyerDB:
             logger.error("Failed to connect to Redis.")
             return 500
         try:
-            key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+            key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations_buyer"
             result = redis_client.delete(key)
             if result:
                 return 200
@@ -102,7 +102,7 @@ class ReservationsBuyerDB:
             logger.error("Failed to connect to Redis.")
             return 500
         try:
-            key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+            key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations_buyer"
             raw_data = redis_client.get(key)
             if not raw_data:
                 return 404
@@ -125,7 +125,7 @@ class ReservationsBuyerDB:
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
             return 500
-        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations"
+        key = f"buyer_id:{self.reservations_buyer.buyer_id}:reservations_buyer"
         raw_data = redis_client.get(key)
         if not raw_data:
             return 404

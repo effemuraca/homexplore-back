@@ -147,7 +147,7 @@ class BuyerDB:
         mongo_client = get_default_mongo_db()
         try:
             result = mongo_client.buyers.update_one(
-                {"_id": ObjectId(buyer_id), "favourites.property_on_sale_id": property_on_sale_id},
+                {"_id": ObjectId(buyer_id), "favourites._id": property_on_sale_id},
                 {"$set": {"favourites.$": updated_data}}
             )
         except Exception as e:
