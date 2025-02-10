@@ -3,6 +3,7 @@ from datetime import datetime
 from bson.objectid import ObjectId
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from entities.MongoDB.Seller.seller import Seller, SoldProperty, SellerPropertyOnSale
+from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,6 +11,8 @@ logger = logging.getLogger(__name__)
 class SellerDB:
     def __init__(self, seller: Optional[Seller] = None):
         self.seller = seller
+        self.analytics_2_result = None
+        self.analytics_3_result = None
     
     def create_seller(self) -> int:
         if not self.seller:
@@ -92,7 +95,7 @@ class SellerDB:
         self.seller = Seller(**result)
         return 200
 
-    def update_seller_by_id(self) -> int:
+    def update_seller(self, seller: Seller) -> int:
         try:
             id = ObjectId(self.seller.seller_id)
         except:
@@ -104,7 +107,7 @@ class SellerDB:
         try:
             result = mongo_client.Seller.update_one(
                 {"_id": id},
-                {"$set": self.seller.model_dump(exclude_none=True, exclude={"seller_id"})}
+                {"$set": seller.model_dump(exclude_none=True, exclude={"seller_id"})}
             )
         except Exception as e:
             logger.error(f"Error updating seller with id {self.seller.seller_id}: {e}")
@@ -143,7 +146,7 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error retrieving properties on sale: for seller {self.seller.seller_id}: {e}")
             return 500
-        if not result:
+        if not result or "properties_on_sale" not in result or len(result["properties_on_sale"]) == 0:
             return 404
         # change the name of the key "_id" to "property_on_sale_id"
         for property_on_sale in result["properties_on_sale"]:
@@ -163,7 +166,7 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error retrieving sold properties for seller {self.seller.seller_id}: {e}")
             return 500
-        if not result:
+        if not result or "sold_properties" not in result or len(result["sold_properties"]) == 0:
             return 404
         
         # order the sold properties by sell_date
@@ -282,7 +285,7 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error updating property on sale: {e}")
             return 500
-        if result.matched_count == 0 or result.modified_count == 0:
+        if result.matched_count == 0:
             return 404 
         return 200
     
@@ -343,4 +346,99 @@ class SellerDB:
             return 500
         if not result:
             return 404
+        return 200
+    
+    
+    def get_analytics_2(self, input:Analytics2Input) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        
+        #convert input dates into datetime objects
+        start = datetime.strptime(input.start_date, "%Y-%m-%d")
+        end = datetime.strptime(input.end_date, "%Y-%m-%d")
+
+        #check if the start date is before the end date
+        if start > end:
+            return 400
+        
+        pipeline = [
+                {
+                    "$match": {
+                        "_id": ObjectId(self.seller.seller_id),
+                    }
+                },
+                {"$unwind": "$sold_properties"},
+                {
+                    "$match": {
+                        "sold_properties.city": input.city,
+                        "sold_properties.sell_date": {"$gte": start,"$lte": end}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$sold_properties.neighbourhood",
+                        "houses_sold": {"$sum": 1},
+                        "revenue": {"$sum": "$sold_properties.price"}
+                    }
+                },
+                {
+                    "$project": {
+                        "neighbourhood": "$_id",
+                        "houses_sold": 1,
+                        "revenue": 1,
+                        "_id": 0
+                    }
+                }
+            ]
+        try:
+            aggregation_result = mongo_client.Seller.aggregate(pipeline)
+        except Exception as e:
+            logger.error(f"Error retrieving analytics 2: {e}")
+            return 500
+        self.analytics_2_result = list(aggregation_result)
+        return 200
+        
+    
+    def get_analytics_3(self, input:Analytics3Input) -> int:
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        
+        start=datetime.strptime(input.start_date, "%Y-%m-%d")
+        pipeline = [
+                {"$match": {"_id": ObjectId(self.seller.seller_id)}},
+                {"$unwind": "$sold_properties"},
+                {"$match": {"sold_properties.city": input.city, "sold_properties.registration_date": {"$gte": start}}},
+                {"$project": {
+                    "time_to_sell": {
+                        "$divide": [{"$subtract": ["$sold_properties.sell_date", "$sold_properties.registration_date"]},86400000 ]
+                    },
+                    "sold_properties.neighbourhood": 1
+                }
+                },
+                {
+                "$group": {
+                    "_id": "$sold_properties.neighbourhood",
+                    "avg_time_to_sell": {"$avg": "$time_to_sell"},
+                    "num_house": {"$sum": 1}
+                }    
+                },
+                {
+                    "$project": {
+                        "neighbourhood": "$_id",
+                        "avg_time_to_sell": 1,
+                        "num_house": 1,
+                        "_id": 0
+                    }
+                }
+            ]
+        try:
+            aggregation_result = mongo_client.Seller.aggregate(pipeline)
+        except Exception as e:
+            logger.error(f"Error retrieving analytics 3: {e}")
+            return 500
+        self.analytics_3_result = list(aggregation_result)
         return 200

@@ -12,9 +12,14 @@ class ErrorModel(BaseModel):
 
 # Seller
 
+class SellerInfoResponseModel(BaseModel):
+    seller_id: str
+    agency_name: str
+    email: str
+
 GetSellerResponses = {
     200: {
-        "model": Seller,
+        "model": SellerInfoResponseModel,
         "description": "Seller found.",
         "content": {
             "application/json": {
@@ -22,9 +27,6 @@ GetSellerResponses = {
                     "seller_id": "507f1f77bcf86cd799439011",
                     "agency_name": "HomeXplore",
                     "email": "john@example.com",
-                    "phone_number": "123-456-7890",
-                    "property_on_sale": [],
-                    "sold_property": []
                 }
             }
         }
@@ -608,13 +610,18 @@ GetFilteredPropertiesOnSaleResponses = {
 }
 
 #Analytics
-class AnalyticsResponseModel(BaseModel):
+
+class GroupedRevenuesPerNeighbourhood(BaseModel):
+    houses_sold: int
+    revenue: int
+    neighbourhood: str
+class Analytics2ResponseModel(BaseModel):
     detail: str
-    result: List[dict]
+    result: List[GroupedRevenuesPerNeighbourhood]
 
 Analytics2Responses = {
     200: {
-        "model": AnalyticsResponseModel,
+        "model": Analytics2ResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
@@ -622,12 +629,12 @@ Analytics2Responses = {
                     "detail": "Aggregated data finished successfully",
                     "result": [
                         {
-                            "_id": "Brooklyn",
+                            "neighbourhood": "Brooklyn",
                             "house_sold": 10,
                             "revenue": 5000000
                         },
                         {
-                            "_id": "Manhattan",
+                            "neighbourhood": "Manhattan",
                             "house_sold": 5,
                             "revenue": 3000000
                         }
@@ -659,10 +666,21 @@ Analytics2Responses = {
         }
     }
 }
+
+
+class GroupedTimeToSell(BaseModel):
+    avg_time_to_sell: int
+    num_house: int
+    neighbourhood: str
+    
+class Analytics3ResponseModel(BaseModel):
+    detail: str
+    result: List[GroupedTimeToSell]
+    
  
 Analytics3Responses = {
     200: {
-        "model": AnalyticsResponseModel,
+        "model": Analytics3ResponseModel,
         "description": "Analytics data retrieved successfully.",
         "content": {
             "application/json": {
@@ -670,50 +688,12 @@ Analytics3Responses = {
                     "detail": "Aggregated data finished successfully",
                     "result": [
                         {
-                            "_id": "Brooklyn",
+                            "neighbourhood": "Brooklyn",
                             "house_sold": 10,
                             "revenue": 5000000
                         },
                         {
-                            "_id": "Manhattan",
-                            "house_sold": 5,
-                            "revenue": 3000000
-                        }
-                    ]
-                }
-            }
-        }
-    },
-    500: {
-        "model": ErrorModel,
-        "description": "Database client not found.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Database client not found"
-                }
-            }
-        }
-    }
-}
-
-
-Analytics6Responses = {
-    200: {
-        "model": AnalyticsResponseModel,
-        "description": "Analytics data retrieved successfully.",
-        "content": {
-            "application/json": {
-                "example": {
-                    "detail": "Aggregated data finished successfully",
-                    "result": [
-                        {
-                            "_id": "Brooklyn",
-                            "house_sold": 10,
-                            "revenue": 5000000
-                        },
-                        {
-                            "_id": "Manhattan",
+                            "neighbourhood": "Manhattan",
                             "house_sold": 5,
                             "revenue": 3000000
                         }

@@ -12,20 +12,22 @@ from entities.MongoDB.PropertyOnSale.property_on_sale import PropertyOnSale
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.Seller.models.seller_models import CreatePropertyOnSale, UpdatePropertyOnSale
 from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input
+from entities.Neo4J.PropertyOnSaleNeo4J.property_on_sale_neo4j import PropertyOnSaleNeo4J
+from entities.Neo4J.PropertyOnSaleNeo4J.db_property_on_sale_neo4j import PropertyOnSaleNeo4JDB
+from entities.Neo4J.PropertyOnSaleNeo4J.property_on_sale_neo4j import Neo4jPoint
 from typing import List, Optional
 from bson.objectid import ObjectId
 from apscheduler.schedulers.background import BackgroundScheduler
 import psutil
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime, timedelta
+from geopy.geocoders import Nominatim
 
-from modules.Auth.helpers.auth_helpers import JWTHandler, hash_password
-import logging
+from modules.Auth.helpers.JwtHandler import JWTHandler
+from modules.Auth.helpers.auth_helpers import hash_password
 
 seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
-# Configura il logger
-logger = logging.getLogger(__name__)
 
 # Avvia scheduler all'avvio dell'applicazione
 scheduler = BackgroundScheduler()
@@ -33,8 +35,7 @@ scheduler.start()
 
 #Seller
 
-#CONSISTENT
-@seller_router.get("/profile_info", response_model=Seller, responses=ResponseModels.GetSellerResponses)
+@seller_router.get("/profile_info", response_model=ResponseModels.SellerInfoResponseModel, responses=ResponseModels.GetSellerResponses)
 def get_seller(access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
@@ -53,7 +54,6 @@ def get_seller(access_token: str = Depends(JWTHandler())):
     return db_seller.seller
 
 
-#CONSISTENT
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler())):
     """
@@ -72,7 +72,7 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
     if seller.email:
         result=seller_db.get_seller_by_email(seller.email)
         if result == 200 and seller_db.seller.seller_id != seller_id:
-            raise HTTPException(status_code=400, detail="Email already in use.")
+            raise HTTPException(status_code=409, detail="Email already in use.")
         if result == 500:
             raise HTTPException(status_code=500, detail="Failed to update seller.")
         
@@ -92,7 +92,6 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Seller updated successfully."})
 
-#CONSISTENT
 @seller_router.get("/properties_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_properties_on_sale(access_token: str = Depends(JWTHandler())):
 
@@ -106,12 +105,11 @@ def get_properties_on_sale(access_token: str = Depends(JWTHandler())):
     db_seller = SellerDB(temp_seller)
     result = db_seller.get_properties_on_sale()
     if result == 404:
-        raise HTTPException(status_code=404, detail="Seller not found.")
+        raise HTTPException(status_code=404, detail="Seller or properties not found.")
     if result== 500:
-        raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
+        raise HTTPException(status_code=500, detail="Failed to retrieve properties on sale.")
     return db_seller.seller.properties_on_sale
 
-#CONSISTENT
 @seller_router.get("/sold_properties", response_model=List[SoldProperty], responses=ResponseModels.GetSoldPropertiesResponses)
 def get_sold_properties(access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
@@ -124,13 +122,12 @@ def get_sold_properties(access_token: str = Depends(JWTHandler())):
     db_seller = SellerDB(temp_seller)
     result=db_seller.get_sold_properties()
     if result == 404:
-        raise HTTPException(status_code=404, detail="Seller not found.")
+        raise HTTPException(status_code=404, detail="Seller or properties not found.")
     if result== 500:
         raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
     return db_seller.seller.sold_properties
 
 
-#CONSISTENT
 @seller_router.get("/property_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Optional[str] = None, address: Optional[str] = None, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
@@ -154,7 +151,7 @@ def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Opt
 
 # Properties on sale
 
-# CONSISTENT
+
 @seller_router.post("/property_on_sale", response_model=ResponseModels.CreatePropertyOnSaleResponseModel, responses=ResponseModels.CreatePropertyOnSaleResponses)
 def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
@@ -163,6 +160,15 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
     
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    geolocator = Nominatim(user_agent="homexplore")
+    address = input_property_on_sale.address  
+    try:
+        location = geolocator.geocode(address)
+    except Exception as e:
+            raise HTTPException(status_code=400, detail="Wrong address.")
+    if location is None:
+        raise HTTPException(status_code=400, detail="Wrong address.")
     
     #insert the property on the property_on_sale collection
     property_on_sale = PropertyOnSale(**input_property_on_sale.model_dump())
@@ -186,19 +192,37 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
             detail="Seller not found."
         #rollback
         response=db_property_on_sale.delete_property_on_sale_by_id(db_property_on_sale.property_on_sale.property_on_sale_id)
-        if response==200:
-            logging.error("Rollback successed.")
-        else:
-            logging.error("Rollback failed.")
         raise HTTPException(status_code=500, detail=detail)
-    return JSONResponse(status_code=201, content={"detail": "Property created successfully.", "property_id": db_property_on_sale.property_on_sale.property_on_sale_id})
+    
+    #Neo4j
+
+    property_on_sale_neo4j = PropertyOnSaleNeo4J(
+        property_on_sale_id=db_property_on_sale.property_on_sale.property_on_sale_id,
+        **input_property_on_sale.model_dump(include={"price", "type", "thumbnail"}),
+        coordinates=Neo4jPoint(latitude=location.latitude, longitude=location.longitude)
+    )
+    
+    property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
+
+    # create property on sale in Neo4j
+    neo4j_response = property_on_sale_neo4j_db.create_property_on_sale_neo4j(input_property_on_sale.neighbourhood)
+        
+    # update score
+    neo4j_response = property_on_sale_neo4j_db.update_livability_score()
+
+    return JSONResponse(
+        status_code=201, 
+        content={
+            "detail": "Property created successfully.", 
+            "property_on_sale_id": db_property_on_sale.property_on_sale.property_on_sale_id
+        }
+    )
 
 
 # Function to check and update the reservations when the load is low
-def check_and_update_when_low_load(not_updated_ids: list, property_id: str, disponibility, address):
+def check_and_update_when_low_load(not_updated_ids: list, property_on_sale_id: str, disponibility, address):
     # psutil.cpu_percent() checks the current CPU load
     current_load = psutil.cpu_percent(interval=1)
-    logger.info(f"Actual load of the CPU: {current_load}%")
     if current_load < 30:
         # if the load is low, update the reservations
         for buyer_id in not_updated_ids:
@@ -206,10 +230,9 @@ def check_and_update_when_low_load(not_updated_ids: list, property_id: str, disp
             reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
             status = reservation_buyer_db.get_reservations_by_user()
             if status != 200:
-                logger.error(f"Retry: impossibile to retrieve the buyer reservation {buyer_id}.")
                 continue
             for reservation in reservation_buyer_db.reservations_buyer.reservations:
-                if reservation.property_on_sale_id == property_id:
+                if reservation.property_on_sale_id == property_on_sale_id:
                     if disponibility is not None:
                         reservation.date = next_weekday(disponibility.day)
                         reservation.time = disponibility.time
@@ -221,16 +244,14 @@ def check_and_update_when_low_load(not_updated_ids: list, property_id: str, disp
                 not_updated_ids.remove(buyer_id)
 
         if not_updated_ids:
-            logger.info(f"Retry: some reservations could not be updated: {not_updated_ids}.")
             # if there are still reservations to update, re-schedule the update
             next_run = datetime.now() + timedelta(minutes=5)
             scheduler.add_job(
                 check_and_update_when_low_load,
                 'date',
                 run_date=next_run,
-                args=[not_updated_ids, property_id, disponibility, address]
+                args=[not_updated_ids, property_on_sale_id, disponibility, address]
             )
-            logger.info(f"Retry: job re-scheduled for {next_run}.")
 
     else:
         # if the load is still high, re-schedule the update
@@ -239,15 +260,13 @@ def check_and_update_when_low_load(not_updated_ids: list, property_id: str, disp
             check_and_update_when_low_load,
             'date',
             run_date=next_run,
-            args=[not_updated_ids, property_id, disponibility, address]
+            args=[not_updated_ids, property_on_sale_id, disponibility, address]
         )
-        logger.info(f"Load too high ({current_load}%). Reschedule the job for {next_run}.")
 
 # Function to check and delete the reservations when the load is low
-def check_and_delete_when_low_load(not_deleted_ids: list, property_id: str):
+def check_and_delete_when_low_load(not_deleted_ids: list, property_on_sale_id: str):
     # psutil.cpu_percent() checks the current CPU load
     current_load = psutil.cpu_percent(interval=1)
-    logger.info(f"Actual load of the CPU: {current_load}%")
     if current_load < 30:
         # if the load is low, update the reservations
         for buyer_id in not_deleted_ids:
@@ -255,24 +274,21 @@ def check_and_delete_when_low_load(not_deleted_ids: list, property_id: str):
             reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
             status = reservation_buyer_db.get_reservations_by_user()
             if status != 200:
-                logger.error(f"Retry: impossibile to retrieve the buyer reservation {buyer_id}.")
                 continue
-            status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_id)    
+            status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)    
             # if the delete do not fail, remove the buyer_id from the list
             if status == 200:
                 not_deleted_ids.remove(buyer_id)
 
         if not_deleted_ids:
-            logger.info(f"Retry: some reservations could not be updated: {not_deleted_ids}.")
             # if there are still reservations to delete, re-schedule the delete
             next_run = datetime.now() + timedelta(minutes=5)
             scheduler.add_job(
                 check_and_delete_when_low_load,
                 'date',
                 run_date=next_run,
-                args=[not_deleted_ids, property_id]
+                args=[not_deleted_ids, property_on_sale_id]
             )
-            logger.info(f"Retry: job re-scheduled for {next_run}.")
     else:
         # if the load is still high, re-schedule the delete
         next_run = datetime.now() + timedelta(minutes=5)
@@ -280,11 +296,9 @@ def check_and_delete_when_low_load(not_deleted_ids: list, property_id: str):
             check_and_delete_when_low_load,
             'date',
             run_date=next_run,
-            args=[not_deleted_ids, property_id]
+            args=[not_deleted_ids, property_on_sale_id]
         )
-        logger.info(f"Load too high ({current_load}%). Reschedule the job for {next_run}.")
 
-#CONSISTENT
 @seller_router.put("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdatePropertyOnSaleResponses)
 def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
@@ -292,6 +306,16 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
         raise HTTPException(status_code=401, detail="Invalid access token")
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if input_property_on_sale.address is not None:
+        geolocator = Nominatim(user_agent="homexplore")
+        address = input_property_on_sale.address  
+        try:
+            location = geolocator.geocode(address)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Wrong address.")
+        if location is None:
+            raise HTTPException(status_code=400, detail="Wrong address.")
     
     #update on the seller collection
     seller= Seller(seller_id=seller_id)
@@ -310,88 +334,79 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
     db_property_on_sale = PropertyOnSaleDB(property_on_sale)
     response = db_property_on_sale.update_property_on_sale()
     if response == 404:
-        logging.error("Missing property on property_on_sale collection, inconistencies in the database before operation, rollback impossible.")
         raise HTTPException(status_code=response, detail="Property not found in property_on_sale collection.")
     if response == 500:
         #rollback
         response=db_property_on_sale.get_property_on_sale_by_id(property_on_sale.property_on_sale_id)
-        if response != 200:
-            logging.error("Rollback failed.")
-        else:
+        if response == 200:
             embedded_property_on_sale = SellerPropertyOnSale(db_property_on_sale.property_on_sale)
             response=db_seller.update_property_on_sale(embedded_property_on_sale)
-            if response != 200:
-                logging.error("Rollback failed.")
-            else:
-                logging.error("Rollback successed.")
         raise HTTPException(status_code=response, detail="Failed to update property.")
     
     # handling redis part of the update
-    if input_property_on_sale.disponibility is None or input_property_on_sale.address is None:
-        # if input_property_on_sale.disponibility is None and input_property_on_sale.address is None, nothing to update in the reservations
-        return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
+    if input_property_on_sale.disponibility is not None or input_property_on_sale.address is not None:
+        
+        reservation_seller = ReservationsSeller(property_on_sale_id=input_property_on_sale.property_on_sale_id)
+        reservation_seller_db = ReservationsSellerDB(reservation_seller)
+
+        # if disponibility has changed, update the ttl in the reservations seller
+        if input_property_on_sale.disponibility is not None:
+            status = reservation_seller_db.update_day_and_time(input_property_on_sale.disponibility.day, input_property_on_sale.disponibility.time)
+            if status == 500:
+                raise HTTPException(status_code=500, detail="Failed to update disponibility.")
+
+        # save all the buyer_ids of the reservations
+        buyer_ids = [reservation.buyer_id for reservation in reservation_seller_db.reservations_seller.reservations]
+
+        # for each reservation buyer, update the disponibility and address
+        not_updated_ids = []
+        for buyer_id in buyer_ids.copy():
+            reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
+            reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
+            status = reservation_buyer_db.get_reservations_by_user()
+            if status != 200:
+                continue
+            for reservation in reservation_buyer_db.reservations_buyer.reservations:
+                if reservation.property_on_sale_id == input_property_on_sale.property_on_sale_id:
+                    if input_property_on_sale.disponibility is not None:
+                        reservation.date = next_weekday(input_property_on_sale.disponibility.day)
+                        reservation.time = input_property_on_sale.disponibility.time
+                    if input_property_on_sale.address is not None:
+                        reservation.address = input_property_on_sale.address
+            status = reservation_buyer_db.update_reservation_buyer()
+            # if the update do not fail, remove the buyer_id from the list
+            if status == 200:
+                buyer_ids.remove(buyer_id)
+            else: 
+                not_updated_ids.append(buyer_id)            
+                
+        if not_updated_ids:
+                run_date = datetime.now() + timedelta(minutes=5)
+                scheduler.add_job(
+                    check_and_update_when_low_load,
+                    'date',
+                    run_date=run_date,
+                    args=[not_updated_ids, input_property_on_sale.property_on_sale_id, input_property_on_sale.disponibility, input_property_on_sale.address]
+                )
     
-    reservation_seller = ReservationsSeller(property_on_sale_id=input_property_on_sale.property_on_sale_id)
-    reservation_seller_db = ReservationsSellerDB(reservation_seller)
-
-    # get the reservations for the property
-    status = reservation_seller_db.get_reservation_seller()
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to fetch reservations.")
-
-
-     # if disponibility has changed, update the ttl in the reservations seller
-    if input_property_on_sale.disponibility is not None:
-        status = reservation_seller_db.update_day_and_time(input_property_on_sale.disponibility.day, input_property_on_sale.disponibility.time)
-        if status == 500:
-            raise HTTPException(status_code=500, detail="Failed to update disponibility.")
-        if status == 404:
-            raise HTTPException(status_code=404, detail="No reservations found.")
-
-    # save all the buyer_ids of the reservations
-    buyer_ids = [reservation.buyer_id for reservation in reservation_seller_db.reservations_seller.reservations]
-
-    # for each reservation buyer, update the disponibility and address
-    not_updated_ids = []
-    for buyer_id in buyer_ids.copy():
-        reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
-        reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
-        status = reservation_buyer_db.get_reservations_by_user()
-        if status == 404:
-            raise HTTPException(status_code=404, detail="No reservations found.")
-        if status == 500:
-            raise HTTPException(status_code=500, detail="Failed to fetch reservations.")
-        for reservation in reservation_buyer_db.reservations_buyer.reservations:
-            if reservation.property_on_sale_id == input_property_on_sale.property_on_sale_id:
-                if input_property_on_sale.disponibility is not None:
-                    reservation.date = next_weekday(input_property_on_sale.disponibility.day)
-                    reservation.time = input_property_on_sale.disponibility.time
-                if input_property_on_sale.address is not None:
-                    reservation.address = input_property_on_sale.address
-        status = reservation_buyer_db.update_reservation_buyer()
-        # if the update do not fail, remove the buyer_id from the list
-        if status == 200:
-            buyer_ids.remove(buyer_id)
-        else: 
-            not_updated_ids.append(buyer_id)            
-            
-    if not_updated_ids:
-            run_date = datetime.now() + timedelta(minutes=5)
-            scheduler.add_job(
-                check_and_update_when_low_load,
-                'date',
-                run_date=run_date,
-                args=[not_updated_ids, input_property_on_sale.property_on_sale_id, input_property_on_sale.disponibility, input_property_on_sale.address]
-            )
-            logger.info(f"Update scheduled for {run_date} for some reservations that could not be updated.")
-            
+    neighbourhood_name = None
+    if input_property_on_sale.neighbourhood is not None:
+        neighbourhood_name = input_property_on_sale.neighbourhood
+    # update Neo4j
+    if input_property_on_sale.address is not None:
+        new_property_on_sale_neo4j = PropertyOnSaleNeo4J(**input_property_on_sale.model_dump(include={"property_on_sale_id", "price", "type", "thumbnail"}), coordinates=Neo4jPoint(latitude=location.latitude, longitude=location.longitude))
+        property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=input_property_on_sale.property_on_sale_id))
+        property_on_sale_neo4j_db.update_property_on_sale_neo4j(new_property_on_sale_neo4j, neighbourhood_name)
+    else:
+        new_property_on_sale_neo4j = PropertyOnSaleNeo4J(**input_property_on_sale.model_dump(include={"property_on_sale_id", "price", "type", "thumbnail"}), coordinates=None)
+        property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=input_property_on_sale.property_on_sale_id))
+        property_on_sale_neo4j_db.update_property_on_sale_neo4j(new_property_on_sale_neo4j, neighbourhood_name)
+    
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
 
 # Function to handle the reservations when a property is sold or deleted
-def handleReservations(property_id: str) -> int:
-    reservation_seller = ReservationsSeller(property_on_sale_id=property_id)
+def handleReservations(property_on_sale_id: str) -> int:
+    reservation_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservation_seller_db = ReservationsSellerDB(reservation_seller)
     status = reservation_seller_db.get_reservation_seller()
     if status == 404:
@@ -404,7 +419,7 @@ def handleReservations(property_id: str) -> int:
     for buyer_id in buyer_ids:
         reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
         reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
-        status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_id)
+        status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)
         if status == 200:
             buyer_ids.remove(buyer_id)
         else: 
@@ -416,14 +431,12 @@ def handleReservations(property_id: str) -> int:
             check_and_delete_when_low_load,
             'date',
             run_date=run_date,
-            args=[not_deleted_ids, property_id]
+            args=[not_deleted_ids, property_on_sale_id]
         )
-        logger.info(f"Delete scheduled for {run_date} for some reservations that could not be deleted.")
     return 200
 
-#CONSISTENT 
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.SellPropertyOnSaleResponses)
-def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandler())):
+def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -461,23 +474,20 @@ def sell_property(property_to_sell_id: str, access_token: str = Depends(JWTHandl
             detail="Seller not found or property not found in the seller collection."
         #rollback
         result=db_property_on_sale.insert_property()
-        if result != 200:
-            logging.error("Rollback failed.")
-        else:
-            logging.error("Rollback successed.")
         raise HTTPException(status_code=500, detail=detail)
 
     
     # call a function that handles the reservations
     status = handleReservations(property_to_sell_id)
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to handle reservations.")
+    
+    # delete in Neo4j
+    property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_to_sell_id)
+    property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
+    property_on_sale_neo4j_db.delete_property_on_sale_neo4j()      
+      
     return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
     
     
-#CONSISTENT
 @seller_router.delete("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeletePropertyOnSaleResponses)
 def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
@@ -506,29 +516,23 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
     response = db_property_on_sale.delete_property_on_sale_by_id(property_on_sale_id)
     if response == 404:
         #rollback impossible
-        logger.error("Privious state of the database is inconsistent, rollback impossible, property eliminated from all the collections.")
         raise HTTPException(status_code=response, detail="Property not found.")
     if response == 500:
         #rollback
-        logger.error("Failed to delete property from the property_on_sale collection.")
         response=db_property_on_sale.get_property_on_sale_by_id(property_on_sale_id)
-        if response != 200:
-            logger.error("Rollback failed.")
-        else:
+        if response == 200:
             embedded_property_on_sale = SellerPropertyOnSale(db_property_on_sale.property_on_sale)
             response=db_seller.insert_property_on_sale(embedded_property_on_sale)
-            if response != 200:
-                logger.error("Rollback failed.")
-            else:
-                logger.error("Rollback successed.")
         raise HTTPException(status_code=response, detail="Failed to delete property.")
     
     # call a function that handles the reservations
     status = handleReservations(property_on_sale_id)
-    if status == 404:
-        raise HTTPException(status_code=404, detail="No reservations found.")
-    if status == 500:
-        raise HTTPException(status_code=500, detail="Failed to handle reservations.")
+    
+    # delete in Neo4j
+    property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_to_sell_id)
+    property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
+    property_on_sale_neo4j_db.delete_property_on_sale_neo4j()   
+    
     return JSONResponse(status_code=200, content={"detail": "Property deleted successfully."})
 
 # ReservationsSeller
@@ -559,8 +563,7 @@ def get_reservations_seller(property_on_sale_id: str, access_token: str = Depend
 
 # Analytics routes
 
-#CONSISTENT
-@seller_router.post("/Analytics/Analytics 2", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics2Responses)
+@seller_router.post("/analytics/analytics_2", response_model=ResponseModels.Analytics2ResponseModel, responses=ResponseModels.Analytics2Responses)
 def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
@@ -568,60 +571,18 @@ def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler(
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
-    mongo_client = get_default_mongo_db()
-    if mongo_client is None:
-        raise HTTPException(status_code=500, detail="Database client not found")
-    
-    #convert input dates into datetime objects
-    start = datetime.strptime(input.start_date, "%Y-%m-%d")
-    end = datetime.strptime(input.end_date, "%Y-%m-%d")
-
-    #check if the start date is before the end date
-    if start > end:
-        raise HTTPException(status_code=404, detail="Start date must be before end date")
-    pipeline = [
-            {
-                "$match": {
-                    "_id": ObjectId(seller_id),
-                }
-            },
-            {"$unwind": "$sold_properties"},
-            {
-                "$match": {
-                    "sold_properties.city": input.city,
-                    "sold_properties.sell_date": {"$gte": start,"$lte": end}
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$sold_properties.neighbourhood",
-                    "houses_sold": {"$sum": 1},
-                    "revenue": {"$sum": "$sold_properties.price"}
-                }
-            },
-            {
-                "$project": {
-                    "neighbourhood": "$_id",
-                    "houses_sold": 1,
-                    "revenue": 1,
-                    "_id": 0
-                }
-            }
-        ]
-    try:
-        aggregation_result = mongo_client.Seller.aggregate(pipeline)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    aggregation_result = list(aggregation_result)
-    if not aggregation_result:
-        response="No data found"
+    seller_db = SellerDB(Seller(seller_id=seller_id))
+    status = seller_db.get_analytics_2(input)
+    aggregation_result = seller_db.analytics_2_result
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Error in fetching data.")
+    elif status == 404:
+        raise HTTPException(status_code=404, detail="No data found.")
     else:
-        response="Aggregated data finished successfully"
-    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
+        return JSONResponse(status_code=200,content={"detail": "Data found successfully", "result": aggregation_result})
 
 
-#CONSISTENT
-@seller_router.post("/Analytics/Analytics 3", response_model=ResponseModels.AnalyticsResponseModel, responses=ResponseModels.Analytics3Responses)
+@seller_router.post("/analytics/analytics_3", response_model=ResponseModels.Analytics3ResponseModel, responses=ResponseModels.Analytics3Responses)
 def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler())):
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
@@ -630,46 +591,14 @@ def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler(
     if user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
-    mongo_client = get_default_mongo_db()
-    if mongo_client is None:
-        raise HTTPException(status_code=500, detail="Database client not found")
-    start=datetime.strptime(input.start_date, "%Y-%m-%d")
-    pipeline = [
-            {"$match": {"_id": ObjectId(seller_id)}},
-            {"$unwind": "$sold_properties"},
-            {"$match": {"sold_properties.city": input.city, "sold_properties.registration_date": {"$gte": start}}},
-            {"$project": {
-                "time_to_sell": {
-                    "$divide": [{"$subtract": ["$sold_properties.sell_date", "$sold_properties.registration_date"]},86400000 ]
-                },
-                "sold_properties.neighbourhood": 1
-            }
-            },
-            {
-            "$group": {
-                "_id": "$sold_properties.neighbourhood",
-                "avg_time_to_sell": {"$avg": "$time_to_sell"},
-                "num_house": {"$sum": 1}
-            }    
-            },
-            {
-                "$project": {
-                    "neighbourhood": "$_id",
-                    "avg_time_to_sell": 1,
-                    "num_house": 1,
-                    "_id": 0
-                }
-            }
-        ]
-    try:
-        aggregation_result = mongo_client.Seller.aggregate(pipeline)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    aggregation_result = list(aggregation_result)
-    if not aggregation_result:
-        response="No data found"
+    seller_db = SellerDB(Seller(seller_id=seller_id))
+    
+    status = seller_db.get_analytics_3(input)
+    aggregation_result = seller_db.analytics_3_result
+    if status == 500:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    elif status == 404:
+        raise HTTPException(status_code=404, detail="No data found")
     else:
-        response="Aggregated data finished successfully"
-    return JSONResponse(status_code=200,content={"detail": response, "result": aggregation_result})
-
+        return JSONResponse(status_code=200,content={"detail": "Data found successfully", "result": aggregation_result})
 
