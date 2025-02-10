@@ -20,7 +20,7 @@ class BuyerDB:
             logger.error("Mongo client not initialized.")
             return 500
         try:
-            data = mongo_client.buyers.find_one({"_id": ObjectId(self.buyer.buyer_id)}, {"favourites": 0})
+            data = mongo_client.Buyer.find_one({"_id": ObjectId(self.buyer.buyer_id)}, {"favourites": 0})
         except Exception as e:
             logger.error("Error retrieving buyer profile: %s", e)
             return 500
@@ -35,7 +35,7 @@ class BuyerDB:
             return 400
         mongo_client = get_default_mongo_db()
         try:
-            data = mongo_client.buyers.find_one({"email": email}, {"favourites": 0})
+            data = mongo_client.Buyer.find_one({"email": email}, {"favourites": 0})
         except Exception as e:
             logger.error("Error retrieving buyer by email: %s", e)
             return 500
@@ -58,7 +58,7 @@ class BuyerDB:
         buyer_data = self.buyer.model_dump(exclude_none=True, exclude={"buyer_id"})
         buyer_data["favourites"] = []
         try:
-            result = mongo_client.buyers.insert_one(buyer_data)
+            result = mongo_client.Buyer.insert_one(buyer_data)
         except Exception as e:
             logger.error("Error creating buyer: %s", e)
             return 500
@@ -74,7 +74,7 @@ class BuyerDB:
         mongo_client = get_default_mongo_db()
         update_data = buyer.model_dump(exclude_none=True, exclude={"buyer_id"})
         try:
-            result = mongo_client.buyers.update_one(
+            result = mongo_client.Buyer.update_one(
                 {"_id": ObjectId(self.buyer.buyer_id)},
                 {"$set": update_data}
             )
@@ -90,7 +90,7 @@ class BuyerDB:
             return 400
         mongo_client = get_default_mongo_db()
         try:
-            result = mongo_client.buyers.delete_one({"_id": ObjectId(buyer_id)})
+            result = mongo_client.Buyer.delete_one({"_id": ObjectId(buyer_id)})
         except Exception as e:
             logger.error("Error deleting buyer by id: %s", e)
             return 500
@@ -105,7 +105,7 @@ class BuyerDB:
             logger.error("Mongo client not initialized.")
             return 500
         try:
-            data = mongo_client.buyers.find_one({"_id": ObjectId(self.buyer.buyer_id)}, {"favourites": 1})
+            data = mongo_client.Buyer.find_one({"_id": ObjectId(self.buyer.buyer_id)}, {"favourites": 1})
         except Exception as e:
             logger.error("Error retrieving favourites for buyer_id=%s: %s", self.buyer.buyer_id, e)
             return 500
@@ -129,7 +129,7 @@ class BuyerDB:
             return 500
         data={"_id": ObjectId(favourite.property_on_sale_id), **favourite.model_dump(exclude={"property_on_sale_id"})}
         try:
-            result = mongo_client.buyers.update_one(
+            result = mongo_client.Buyer.update_one(
             {"_id": ObjectId(buyer_id)},
             {"$push": {"favourites": data}}
             )
@@ -146,7 +146,7 @@ class BuyerDB:
             return 400
         mongo_client = get_default_mongo_db()
         try:
-            result = mongo_client.buyers.update_one(
+            result = mongo_client.Buyer.update_one(
                 {"_id": ObjectId(buyer_id), "favourites._id": property_on_sale_id},
                 {"$set": {"favourites.$": updated_data}}
             )
@@ -166,7 +166,7 @@ class BuyerDB:
             logger.error("Mongo client not initialized.")
             return 500
         try:
-            result = mongo_client.buyers.update_one(
+            result = mongo_client.Buyer.update_one(
                 {"_id": ObjectId(buyer_id)},
                 {"$pull": {"favourites": {"_id": ObjectId(property_on_sale_id)}}}
             )
