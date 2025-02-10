@@ -26,7 +26,7 @@ DA VEDERE CARLO
 ### index.html
 
 - search cliccato: parte la get con i parametri che l'utente ha impostato -> FATTO DA FERDI
-- CARLO AGGIUNGI COME FILTRO DI RICERCA IL TIPO DI CASA
+- CARLO AGGIUNGI COME FILTRO DI RICERCA IL TIPO DI CASA(mockup)
 
 ### search.html
 
@@ -43,17 +43,13 @@ DA VEDERE CARLO
 
 ### seller.html
 
-- Edit seller information --> PARZIALMENTE FATTO DA ALE / FATTO FERDI (REDIS)
-- View sold houses  --> PARZIALMENTE FATTO DA ALE
-- View property on sale --> PARZIALMENTE FATTO DA ALE
-
 ### profile.html
 
 - Get all profile info: -> FATTO DA FERDI GET /seller/get_profile_info
 
 ### edit_profile.html
 
-- Un utente (buyer o seller) modifica i propri dati -> FATTO FERDI / QUALCUN ALTRO DEVE FARE MONGO : PUT /seller/
+- Un utente (buyer o seller) modifica i propri dati -> FATTO FERDI + FATTO MOCKUP : PUT /seller/
 
 ### seller_sold.html
 
@@ -65,7 +61,7 @@ DA VEDERE CARLO
 
 - Il bottone edit property ti porta al form corrispondente alla proprietà (serve l'id della proprietà per propagare la modifica dopo) -> FATTO (?)
 - INSERIRE BOTTONE PER ANALYTICS SULLE CASE IN VENDITA
-- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/properties_on_sale/reservations -> CARLO AGGIUNGI UN COUNT DI QUANTI PRENOTATI CI SONO NEI MOCKUP
+- View Reservations cliccato: mostrate le reservations di una determinata proprietà (info di contatto) -> FATTO DA FERDI: GET /seller/properties_on_sale/reservations -> CARLO AGGIUNGI UN COUNT DI QUANTI PRENOTATI CI SONO NEI MOCKUP(mockup) FATTO
 - Sell house --> FATTO DA ALE CONSISTENTE DU MONGO / DA FARE FERDI (REDIS + PREFERITI): POST /seller/sell_properties_on_sale
 - Remove house --> PARZIALMENTE FATTO DA ALE / DA FARE FERDI (REDIS + PREFERITI): DELETE /seller/properties_on_sale
 - AGGIUNGERE AI MOCKUP (IN OGNI CARD DI OGNI CASA) IL TASTO "VIEW SCHEDULE", CHE SE CLICCATO SCARICA UN PDF CON LA SCHEDULE DEGLI ORARI E INDIRIZZI IN CUI CI SARANNO OPEN HOUSE EVENT QUEL GIORNO
@@ -77,12 +73,13 @@ DA VEDERE CARLO
 ### add_property.html
 
 - Una proprietà viene aggiunta (attenzione al caso end_time < start_time dell'open house) --> FATTO DA ALE E CONSISTENTE SU MONGO: POST /seller/properties_on_sale
-- AGGIUNGERE NEI MOCKUP LA SCELTA DI MAX_RESERVATIONS
+- AGGIUNGERE NEI MOCKUP LA SCELTA DI MAX_ATTENDEES
+- AGGIUNGERE LA SELECT DEL QUARTIERE E CITTA'
 
 ### edit_property.html
 
 - Una proprietà viene modificata --> FATTO DA ALE CONSISTENTE SU MONGO / DA FARE FERDI (REDIS + PREFERITI): PUT /seller/properties_on_sale
-- AGGIUNGERE NEI MOCKUP LA SCELTA DI MAX_RESERVATIONS
+- AGGIUNGERE NEI MOCKUP LA SCELTA DI MAX_ATTENDEES
 
 ## BUYER
 
