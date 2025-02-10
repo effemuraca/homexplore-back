@@ -21,6 +21,10 @@ guest_router = APIRouter(prefix="/guest", tags=["Guest"])
 
 @guest_router.post("/properties_on_sale/search", response_model=List[PropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
 def filtered_search(input : FilteredSearchInput):
+    """
+    Search for properties on sale based on the input parameters.
+    :param input: parameters used for filtering the search
+    """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     result_code = db_property_on_sale.filtered_search(input)
     if result_code == 500:
@@ -29,8 +33,11 @@ def filtered_search(input : FilteredSearchInput):
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-@guest_router.get("/properties_on_sale/get_random", response_model=List[PropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
+@guest_router.get("/properties_on_sale/random_properties", response_model=List[PropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
 def get_10_random_properties():
+    """
+    Get 10 random properties on sale.
+    """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     result_code = db_property_on_sale.get_10_random_properties()
     if result_code == 500:
@@ -39,8 +46,13 @@ def get_10_random_properties():
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-@guest_router.get("/properties_on_sale/search_by_address", response_model=List[PropertyOnSale], responses=ResponseModels.GetPropertyOnSaleResponses)
+@guest_router.get("/properties_on_sale/{address}", response_model=List[PropertyOnSale], responses=ResponseModels.GetPropertyOnSaleResponses)
 def search_by_address(city: str, address: str):
+    """
+    Search for properties on sale based on the city and address.
+    :param city: The city of the property
+    :param address: The address of the property
+    """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     response = db_property_on_sale.get_property_on_sale_by_address(city, address)
     if response == 404:
@@ -52,7 +64,10 @@ def search_by_address(city: str, address: str):
 
 @guest_router.get("/map/property_on_sale/{property_on_sale_id}", response_model=PropertyOnSaleNeo4J, responses=ResponseModels.GetPropertyOnSaleResponses)
 def get_property_on_sale(property_on_sale_id:str):
-    # check validity of property_on_sale_id
+    """
+    Get the property on sale with the given id.
+    :param property_on_sale_id: The id of the property on sale
+    """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))
@@ -66,7 +81,10 @@ def get_property_on_sale(property_on_sale_id:str):
 
 @guest_router.get("/map/city_and_neighborhood", response_model= ResponseModels.CityAndNeighbourhood, responses=ResponseModels.GetCityAndNeighbourhoodResponses)
 def get_city_and_neighbourhood(property_on_sale_id:str):
-    # check validity of property_on_sale_id
+    """
+    Get the city and neighbourhood of the property on sale with the given id.
+    :param property_on_sale_id: The id of the property on sale
+    """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))
@@ -81,7 +99,10 @@ def get_city_and_neighbourhood(property_on_sale_id:str):
 
 @guest_router.get("/map/pois_near_property", response_model=List[POI], responses=ResponseModels.GetPOIsResponses)
 def get_pois(property_on_sale_id:str):
-    # check validity of property_on_sale_id
+    """
+    Get the points of interest near the property on sale with the given id.
+    :param property_on_sale_id: The id of the property on sale
+    """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))
@@ -96,7 +117,10 @@ def get_pois(property_on_sale_id:str):
 
 @guest_router.get("/map/properties_near_property", response_model=List[PropertyOnSaleNeo4J], responses=ResponseModels.GetNearPropertiesResponses)
 def get_near_properties(property_on_sale_id:str):
-    # check validity of property_on_sale_id
+    """
+    Get the properties near the property on sale with the given id.
+    :param property_on_sale_id: The id of the property on sale
+    """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
     db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))

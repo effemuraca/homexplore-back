@@ -239,7 +239,7 @@ class PropertyOnSaleDB:
             logger.error("Error inserting property on sale with id: %s", self.property_on_sale.property_on_sale_id)
             return 500
         
-    def get_analytics_1(self, input: Analytics1Input) -> int:
+    def get_avg_price_per_square_meter(self, input: Analytics1Input) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -264,7 +264,7 @@ class PropertyOnSaleDB:
         return 200
     
     
-    def get_analytics_4(self, city: str):
+    def get_avg_price_per_square_meter(self, city: str) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -285,7 +285,7 @@ class PropertyOnSaleDB:
         self.analytics_4_result = list(aggregation_result)
         return 200
         
-    def get_analytics_5(self, city: str, neighbourhood: str):
+    def get_statistics_by_city_and_neighbourhood(self, city: str, neighbourhood: str) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
