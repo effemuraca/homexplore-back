@@ -75,7 +75,7 @@ class PropertyOnSaleDB:
             logger.error("Mongo client not initialized.")
             return 500
         try:
-            result = mongo_client.PropertyOnSale.find({"city": city, "address": address})
+            result = mongo_client.PropertyOnSale.find({"city": city, "address": {"$regex": address, "$options": "i"}})
         except Exception as e:
             logger.error("Error while searching property by address: %s", e)
             return 500

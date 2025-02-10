@@ -38,7 +38,8 @@ class PropertyOnSaleNeo4JDB:
             if not result_list:
                 return 404
             
-            self.property_on_sale_neo4j = PropertyOnSaleNeo4J(**dict(result_list[0]["p"]))
+            coordinates = Neo4jPoint(latitude=dict(result_list[0]["p"])["coordinates"].latitude, longitude=dict(result_list[0]["p"])["coordinates"].longitude)
+            self.property_on_sale_neo4j = PropertyOnSaleNeo4J(**{k: v for k, v in dict(result_list[0]["p"]).items() if k != 'coordinates'}, coordinates=coordinates.model_dump())
             return 200
     
     def create_property_on_sale_neo4j(self, neighbourhood_name: str):

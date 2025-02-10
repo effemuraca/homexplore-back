@@ -30,7 +30,6 @@ def filtered_search(input : FilteredSearchInput):
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-#CONSISTENT
 @guest_router.get("/properties_on_sale/get_random", response_model=List[PropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
 def get_10_random_properties():
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
@@ -52,6 +51,20 @@ def search_by_address(city: str, address: str):
 
 
 # Map
+
+@guest_router.get("/map/property_on_sale/{property_on_sale_id}", response_model=PropertyOnSaleNeo4J, responses=ResponseModels.GetPropertyOnSaleResponses)
+def get_property_on_sale(property_on_sale_id:str):
+    # check validity of property_on_sale_id
+    if not ObjectId.is_valid(property_on_sale_id):
+        raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
+    db_property_on_sale_neo4j = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id))
+    response = db_property_on_sale_neo4j.get_property_on_sale_neo4j()
+    if response == 404:
+        raise HTTPException(status_code=response, detail="Property not found.")
+    if response == 500:
+        raise HTTPException(status_code=response, detail="Internal server error.")
+    
+    return db_property_on_sale_neo4j.property_on_sale_neo4j
 
 @guest_router.get("/map/city_and_neighborhood", response_model= ResponseModels.CityAndNeighbourhood, responses=ResponseModels.GetCityAndNeighbourhoodResponses)
 def get_city_and_neighbourhood(property_on_sale_id:str):

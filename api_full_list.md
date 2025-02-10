@@ -12,6 +12,7 @@
 
 ## GUEST(non loggati)
 
+- GET /guest/map/property_on_sale/{property_on_sale_id}
 - GET /guest/map/properties_near_property
 - GET /guest/map/pois_near_property
 - GET /guest/map/city_and_neighborhood
