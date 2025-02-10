@@ -11,9 +11,17 @@ class ErrorModel(BaseModel):
 
 # Buyer
 
+class BuyerInfoResponseModel(BaseModel):
+    buyer_id: str
+    password: str
+    email: str
+    phone_number: str
+    name: str
+    surname: str
+    
 GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
-        "model": Buyer,
+        "model": BuyerInfoResponseModel,
         "description": "Buyer data retrieved successfully.",
         "content": {
             "application/json": {
@@ -52,45 +60,6 @@ GetBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     }
 }
 
-# class CreateBuyerResponseModel(BaseModel):
-#     detail: str
-#     buyer_id: str
-
-# CreateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
-#     201: {
-#         "model": SuccessModel,
-#         "description": "Buyer created successfully.",
-#         "content": {
-#             "application/json": {
-#                 "example": {
-#                     "detail": "Buyer created successfully."
-#                 }
-#             }
-#         }
-#     },
-#     400: {
-#         "model": ErrorModel,
-#         "description": "Invalid input or missing buyer info.",
-#         "content": {
-#             "application/json": {
-#                 "example": {
-#                     "detail": "Invalid buyer info."
-#                 }
-#             }
-#         }
-#     },
-#     500: {
-#         "model": ErrorModel,
-#         "description": "Failed to create buyer.",
-#         "content": {
-#             "application/json": {
-#                 "example": {
-#                     "detail": "Failed to create buyer."
-#                 }
-#             }
-#         }
-#     }
-# }
 
 UpdateBuyerResponseModelResponses: Dict[int, Dict[str, Any]] = {
     200: {
@@ -269,42 +238,6 @@ DeleteFavouriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
         }
     }
 }
-
-# UpdateFavouriteResponseModelResponses: Dict[int, Dict[str, Any]] = {
-#     200: {
-#         "model": SuccessModel,
-#         "description": "Favourite updated successfully.",
-#         "content": {
-#             "application/json": {
-#                 "example": {
-#                     "detail": "Favourite updated successfully."
-#                 }
-#             }
-#         }
-#     },
-#     400: {
-#         "model": ErrorModel,
-#         "description": "Invalid input.",
-#         "content": {
-#             "application/json": {
-#                 "example": {
-#                     "detail": "Invalid input."
-#                 }
-#             }
-#         }
-#     },
-#     500: {
-#         "model": ErrorModel,
-#         "description": "Failed to update favourite.",
-#         "content": {
-#             "application/json": {
-#                 "example": {
-#                     "detail": "Failed to update favourite."
-#                 }
-#             }
-#         }
-#     }
-# }
 
 # ReservationsBuyer
 

@@ -20,7 +20,7 @@ buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 
 # Buyer
 
-@buyer_router.get("/profile_info", response_model=Buyer, responses=ResponseModels.GetBuyerResponseModelResponses)
+@buyer_router.get("/profile_info", response_model=ResponseModels.BuyerInfoResponseModel, responses=ResponseModels.GetBuyerResponseModelResponses)
 def get_buyer(access_token: str = Depends(JWTHandler())):
     """
     Retrieves a buyer by id.
