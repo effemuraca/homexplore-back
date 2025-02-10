@@ -19,7 +19,6 @@ from modules.Guest.models.guest_models import FilteredSearchInput
 
 guest_router = APIRouter(prefix="/guest", tags=["Guest"])
 
-#CONSISTENT
 @guest_router.post("/properties_on_sale/search", response_model=List[PropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
 def filtered_search(input : FilteredSearchInput):
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
@@ -40,7 +39,6 @@ def get_10_random_properties():
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-#CONTROLLATA
 @guest_router.get("/properties_on_sale/search_by_address", response_model=List[PropertyOnSale], responses=ResponseModels.GetPropertyOnSaleResponses)
 def search_by_address(city: str, address: str):
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
