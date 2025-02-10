@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from entities.MongoDB.PropertyOnSale.db_property_on_sale import PropertyOnSaleDB
 from modules.RegisteredUser.models.registered_user_models import Analytics1Input
 from modules.RegisteredUser.models import response_models as ResponseModels

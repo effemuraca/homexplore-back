@@ -43,7 +43,6 @@ class PropertyOnSaleNeo4JDB:
             return 200
     
     def create_property_on_sale_neo4j(self, neighbourhood_name: str):
-        # Get the Neo4j driver instance
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -126,30 +125,116 @@ class PropertyOnSaleNeo4JDB:
 
 
     
-    def update_property_on_sale_neo4j(self):
+    def update_property_on_sale_neo4j(self, update_data: PropertyOnSaleNeo4J, neighbourhood_name: str = None):
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
             return 500
+
         try:
             with neo4j_driver.session() as session:
                 def tx_func(tx):
-                    update_data = self.create_property_on_sale_neo4j.model_dump(exclude_none=True)
-                    query = """
+                    # Create a dictionary of properties from update_data, excluding 'property_on_sale_id'
+                    # and also 'coordinates' if present. This avoids sending a map as a property value.
+                    update_properties = update_data.model_dump(exclude_none=True, exclude={"property_on_sale_id", "coordinates"})
+                    
+                    # Always update the property node with the provided fields (excluding coordinates)
+                    query_update_property = """
                     MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})
-                    SET p += $update_data
+                    SET p += $update_properties
                     """
                     tx.run(
-                        query,
+                        query_update_property,
                         property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id,
-                        update_data=update_data
+                        update_properties=update_properties
                     )
+
+                    # If coordinates are provided, update the coordinates and related spatial relationships.
+                    if update_data.coordinates is not None:
+                        coordinates = update_data.coordinates
+
+                        # Delete all relationships except those of type LOCATED_IN_NEIGHBOURHOOD,
+                        # so that we preserve the neighbourhood relationship if not updated.
+                        delete_query = """
+                        MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})-[r]-()
+                        WHERE NOT type(r) = 'LOCATED_IN_NEIGHBOURHOOD'
+                        DELETE r
+                        """
+                        tx.run(delete_query, property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id)
+
+                        # Update the node's coordinates using the Neo4j point() function.
+                        query_update_coords = """
+                        MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})
+                        SET p.coordinates = point({latitude: $latitude, longitude: $longitude})
+                        """
+                        tx.run(
+                            query_update_coords,
+                            property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id,
+                            latitude=coordinates.latitude,
+                            longitude=coordinates.longitude
+                        )
+
+                        # Create NEAR relationships between the property and all POI nodes within 500 meters.
+                        query_near_poi = """
+                        MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id}), (poi:POI)
+                        WHERE point.distance(p.coordinates, poi.coordinates) <= 500
+                        MERGE (p)-[r:NEAR]->(poi)
+                        SET r.distance = point.distance(p.coordinates, poi.coordinates)
+                        """
+                        tx.run(
+                            query_near_poi,
+                            property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id
+                        )
+
+                        # Create bidirectional NEAR_PROPERTY relationships with other properties within 500 meters.
+                        query_near_property = """
+                        MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id}), (other:PropertyOnSale)
+                        WHERE other.property_on_sale_id <> $property_on_sale_id
+                        AND point.distance(p.coordinates, other.coordinates) <= 500
+                        MERGE (p)-[r:NEAR_PROPERTY]->(other)
+                        SET r.distance = point.distance(p.coordinates, other.coordinates)
+                        MERGE (other)-[r2:NEAR_PROPERTY]->(p)
+                        SET r2.distance = point.distance(p.coordinates, other.coordinates)
+                        """
+                        tx.run(
+                            query_near_property,
+                            property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id
+                        )
+
+                    # If a neighbourhood is provided, update the neighbourhood relationship.
+                    if neighbourhood_name is not None:
+                        # Delete any existing LOCATED_IN_NEIGHBOURHOOD relationship.
+                        delete_neighbourhood_query = """
+                        MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})-[r:LOCATED_IN_NEIGHBOURHOOD]-()
+                        DELETE r
+                        """
+                        tx.run(
+                            delete_neighbourhood_query,
+                            property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id
+                        )
+
+                        # Create the new neighbourhood relationship.
+                        query_neighbourhood = """
+                        MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})
+                        MERGE (n:Neighbourhood {name: $neighbourhood_name})
+                        MERGE (p)-[:LOCATED_IN_NEIGHBOURHOOD]->(n)
+                        """
+                        tx.run(
+                            query_neighbourhood,
+                            property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id,
+                            neighbourhood_name=neighbourhood_name
+                        )
+
+                # Execute all operations in a single transaction.
                 session.write_transaction(tx_func)
             return 200
+
         except Exception as e:
-            logger.error("Error while updating property on sale on Neo4j with id %s: %s", 
+            logger.error("Error while updating property on sale on Neo4j with id %s: %s",
                         self.property_on_sale_neo4j.property_on_sale_id, e)
             return 500
+
+
     
     def delete_property_on_sale_neo4j(self):
         neo4j_driver = get_neo4j_driver()
