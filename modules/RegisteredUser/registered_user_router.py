@@ -13,7 +13,18 @@ registered_user_router = APIRouter(prefix="/registered-user", tags=["RegisteredU
 def analytics_1(input: Analytics1Input, access_token: str = Depends(JWTHandler())):
     """
     Given the input parameters, return the average price per square meter for each neighbourhood in the city.
-    :param input: The input parameters for the analytics    
+
+    Args:
+        input (Analytics1Input): The input parameters for the analytics.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the access token is invalid.
+                       500 if there is an internal server error.
+                       404 if no data is found.
+
+    Returns:
+        JSONResponse: The response containing the analytics result.
     """
     user_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if user_id is None:
@@ -33,7 +44,18 @@ def analytics_1(input: Analytics1Input, access_token: str = Depends(JWTHandler()
 def analytics_4(city: str, access_token: str = Depends(JWTHandler())):
     """
     Given the city, return the average price of each type of property in the city.
-    :param city: The city to get the average price of each type of property
+
+    Args:
+        city (str): The city to analyze.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the access token is invalid.
+                       500 if there is an internal server error.
+                       404 if no data is found.
+
+    Returns:
+        JSONResponse: The response containing the analytics result.
     """
     user_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if user_id is None:
@@ -52,9 +74,20 @@ def analytics_4(city: str, access_token: str = Depends(JWTHandler())):
 @registered_user_router.post("/analytics_5", response_model=ResponseModels.Analytics5ResponseModel, responses=ResponseModels.Analytics5Responses)
 def analytics_5(city: str, neighbourhood: str, access_token: str = Depends(JWTHandler())):
     """
-    Given the city and neighbourhood, return the average bed_number, bath_number and area for each type of property.
-    :param city: The city to get the average bed_number, bath_number and area for each type of property
-    :param neighbourhood: The neighbourhood to get the average bed_number, bath_number and area for each type of property
+    Given the city and neighbourhood, return the average bed_number, bath_number, and area for each property type.
+
+    Args:
+        city (str): The city to analyze.
+        neighbourhood (str): The neighbourhood to analyze.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the access token is invalid.
+                       500 if there is an internal server error.
+                       404 if no data is found.
+
+    Returns:
+        JSONResponse: The response containing the analytics result.
     """
     user_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if user_id is None:

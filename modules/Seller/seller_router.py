@@ -29,7 +29,7 @@ from modules.Auth.helpers.auth_helpers import hash_password
 seller_router = APIRouter(prefix="/seller", tags=["Seller"])
 
 
-# Avvia scheduler all'avvio dell'applicazione
+# Scheduler is used to handle the reservations when the load is low
 scheduler = BackgroundScheduler()
 scheduler.start()
 
@@ -37,6 +37,20 @@ scheduler.start()
 
 @seller_router.get("/profile_info", response_model=ResponseModels.SellerInfoResponseModel, responses=ResponseModels.GetSellerResponses)
 def get_seller(access_token: str = Depends(JWTHandler())):
+    """
+    Get the profile info of the seller.
+
+    Args:
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 if the seller ID is invalid.
+                       404 if the seller is not found.
+
+    Returns:
+        Seller: The seller's data.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -57,7 +71,21 @@ def get_seller(access_token: str = Depends(JWTHandler())):
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler())):
     """
-    Updates an existing seller.
+    Update an existing seller.
+
+    Args:
+        seller (UpdateSeller): The updated seller data.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       409 if the email already exists.
+                       400 if the seller ID is missing.
+                       404 if the seller is not found.
+                       500 if there is an error updating the seller.
+
+    Returns:
+        JSONResponse: A success message if the update succeeds.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
@@ -77,7 +105,7 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
             raise HTTPException(status_code=500, detail="Failed to update seller.")
         
     
-    # check if there's a password to crypt
+    # Check if there's a password to crypt
     if seller.password:
         seller.password = hash_password(seller.password)
     
@@ -94,7 +122,20 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
 
 @seller_router.get("/properties_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_properties_on_sale(access_token: str = Depends(JWTHandler())):
+    """
+    Get all properties on sale associated with the seller.
 
+    Args:
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       404 if the seller or properties are not found.
+                       500 if there is an error retrieving properties.
+
+    Returns:
+        List[SellerPropertyOnSale]: The seller's properties on sale.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -112,6 +153,20 @@ def get_properties_on_sale(access_token: str = Depends(JWTHandler())):
 
 @seller_router.get("/sold_properties", response_model=List[SoldProperty], responses=ResponseModels.GetSoldPropertiesResponses)
 def get_sold_properties(access_token: str = Depends(JWTHandler())):
+    """
+    Get the seller's sold properties.
+
+    Args:
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       404 if the seller or properties are not found.
+                       500 if there is an error retrieving properties.
+
+    Returns:
+        List[SoldProperty]: The list of sold properties by the seller.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -130,6 +185,24 @@ def get_sold_properties(access_token: str = Depends(JWTHandler())):
 
 @seller_router.get("/property_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Optional[str] = None, address: Optional[str] = None, access_token: str = Depends(JWTHandler())):
+    """
+    Get the seller's properties on sale filtered by city, neighbourhood, or address.
+
+    Args:
+        city (str, optional): The city to filter by.
+        neighbourhood (str, optional): The neighbourhood to filter by.
+        address (str, optional): The address to filter by.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 if none of the filtering parameters are provided.
+                       404 if the seller or properties are not found.
+                       500 if there is an error retrieving properties.
+
+    Returns:
+        List[SellerPropertyOnSale]: The filtered list of the seller's properties on sale.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -154,6 +227,22 @@ def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Opt
 
 @seller_router.post("/property_on_sale", response_model=ResponseModels.CreatePropertyOnSaleResponseModel, responses=ResponseModels.CreatePropertyOnSaleResponses)
 def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access_token: str = Depends(JWTHandler())):
+    """
+    Create a new property on sale for the seller.
+
+    Args:
+        input_property_on_sale (CreatePropertyOnSale): The property details.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 for invalid address or missing data.
+                       404 if the seller is not found.
+                       500 if there is an error creating the property.
+
+    Returns:
+        JSONResponse: A success message with the new property_on_sale_id if creation succeeds.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -170,7 +259,7 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
     if location is None:
         raise HTTPException(status_code=400, detail="Wrong address.")
     
-    #insert the property on the property_on_sale collection
+    # Insert the property on the property_on_sale collection
     property_on_sale = PropertyOnSale(**input_property_on_sale.model_dump())
     db_property_on_sale = PropertyOnSaleDB(property_on_sale)
     response = db_property_on_sale.create_property_on_sale()
@@ -179,7 +268,7 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
     if response == 500:
         raise HTTPException(status_code=response, detail="Failed to create property.")
     
-    #insert the property on the seller collection
+    # Insert the property on the seller collection
     seller= Seller(seller_id=seller_id)
     seller_db= SellerDB(seller)
     embedded_property_on_sale = SellerPropertyOnSale(**input_property_on_sale.model_dump(exclude={"type", "area", "bed_number", "bath_number", "description", "photos"}))
@@ -190,7 +279,7 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
             detail="Failed to create property."
         else:
             detail="Seller not found."
-        #rollback
+        # Rollback
         response=db_property_on_sale.delete_property_on_sale_by_id(db_property_on_sale.property_on_sale.property_on_sale_id)
         raise HTTPException(status_code=500, detail=detail)
     
@@ -204,10 +293,10 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
     
     property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
 
-    # create property on sale in Neo4j
+    # Create property on sale in Neo4j
     neo4j_response = property_on_sale_neo4j_db.create_property_on_sale_neo4j(input_property_on_sale.neighbourhood)
         
-    # update score
+    # Update score
     neo4j_response = property_on_sale_neo4j_db.update_livability_score()
 
     return JSONResponse(
@@ -221,10 +310,19 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
 
 # Function to check and update the reservations when the load is low
 def check_and_update_when_low_load(not_updated_ids: list, property_on_sale_id: str, disponibility, address):
+    """
+    Check and update the reservations when the load on the server is low.
+    
+    Args:
+        not_updated_ids (list): The list of buyer_ids that have not been updated yet.
+        property_on_sale_id (str): The property_on_sale_id to update.
+        disponibility (ReservationS, optional): The new disponibility to update.
+        address (str, optional): The new address to update.
+    """
     # psutil.cpu_percent() checks the current CPU load
     current_load = psutil.cpu_percent(interval=1)
     if current_load < 30:
-        # if the load is low, update the reservations
+        # If the load is low, update the reservations
         for buyer_id in not_updated_ids:
             reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
             reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
@@ -239,12 +337,12 @@ def check_and_update_when_low_load(not_updated_ids: list, property_on_sale_id: s
                     if address is not None:
                         reservation.address = address
             status = reservation_buyer_db.update_reservation_buyer()
-            # if the update do not fail, remove the buyer_id from the list
+            # If the update do not fail, remove the buyer_id from the list
             if status == 200:
                 not_updated_ids.remove(buyer_id)
 
         if not_updated_ids:
-            # if there are still reservations to update, re-schedule the update
+            # If there are still reservations to update, re-schedule the update
             next_run = datetime.now() + timedelta(minutes=5)
             scheduler.add_job(
                 check_and_update_when_low_load,
@@ -254,7 +352,7 @@ def check_and_update_when_low_load(not_updated_ids: list, property_on_sale_id: s
             )
 
     else:
-        # if the load is still high, re-schedule the update
+        # If the load is still high, re-schedule the update
         next_run = datetime.now() + timedelta(minutes=5)
         scheduler.add_job(
             check_and_update_when_low_load,
@@ -263,12 +361,18 @@ def check_and_update_when_low_load(not_updated_ids: list, property_on_sale_id: s
             args=[not_updated_ids, property_on_sale_id, disponibility, address]
         )
 
-# Function to check and delete the reservations when the load is low
 def check_and_delete_when_low_load(not_deleted_ids: list, property_on_sale_id: str):
+    """
+    Check and delete the reservations when the load on the server is low.
+   
+    Args:
+        not_deleted_ids (list): The list of buyer_ids that have not been deleted yet.
+        property_on_sale_id (str): The property_on_sale_id to delete.
+    """
     # psutil.cpu_percent() checks the current CPU load
     current_load = psutil.cpu_percent(interval=1)
     if current_load < 30:
-        # if the load is low, update the reservations
+        # If the load is low, update the reservations
         for buyer_id in not_deleted_ids:
             reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
             reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
@@ -276,12 +380,12 @@ def check_and_delete_when_low_load(not_deleted_ids: list, property_on_sale_id: s
             if status != 200:
                 continue
             status = reservation_buyer_db.delete_reservation_by_property_on_sale_id(property_on_sale_id)    
-            # if the delete do not fail, remove the buyer_id from the list
+            # If the delete do not fail, remove the buyer_id from the list
             if status == 200:
                 not_deleted_ids.remove(buyer_id)
 
         if not_deleted_ids:
-            # if there are still reservations to delete, re-schedule the delete
+            # If there are still reservations to delete, re-schedule the delete
             next_run = datetime.now() + timedelta(minutes=5)
             scheduler.add_job(
                 check_and_delete_when_low_load,
@@ -290,7 +394,7 @@ def check_and_delete_when_low_load(not_deleted_ids: list, property_on_sale_id: s
                 args=[not_deleted_ids, property_on_sale_id]
             )
     else:
-        # if the load is still high, re-schedule the delete
+        # If the load is still high, re-schedule the delete
         next_run = datetime.now() + timedelta(minutes=5)
         scheduler.add_job(
             check_and_delete_when_low_load,
@@ -301,6 +405,22 @@ def check_and_delete_when_low_load(not_deleted_ids: list, property_on_sale_id: s
 
 @seller_router.put("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdatePropertyOnSaleResponses)
 def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access_token: str = Depends(JWTHandler())):
+    """
+    Update an existing property on sale for the seller.
+
+    Args:
+        input_property_on_sale (UpdatePropertyOnSale): The updated property details.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 for invalid address or missing data.
+                       404 if the property or seller is not found.
+                       500 if there is an error updating the property.
+
+    Returns:
+        JSONResponse: A success message if the update succeeds.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -317,7 +437,7 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
         if location is None:
             raise HTTPException(status_code=400, detail="Wrong address.")
     
-    #update on the seller collection
+    # Update on the seller collection
     seller= Seller(seller_id=seller_id)
     db_seller= SellerDB(seller)
     embedded_property_on_sale = SellerPropertyOnSale(**input_property_on_sale.model_dump(exclude={"type", "area", "bed_number", "bath_number", "description", "photos"}))
@@ -329,36 +449,36 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
     if response != 200:
         raise HTTPException(status_code=response, detail=detail)
     
-    #update on the property_on_sale collection
+    # Update on the property_on_sale collection
     property_on_sale = PropertyOnSale(**input_property_on_sale.model_dump())
     db_property_on_sale = PropertyOnSaleDB(property_on_sale)
     response = db_property_on_sale.update_property_on_sale()
     if response == 404:
         raise HTTPException(status_code=response, detail="Property not found in property_on_sale collection.")
     if response == 500:
-        #rollback
+        # Rollback
         response=db_property_on_sale.get_property_on_sale_by_id(property_on_sale.property_on_sale_id)
         if response == 200:
             embedded_property_on_sale = SellerPropertyOnSale(db_property_on_sale.property_on_sale)
             response=db_seller.update_property_on_sale(embedded_property_on_sale)
         raise HTTPException(status_code=response, detail="Failed to update property.")
     
-    # handling redis part of the update
+    # Handling redis part of the update
     if input_property_on_sale.disponibility is not None or input_property_on_sale.address is not None:
         
         reservation_seller = ReservationsSeller(property_on_sale_id=input_property_on_sale.property_on_sale_id)
         reservation_seller_db = ReservationsSellerDB(reservation_seller)
 
-        # if disponibility has changed, update the ttl in the reservations seller
+        # If disponibility has changed, update the ttl in the reservations seller
         if input_property_on_sale.disponibility is not None:
             status = reservation_seller_db.update_day_and_time(input_property_on_sale.disponibility.day, input_property_on_sale.disponibility.time)
             if status == 500:
                 raise HTTPException(status_code=500, detail="Failed to update disponibility.")
 
-        # save all the buyer_ids of the reservations
+        # Save all the buyer_ids of the reservations
         buyer_ids = [reservation.buyer_id for reservation in reservation_seller_db.reservations_seller.reservations]
 
-        # for each reservation buyer, update the disponibility and address
+        # For each reservation buyer, update the disponibility and address
         not_updated_ids = []
         for buyer_id in buyer_ids.copy():
             reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
@@ -374,7 +494,7 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
                     if input_property_on_sale.address is not None:
                         reservation.address = input_property_on_sale.address
             status = reservation_buyer_db.update_reservation_buyer()
-            # if the update do not fail, remove the buyer_id from the list
+            # If the update do not fail, remove the buyer_id from the list
             if status == 200:
                 buyer_ids.remove(buyer_id)
             else: 
@@ -392,7 +512,7 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
     neighbourhood_name = None
     if input_property_on_sale.neighbourhood is not None:
         neighbourhood_name = input_property_on_sale.neighbourhood
-    # update Neo4j
+    # Update Neo4j
     if input_property_on_sale.address is not None:
         new_property_on_sale_neo4j = PropertyOnSaleNeo4J(**input_property_on_sale.model_dump(include={"property_on_sale_id", "price", "type", "thumbnail"}), coordinates=Neo4jPoint(latitude=location.latitude, longitude=location.longitude))
         property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(PropertyOnSaleNeo4J(property_on_sale_id=input_property_on_sale.property_on_sale_id))
@@ -404,8 +524,16 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
     
     return JSONResponse(status_code=200, content={"detail": "Property updated successfully."})
 
-# Function to handle the reservations when a property is sold or deleted
 def handleReservations(property_on_sale_id: str) -> int:
+    """
+    Handle the reservations when a property is sold or deleted.
+    
+    Args:
+        property_on_sale_id (str): The ID of the property on sale.
+    
+    Returns:
+        int: The status code.
+    """
     reservation_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservation_seller_db = ReservationsSellerDB(reservation_seller)
     status = reservation_seller_db.get_reservation_seller()
@@ -437,6 +565,22 @@ def handleReservations(property_on_sale_id: str) -> int:
 
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.SellPropertyOnSaleResponses)
 def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(JWTHandler())):
+    """
+    Sell a property on sale.
+
+    Args:
+        property_to_sell_id (str): The ID of the property to sell.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 if the provided ID is invalid.
+                       404 if the seller or property is not found.
+                       500 if there is an error selling the property.
+
+    Returns:
+        JSONResponse: A success message if the property is sold.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -446,7 +590,7 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
     if ObjectId.is_valid(property_to_sell_id) is False:
         raise HTTPException(status_code=400, detail="Invalid property id.")
     
-    #check if property belongs to the seller
+    # Check if property belongs to the seller
     seller= Seller(seller_id=seller_id)
     db_seller = SellerDB(seller)
     response=db_seller.check_property_on_sale(property_to_sell_id)
@@ -455,7 +599,7 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
     if response == 500:
         raise HTTPException(status_code=500, detail="Failed to sell property.")
 
-    #retrieve info about the property to sell
+    # Retrieve info about the property to sell
     property_to_sell=PropertyOnSale(property_on_sale_id=property_to_sell_id)
     db_property_on_sale=PropertyOnSaleDB(property_to_sell)
     result=db_property_on_sale.delete_and_return_property(property_to_sell_id)
@@ -464,7 +608,7 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
     if result == 500:
         raise HTTPException(status_code=500, detail="Failed to sell property.")
     
-    #move the property from properties_on_sale to sold_properties
+    # Move the property from properties_on_sale to sold_properties
     embedded_sold_property = SoldProperty(sell_date=datetime.now(),sold_property_id=property_to_sell.property_on_sale_id,**db_property_on_sale.property_on_sale.model_dump(include={"city", "neighbourhood", "price", "thumbnail", "type", "area", "registration_date"}))
     result = db_seller.sell_property(embedded_sold_property)
     if result != 200:
@@ -472,15 +616,15 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
             detail="Failed to sell property."
         if result == 404:
             detail="Seller not found or property not found in the seller collection."
-        #rollback
+        # Rollback
         result=db_property_on_sale.insert_property()
         raise HTTPException(status_code=500, detail=detail)
 
     
-    # call a function that handles the reservations
+    # Call the function that handles the reservations
     status = handleReservations(property_to_sell_id)
     
-    # delete in Neo4j
+    # Delete in Neo4j
     property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_to_sell_id)
     property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
     property_on_sale_neo4j_db.delete_property_on_sale_neo4j()      
@@ -490,6 +634,22 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
     
 @seller_router.delete("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeletePropertyOnSaleResponses)
 def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
+    """
+    Delete a property on sale.
+
+    Args:
+        property_on_sale_id (str): The ID of the property to delete.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 if the provided ID is invalid.
+                       404 if the seller or property is not found.
+                       500 if there is an error deleting the property.
+
+    Returns:
+        JSONResponse: A success message if the property is deleted.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -502,7 +662,7 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
     if ObjectId.is_valid(property_on_sale_id) is False:
         raise HTTPException(status_code=400, detail="Invalid property id.")
     
-    #delete the property from the seller collection
+    # Delete the property from the seller collection
     seller= Seller(seller_id=seller_id)
     db_seller= SellerDB(seller)
     response=db_seller.delete_embedded(property_on_sale_id)
@@ -511,24 +671,24 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
     if response == 500:
         raise HTTPException(status_code=response, detail="Failed to delete property.")
     
-    #delete the property from the property_on_sale collection
+    # Delete the property from the property_on_sale collection
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     response = db_property_on_sale.delete_property_on_sale_by_id(property_on_sale_id)
     if response == 404:
-        #rollback impossible
+        # Rollback not possible
         raise HTTPException(status_code=response, detail="Property not found.")
     if response == 500:
-        #rollback
+        # Rollback
         response=db_property_on_sale.get_property_on_sale_by_id(property_on_sale_id)
         if response == 200:
             embedded_property_on_sale = SellerPropertyOnSale(db_property_on_sale.property_on_sale)
             response=db_seller.insert_property_on_sale(embedded_property_on_sale)
         raise HTTPException(status_code=response, detail="Failed to delete property.")
     
-    # call a function that handles the reservations
+    # Call the function that handles the reservations
     status = handleReservations(property_on_sale_id)
     
-    # delete in Neo4j
+    # Delete in Neo4j
     property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_to_sell_id)
     property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
     property_on_sale_neo4j_db.delete_property_on_sale_neo4j()   
@@ -543,6 +703,22 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
     responses=ResponseModels.GetReservationsSellerResponseModelResponses
 )
 def get_reservations_seller(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
+    """
+    Get the reservations for a specific property on sale.
+
+    Args:
+        property_on_sale_id (str): The ID of the property on sale.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       400 if the property_on_sale_id is invalid.
+                       404 if reservations or property are not found.
+                       500 if there is an error retrieving reservations.
+
+    Returns:
+        ReservationsSeller: The reservations associated with the property on sale.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -565,6 +741,21 @@ def get_reservations_seller(property_on_sale_id: str, access_token: str = Depend
 
 @seller_router.post("/analytics/analytics_2", response_model=ResponseModels.Analytics2ResponseModel, responses=ResponseModels.Analytics2Responses)
 def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler())):
+    """
+    Perform analytics query #2 for the seller.
+
+    Args:
+        input (Analytics2Input): The input data for the analytics.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       404 if the seller or data is not found.
+                       500 if there is an error performing analytics.
+
+    Returns:
+        JSONResponse: The analytics result.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -572,7 +763,7 @@ def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler(
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     seller_db = SellerDB(Seller(seller_id=seller_id))
-    status = seller_db.get_analytics_2(input)
+    status = seller_db.get_sold_properties_statistics(input)
     aggregation_result = seller_db.analytics_2_result
     if status == 500:
         raise HTTPException(status_code=500, detail="Error in fetching data.")
@@ -584,6 +775,21 @@ def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler(
 
 @seller_router.post("/analytics/analytics_3", response_model=ResponseModels.Analytics3ResponseModel, responses=ResponseModels.Analytics3Responses)
 def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler())):
+    """
+    Perform analytics query #3 for the seller.
+
+    Args:
+        input (Analytics3Input): The input data for the analytics.
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       404 if the seller or data is not found.
+                       500 if there is an error performing analytics.
+
+    Returns:
+        JSONResponse: The analytics result.
+    """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if seller_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -593,7 +799,7 @@ def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler(
     
     seller_db = SellerDB(Seller(seller_id=seller_id))
     
-    status = seller_db.get_analytics_3(input)
+    status = seller_db.get_avg_time_to_sell(input)
     aggregation_result = seller_db.analytics_3_result
     if status == 500:
         raise HTTPException(status_code=500, detail="Internal server error")

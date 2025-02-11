@@ -18,6 +18,14 @@ class PropertyOnSaleNeo4JDB:
         self.pois: List[POI] = None
         
     def get_property_on_sale_neo4j(self):
+        """
+        Retrieve a PropertyOnSale node from Neo4j by its property_on_sale_id.
+
+        Returns:
+            int: 200 if the property is retrieved successfully,
+                 404 if not found,
+                 500 if an error occurs.
+        """             
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -43,6 +51,16 @@ class PropertyOnSaleNeo4JDB:
             return 200
     
     def create_property_on_sale_neo4j(self, neighbourhood_name: str):
+        """
+        Create a new PropertyOnSale node in Neo4j and link it to a neighbourhood, POIs, and near properties.
+
+        Args:
+            neighbourhood_name (str): The name of the neighbourhood to link with.
+
+        Returns:
+            int: 201 if the property is created successfully,
+                 500 if an error occurs.
+        """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -126,6 +144,17 @@ class PropertyOnSaleNeo4JDB:
 
     
     def update_property_on_sale_neo4j(self, update_data: PropertyOnSaleNeo4J, neighbourhood_name: str = None):
+        """
+        Update details of an existing PropertyOnSale node in Neo4j.
+
+        Args:
+            update_data (PropertyOnSaleNeo4J): The update data for the property.
+            neighbourhood_name (str, optional): The new neighbourhood name. Defaults to None.
+
+        Returns:
+            int: 200 if the property is updated successfully,
+                 500 if an error occurs.
+        """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -237,6 +266,13 @@ class PropertyOnSaleNeo4JDB:
 
     
     def delete_property_on_sale_neo4j(self):
+        """
+        Delete a PropertyOnSale node from Neo4j along with its relationships.
+
+        Returns:
+            int: 200 if deleted successfully,
+                 500 if an error occurs.
+        """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -261,6 +297,13 @@ class PropertyOnSaleNeo4JDB:
 
         
     def get_city_and_neighbourhood(self):
+        """
+        Delete a PropertyOnSale node from Neo4j along with its relationships.
+
+        Returns:
+            int: 200 if deleted successfully,
+                 500 if an error occurs.
+        """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -289,6 +332,14 @@ class PropertyOnSaleNeo4JDB:
             return 200
         
     def get_near_POIs(self):
+        """
+        Retrieve nearby POI nodes connected via the NEAR relationship.
+
+        Returns:
+            int: 200 if POIs are retrieved successfully,
+                 404 if no POIs are found,
+                 500 if an error occurs.
+        """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
             logger.error("Neo4j driver not initialized.")
@@ -325,9 +376,14 @@ class PropertyOnSaleNeo4JDB:
     
     def get_near_properties(self):
         """
-        Retrieve two levels of near properties for the current property.
-        Level 1: Properties directly connected via a NEAR relationship.
-        Level 2: Properties that are connected via a NEAR relationship from a level 1 property.
+        Retrieve near properties in two levels:
+        Level 1: Properties directly connected via a NEAR_PROPERTY relationship.
+        Level 2: Properties connected from a Level 1 property.
+
+        Returns:
+            int: 200 if near properties are retrieved successfully,
+                 404 if no near properties are found,
+                 500 if an error occurs.
         """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
@@ -369,12 +425,16 @@ class PropertyOnSaleNeo4JDB:
     
     def update_livability_score(self):
         """
-        Calculate and update the livability score for the current PropertyOnSale node.
-        
+        Calculate and update the livability score for the current PropertyOnSale node using nearby POIs.
+
         This method retrieves the nearby POIs (via the NEAR relationship), aggregates the counts 
         and the minimum distances for each POI type, computes the livability score using predefined 
         weights, and finally updates the PropertyOnSale node with the calculated score.
-        """
+       
+        Returns:
+            int: 200 if the score is updated successfully,
+                 500 if an error occurs.
+         """
 
         poi_weights = {
             "hospital": 0.5,

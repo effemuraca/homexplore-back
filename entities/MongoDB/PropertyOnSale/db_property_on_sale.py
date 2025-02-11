@@ -19,6 +19,17 @@ class PropertyOnSaleDB:
 
     #guest route (filtered_search) CONSISTENT
     def filtered_search(self, input : FilteredSearchInput) -> int:
+        """
+        Search properties on sale based on provided filters.
+
+        Args:
+            input (FilteredSearchInput): Filter criteria for search.
+
+        Returns:
+            int: 200 if properties are found,
+                 404 if no properties match,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -54,6 +65,14 @@ class PropertyOnSaleDB:
     
     #guest route (get_10_random_properties) CONSISTENT
     def get_10_random_properties(self) -> int:
+        """
+        Retrieve 10 random properties on sale.
+
+        Returns:
+            int: 200 if properties are retrieved,
+                 404 if no properties are found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -74,6 +93,18 @@ class PropertyOnSaleDB:
     
     #guest route (get_property_on_sale_by_address) CONSISTENT
     def get_property_on_sale_by_address(self, city: str, address: str) -> int:
+        """
+        Retrieve properties based on city and address search pattern.
+
+        Args:
+            city (str): City to filter.
+            address (str): Address keyword (regex search).
+
+        Returns:
+            int: 200 if properties are found,
+                 404 if none match,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -92,13 +123,25 @@ class PropertyOnSaleDB:
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
             if result["disponibility"]:
-                # remove disponibility from the result
+                # Remove disponibility from the result
                 result["disponibility"] = None
             self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
     
     #route del seller (delete_property_on_sale) CONSISTENT
     def delete_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
+        """
+        Delete a property on sale by its ID.
+
+        Args:
+            property_on_sale_id (str): The ID of the property.
+
+        Returns:
+            int: 200 if deletion is successful,
+                 400 if invalid ID,
+                 404 if property not found,
+                 500 if a database error occurs.
+        """
         try:
             id=ObjectId(property_on_sale_id)
         except:
@@ -118,6 +161,14 @@ class PropertyOnSaleDB:
     
     #route del seller (create_property_on_sale) CONSISTENT
     def create_property_on_sale(self) -> int:
+        """
+        Create a new property on sale.
+
+        Returns:
+            int: 200 if creation is successful,
+                 400 if property data is missing,
+                 500 if a database error occurs.
+        """
         if not self.property_on_sale:
             return 400
         self.property_on_sale.registration_date = datetime.now()
@@ -138,11 +189,19 @@ class PropertyOnSaleDB:
     
     # route seller (update_property_on_sale) CONSISTENT
     def update_property_on_sale(self) -> int:
+        """
+        Update an existing property on sale.
+
+        Returns:
+            int: 200 if update is successful,
+                 404 if property is not found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
             return 500
-        # data preparation
+        # Data preparation
         id=ObjectId(self.property_on_sale.property_on_sale_id)
         single_data = self.property_on_sale.model_dump(exclude_none=True, exclude={"property_on_sale_id", "photos", "disponibility"})
         a= (self.property_on_sale.city is not None or self.property_on_sale.neighbourhood is not None or self.property_on_sale.address is not None or self.property_on_sale.price is not None or self.property_on_sale.thumbnail is not None or self.property_on_sale.type is not None or self.property_on_sale.area is not None or self.property_on_sale.registration_date is not None or self.property_on_sale.bed_number is not None or self.property_on_sale.bath_number is not None or self.property_on_sale.description is not None)
@@ -185,6 +244,18 @@ class PropertyOnSaleDB:
     
     # seller route (sell_property) CONSISTENT
     def get_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
+        """
+        Retrieve a property on sale by its ID.
+
+        Args:
+            property_on_sale_id (str): The property ID.
+
+        Returns:
+            int: 200 if property is found,
+                 400 if invalid ID,
+                 404 if property is not found,
+                 500 if a database error occurs.
+        """
         if not ObjectId.is_valid(property_on_sale_id):
             return 400
         id=ObjectId(property_on_sale_id)
@@ -204,6 +275,17 @@ class PropertyOnSaleDB:
     
     # seller route (sell_property) CONSISTENT
     def delete_and_return_property(self, property_on_sale_id:str) -> int:
+        """
+        Delete a property on sale and return its data.
+
+        Args:
+            property_on_sale_id (str): The ID of the property to delete.
+
+        Returns:
+            int: 200 if deletion is successful and property is returned,
+                 500 if a database error occurs,
+                 404 if property is not found.
+        """
         id=ObjectId(property_on_sale_id)
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
@@ -222,6 +304,14 @@ class PropertyOnSaleDB:
 
     # seller route (sell_property) CONSISTENT
     def insert_property(self) -> int:
+        """
+        Insert a property on sale document into the database.
+
+        Returns:
+            int: 200 if insertion is successful,
+                 400 if property data is missing,
+                 500 if a database error occurs.
+        """
         if not self.property_on_sale:
             return 400
         mongo_client = get_default_mongo_db()
@@ -240,6 +330,17 @@ class PropertyOnSaleDB:
             return 500
         
     def get_avg_price_per_square_meter(self, input: Analytics1Input) -> int:
+        """
+        Calculate the average price per square meter grouped by neighbourhood based on a filter.
+
+        Args:
+            input (Analytics1Input): Filter criteria including order_by.
+
+        Returns:
+            int: 200 if analytics are successful,
+                 404 if no data is found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -265,6 +366,17 @@ class PropertyOnSaleDB:
     
     
     def get_avg_price_per_square_meter(self, city: str) -> int:
+        """
+        Calculate the average price per square meter and count of properties grouped by type for a given city.
+
+        Args:
+            city (str): The city for filtering.
+
+        Returns:
+            int: 200 if analytics are successful,
+                 404 if no data is found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -286,13 +398,26 @@ class PropertyOnSaleDB:
         return 200
         
     def get_statistics_by_city_and_neighbourhood(self, city: str, neighbourhood: str) -> int:
+        """
+        Retrieve statistics for properties based on city and neighbourhood including average bed number,
+        bath number, and area grouped by property type.
+
+        Args:
+            city (str): The city to filter.
+            neighbourhood (str): The neighbourhood to filter.
+
+        Returns:
+            int: 200 if analytics are successful,
+                 404 if no data is found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
             return 500
         try:
             pipeline = [
-            # average bed_number, bath_number and area for each type of property
+            # Average bed_number, bath_number and area for each type of property
                 {"$match": {"city": city, "neighbourhood": neighbourhood}},
                 {"$group": {"_id": "$type", "avg_bed_number": {"$avg": "$bed_number"}, "avg_bath_number": {"$avg": "$bath_number"}, "avg_area": {"$avg": "$area"}}},
                 {"$project": {"type": "$_id", "avg_bed_number": 1, "avg_bath_number": 1, "avg_area": 1, "_id": 0}}

@@ -22,21 +22,27 @@ client = MongoClient(MONGO_URL)
 
 def get_mongo_client():
     """
-    This function returns the mongo client instance.
+    Returns:
+        MongoClient: The MongoDB client instance.
     """
     return client
 
 def get_default_mongo_db():
     """
-    This function returns the database instance, which is the default database specified in the environment variables.
+    Returns:
+        Database: The default MongoDB database specified by environment variables.
     """
     return client[DEFAULT_MONGO_DB]
-    
+
 def convert_object_id(result: Union[Dict[str, Any], List[Dict[str, Any]]]):
     """
-    This function converts the _id field of a mongo result to a string.
-    
-    @param result: the result of a mongo query, can be a single document or a list of documents.
+    Converts the _id field(s) of a mongo result to string(s).
+
+    Args:
+        result (dict or list): The result(s) of a MongoDB query.
+
+    Returns:
+        dict or list: The same data structure with '_id' turned into a string.
     """
     if isinstance(result, list):
         for res in result:

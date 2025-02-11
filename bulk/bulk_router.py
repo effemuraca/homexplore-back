@@ -9,7 +9,13 @@ bulk_router = APIRouter(prefix="/bulk", tags=["bulk"])
 @bulk_router.post("/neo4j")
 def populate_neo4j():
     """
-    This function populates the Neo4j database with the data from the MongoDB database.
+    Populates the Neo4j database with the data from the MongoDB database.
+
+    Returns:
+        dict: A dictionary containing either a success message or an error.
+
+    Raises:
+        Exception: Propagates the exception as an error string if something goes wrong.
     """
     try:
         populate_neo4j_db()
@@ -22,7 +28,13 @@ def populate_neo4j():
 @bulk_router.put("/neo4j/score")
 def update_score():
     """
-    This function updates the livability scores in the Neo4j database.
+    Updates the livability scores in the Neo4j database.
+
+    Returns:
+        dict: A dictionary containing either a success message or an error.
+
+    Raises:
+        Exception: Propagates the exception as an error string if something goes wrong.
     """
     try:
         update_livability_scores()
@@ -33,7 +45,13 @@ def update_score():
 @bulk_router.delete("/neo4j")
 def delete_neo4j():
     """
-    This function deletes the Neo4j database.
+    Deletes the Neo4j database.
+
+    Returns:
+        dict: A dictionary containing either a success message or an error.
+
+    Raises:
+        Exception: Propagates the exception as an error string if something goes wrong.
     """
     try:
         reset_neo4j_db()
@@ -44,7 +62,13 @@ def delete_neo4j():
 @bulk_router.post("/redis")
 def populate_redis():
     """
-    This function populates the Redis database with the data from the CSV files.
+    Populates the Redis database with the data from the CSV files.
+
+    Returns:
+        dict: A dictionary containing either a success message or an error.
+
+    Raises:
+        Exception: Propagates the exception as an error string if something goes wrong.
     """
     try:
         populate_redis_db()
@@ -55,7 +79,13 @@ def populate_redis():
 @bulk_router.delete("/redis")
 def delete_redis():
     """
-    This function deletes the Redis database.
+    Deletes the Redis database.
+
+    Returns:
+        dict: A dictionary containing either a success message or an error.
+
+    Raises:
+        Exception: Propagates the exception as an error string if something goes wrong.
     """
     try:
         reset_redis_db()
@@ -66,7 +96,13 @@ def delete_redis():
 @bulk_router.get("/redis/verify")
 def verify_redis():
     """
-    This function verifies the data in the Redis database.
+    Verifies the data in the Redis database.
+
+    Returns:
+        dict: A dictionary containing either a success message or an error.
+
+    Raises:
+        Exception: Propagates the exception as an error string if verification fails.
     """
     try:
         verify_redis_data()

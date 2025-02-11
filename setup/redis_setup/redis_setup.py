@@ -23,15 +23,20 @@ redis_client = redis.StrictRedis(host=REDIS_HOST, port=int(REDIS_PORT), db=int(R
 
 def get_redis_client():
     """
-    This function returns the Redis client instance.
+    Returns:
+        redis.StrictRedis: The Redis client instance.
     """
     return redis_client
 
 def get_redis_keys(pattern: str = '*'):
     """
-    This function retrieves all keys matching a pattern in Redis.
+    Retrieves all Redis keys matching a given pattern.
 
-    @param pattern: the pattern to match keys (default is '*').
+    Args:
+        pattern (str): The pattern to match keys (default is '*').
+
+    Returns:
+        list: A list of keys matching the pattern.
     """
     return redis_client.keys(pattern)
 

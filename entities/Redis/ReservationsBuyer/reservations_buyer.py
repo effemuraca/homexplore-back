@@ -41,6 +41,9 @@ class ReservationB(BaseModel):
     def check_reservation_expired(self) -> bool:
         """
         Checks if the reservation has expired (date is in the past)
+
+        Returns:
+            bool: True if the reservation has expired, False otherwise
         """
         return datetime.strptime(self.date, "%Y-%m-%d") < datetime.now()
     

@@ -23,8 +23,19 @@ buyer_router = APIRouter(prefix="/buyer", tags=["Buyer"])
 @buyer_router.get("/profile_info", response_model=ResponseModels.BuyerInfoResponseModel, responses=ResponseModels.GetBuyerResponseModelResponses)
 def get_buyer(access_token: str = Depends(JWTHandler())):
     """
-    Retrieves a buyer by id.
-    :param access_token: The JWT access token
+    Retrieve the buyer's profile info.
+
+    Args:
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       404 if the buyer is not found.
+                       400 if the buyer ID is invalid.
+                       500 if there is an internal server error.
+
+    Returns:
+        Buyer: The buyer's data.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -47,9 +58,21 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
 @buyer_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateBuyerResponseModelResponses)
 def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     """
-    Updates an existing buyer.
-    :param buyer: The buyer data to update
-    :param access_token: The JWT access token
+    Update an existing buyer.
+
+    Args:
+        buyer (UpdateBuyer): The new buyer data to update.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       409 if the email already exists.
+                       400 if the buyer ID is missing.
+                       404 if the buyer is not found.
+                       500 if there is an error updating the buyer.
+
+    Returns:
+        JSONResponse: A success message if the update is successful.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -88,8 +111,18 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
 @buyer_router.get("/favourites", response_model=List[FavouriteProperty], responses=ResponseModels.GetFavouritesResponseModelResponses)
 def get_favourites(access_token: str = Depends(JWTHandler())):
     """
-    Retrieves the favourite properties of a buyer by id.
-    :param access_token: The JWT access token
+    Retrieve the list of a buyer's favourite properties.
+
+    Args:
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       404 if no favourites are found or the buyer does not exist.
+                       500 if there is an error retrieving favourites.
+
+    Returns:
+        List[FavouriteProperty]: The list of favourite properties.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -110,9 +143,19 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
 @buyer_router.post("/favourite", response_model=ResponseModels.SuccessModel, responses=ResponseModels.AddFavouriteResponseModelResponses)
 def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTHandler())):
     """
-    Adds a favourite property for a buyer.
-    :param favourite: The favourite property to add
-    :param access_token: The JWT access token
+    Add a favourite property for a buyer.
+
+    Args:
+        favourite (FavouriteProperty): The property to add.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       400 if the input is invalid.
+                       500 if there is an error adding the favourite.
+
+    Returns:
+        JSONResponse: A success message if the favourite is added.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None:
@@ -132,10 +175,21 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
 
 @buyer_router.delete("/favourite/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
 def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
+def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Deletes a favourite property for a buyer.
-    :param property_on_sale_id: The property_on_sale_id to delete
-    :param access_token: The JWT access token
+    Delete a favourite property from a buyer's list.
+
+    Args:
+        property_on_sale_id (str): The ID of the property to remove.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 400 if the property_on_sale_id is invalid.
+                       401 if the token is invalid or the user is not a buyer.
+                       500 if there is an error deleting the favourite.
+
+    Returns:
+        JSONResponse: A success message if the favourite is deleted.
     """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid input.")
@@ -165,10 +219,18 @@ def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHa
 )
 def get_reservations(access_token: str = Depends(JWTHandler())):
     """
-    Get reservations for a given buyer_id, 
-    before showing the buyer the reservations,
-    check if some of them are expired and delete them.
-    :param access_token: The JWT access token
+    Retrieve and update expired reservations for a buyer.
+
+    Args:
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       500 if there is an error updating reservations.
+                       404 if no reservations are found.
+
+    Returns:
+        List[ReservationB]: The list of the buyer's reservations.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     
@@ -194,11 +256,23 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
 )
 def create_reservation(book_now_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    
     """
-    Create a reservation for a buyer and a seller.
-    :param book_now_info: The reservation data
-    :param access_token: The JWT access token
+    Create a new reservation for a buyer.
+
+    Args:
+        book_now_info (CreateReservationBuyer): The reservation details.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       404 if the buyer is not found.
+                       500 if there is an error decoding buyer data.
+                       400 if the input data is invalid.
+                       409 if there is a conflict in reservation.
+                       500 if there is an error creating the reservation.
+
+    Returns:
+        JSONResponse: A success message if the reservation is created.
     """
     if buyer_id is None:
         raise HTTPException(status_code=401, detail="Invalid access token")
@@ -273,10 +347,20 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
 )
 def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Delete a buyer reservation for a given buyer_id and 
-    property_on_sale_id and remove the seller reservation.
-    :param property_on_sale_id: The property_on_sale_id to delete
-    :param access_token: The JWT access token
+    Delete a reservation for a given buyer and property.
+
+    Args:
+        property_on_sale_id (str): The ID of the property for which to delete the reservation.
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 400 if the property_on_sale_id is invalid.
+                       401 if the token is invalid or the user is not a buyer.
+                       500 or 404 depending on the reservation lookup failure.
+                       500 if there is an error deleting the reservation.
+
+    Returns:
+        JSONResponse: A success message if the reservation is deleted.
     """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id")

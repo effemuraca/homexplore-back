@@ -15,9 +15,19 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 @auth_router.post("/login", response_model=ResponseModels.LoginResponseModel, responses= ResponseModels.LoginResponseModelResponses)
 def login(login_info: AuthModels.Login, user_type: str):
     """
-    Logs in the user and returns the access and refresh tokens
-    :param login_info: The login information
-    :param user_type: The type of the user (buyer or seller)
+    Log in a user and return the access and refresh tokens.
+
+    Args:
+        login_info (AuthModels.Login): The login credentials.
+        user_type (str): The type of user logging in ("buyer" or "seller").
+
+    Raises:
+        HTTPException: 400 if the user type is invalid or the email is missing.
+                       404 if the user is not found.
+                       401 if the password is incorrect.
+
+    Returns:
+        JSONResponse: The access and refresh tokens.
     """
     if user_type not in ["buyer", "seller"]:
         raise HTTPException(status_code=400, detail="Invalid user type")
@@ -54,8 +64,16 @@ def login(login_info: AuthModels.Login, user_type: str):
 @auth_router.post("/jwt/refresh", response_model=ResponseModels.RefreshAccessTokenResponseModel, responses= ResponseModels.RefreshAccessTokenResponseModelResponses)
 def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
     """
-    Refreshes the access token using the refresh token
-    :param refresh_token: The refresh token
+    Refresh the access token using a refresh token.
+
+    Args:
+        refresh_token (str): The refresh token.
+
+    Raises:
+        HTTPException: 401 if the refresh token is invalid.
+
+    Returns:
+        JSONResponse: The new access token.
     """
     user_id, user_type = JWTHandler.verifyRefreshToken(refresh_token)
     if user_id is None:
@@ -71,8 +89,18 @@ def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
 @auth_router.post("/signup/buyer", response_model=ResponseModels.SuccessModel, responses=ResponseModels.RegisterResponseModelResponses)
 def register_buyer(user_info: AuthModels.CreateBuyer):
     """
-    Registers a buyer
-    :param user_info: The buyer information
+    Register a buyer.
+
+    Args:
+        user_info (AuthModels.CreateBuyer): The buyer information.
+
+    Raises:
+        HTTPException: 409 if the email already exists.
+                       500 if there is an error during buyer creation.
+                       400 if the provided data is invalid.
+
+    Returns:
+        JSONResponse: A success message if registration is successful.
     """
     # Check if the email already exists in the buyer database
     buyer_db = BuyerDB()
@@ -101,10 +129,19 @@ def register_buyer(user_info: AuthModels.CreateBuyer):
 @auth_router.post("/signup/seller", response_model=ResponseModels.SuccessModel, responses=ResponseModels.RegisterResponseModelResponses)
 def register_seller(user_info: AuthModels.CreateSeller):
     """
-    Registers a seller
-    :param user_info: The seller information
+    Register a seller.
+
+    Args:
+        user_info (AuthModels.CreateSeller): The seller information.
+
+    Raises:
+        HTTPException: 409 if the email already exists.
+                       500 if there is an error during seller creation.
+                       400 if the provided data is invalid.
+
+    Returns:
+        JSONResponse: A success message if registration is successful.
     """
-    
     # Check if the email already exists in the seller database
     seller_db = SellerDB()
     existing_check = seller_db.get_seller_by_email(user_info.email)

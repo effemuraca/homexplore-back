@@ -23,15 +23,20 @@ neo4j_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD)
 
 def get_neo4j_driver():
     """
-    This function returns the Neo4j driver instance.
+    Returns:
+        neo4j.Driver: The Neo4j driver instance.
     """
     return neo4j_driver
 
 def convert_neo4j_result(result: Dict[str, Any]):
     """
-    This function converts the Neo4j result nodes or relationships into a dictionary format.
+    Converts the Neo4j result into a list of dictionaries or returns it as is if unsupported.
 
-    @param result: the result of a Neo4j query.
+    Args:
+        result (dict): The result of a Neo4j query with 'records' if any.
+
+    Returns:
+        list | dict: A list of record data or the original result.
     """
     if 'records' in result:
         return [record.data() for record in result['records']]

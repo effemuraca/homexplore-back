@@ -15,6 +15,14 @@ class ReservationsBuyerDB:
         self.reservations_buyer = reservations_buyer
   
     def create_reservation_buyer(self) -> int:
+        """
+        Create a new reservation for this buyer in Redis.
+
+        Returns:
+            int:
+                201 if the reservation is created successfully,
+                500 if there's a Redis or JSON decoding error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -35,6 +43,15 @@ class ReservationsBuyerDB:
             return 500
             
     def get_reservations_by_user(self) -> int:
+        """
+        Retrieve all reservations for this buyer from Redis.
+
+        Returns:
+            int:
+                200 if the reservations are retrieved,
+                404 if no data is found,
+                500 if there's a Redis or JSON decoding error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -53,6 +70,16 @@ class ReservationsBuyerDB:
             return 500
 
     def update_reservation_buyer(self) -> int:
+        """
+        Update a reservation for this buyer in Redis.
+
+        Returns:
+            int:
+                200 if the reservation is updated,
+                404 if no matching reservation is found,
+                400 if reservations_buyer is not provided,
+                500 if there's a Redis or JSON decoding error.
+        """
         if not self.reservations_buyer:
             return 400
         redis_client = get_redis_client()
@@ -81,6 +108,15 @@ class ReservationsBuyerDB:
             return 500
 
     def delete_reservations_buyer(self) -> int:
+        """
+        Delete all reservations for this buyer in Redis.
+
+        Returns:
+            int:
+                200 if the reservations are deleted,
+                404 if no reservations exist,
+                500 if there's a Redis error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -97,6 +133,18 @@ class ReservationsBuyerDB:
             return 500
     
     def delete_reservation_by_property_on_sale_id(self, property_on_sale_id: str) -> int:
+        """
+        Delete a reservation for a specific property_on_sale_id.
+
+        Args:
+            property_on_sale_id (str): The property_on_sale_id to delete.
+
+        Returns:
+            int:
+                200 if the reservation is deleted,
+                404 if no reservation is found for that property_on_sale_id,
+                500 if there's a Redis or JSON decoding error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -118,9 +166,17 @@ class ReservationsBuyerDB:
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
             logger.error(f"Error deleting reservation for buyer_id={self.reservations_buyer.buyer_id}: {e}")
             return 500
-        
-    # update all reservations for a buyer, deleting all the expired ones
+
     def update_expired_reservations(self) -> int:
+        """
+        Remove all expired reservations for this buyer in Redis.
+
+        Returns:
+            int:
+                200 if expired reservations are removed or there are none,
+                404 if no reservations are found,
+                500 if there's a Redis or JSON decoding error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -133,7 +189,7 @@ class ReservationsBuyerDB:
             data = json.loads(raw_data)
             new_data = [res for res in data if not ReservationB(**res).check_reservation_expired()]
 
-            # The update is only performed if there are expired reservations
+            # The update is performed only if there are expired reservations
             if len(new_data) != len(data):
                 redis_client.set(key, json.dumps(new_data))
                 self.reservations_buyer.reservations = new_data

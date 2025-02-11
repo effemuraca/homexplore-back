@@ -15,6 +15,14 @@ class SellerDB:
         self.analytics_3_result = None
     
     def create_seller(self) -> int:
+        """
+        Create a new seller in the MongoDB.
+
+        Returns:
+            int: 201 if the seller is created successfully,
+                 400 if seller is not provided,
+                 500 if there's an error during insertion.
+        """
         if not self.seller:
             return 400
         mongo_client = get_default_mongo_db()
@@ -36,6 +44,15 @@ class SellerDB:
     
     # route del seller (get_profile_info) CONSISTENT
     def get_profile_info(self) -> int:
+        """
+        Retrieve the profile information of the seller, excluding properties_on_sale and sold_properties.
+
+        Returns:
+            int: 200 if the seller information is retrieved,
+                 400 if seller_id is invalid,
+                 404 if seller is not found,
+                 500 if a database error occurs.
+        """
         try:
             id = ObjectId(self.seller.seller_id)
         except:
@@ -51,12 +68,20 @@ class SellerDB:
             return 500
         if not result:
             return 404
-        #c hange name of the key "_id" to "seller_id"
         result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
         return 200
 
     def get_seller_by_id(self) -> int:
+        """
+        Retrieve the seller information by seller_id.
+
+        Returns:
+            int: 200 if seller is found,
+                 400 if seller_id is invalid,
+                 404 if seller is not found,
+                 500 if a database error occurs.
+        """
         try:
             id = ObjectId(self.seller.seller_id)
         except:
@@ -72,12 +97,23 @@ class SellerDB:
             return 500
         if not result:
             return 404
-        # change name of the key "_id" to "seller_id"
         result["seller_id"] = str(result.pop("_id"))
         self.seller = Seller(**result)
         return 200
     
     def get_seller_by_email(self, email: str) -> int:
+        """
+        Retrieve the seller information by email.
+
+        Args:
+            email (str): The email of the seller.
+        
+        Returns:
+            int: 200 if seller is found,
+                 400 if email is not provided,
+                 404 if seller is not found,
+                 500 if a database error occurs.
+        """
         if not email:
             return 400
         mongo_client = get_default_mongo_db()
@@ -96,6 +132,18 @@ class SellerDB:
         return 200
 
     def update_seller(self, seller: Seller) -> int:
+        """
+        Update seller information.
+
+        Args:
+            seller (Seller): The updated seller data.
+        
+        Returns:
+            int: 200 if the update is successful,
+                 400 if seller_id is invalid,
+                 404 if seller is not found,
+                 500 if a database error occurs.
+        """
         try:
             id = ObjectId(self.seller.seller_id)
         except:
@@ -117,6 +165,15 @@ class SellerDB:
         return 200
 
     def delete_seller_by_id(self) -> int:
+        """
+        Delete the seller by seller_id.
+
+        Returns:
+            int: 200 if deletion is successful,
+                 400 if seller_id is invalid,
+                 404 if seller is not found,
+                 500 if a database error occurs.
+        """
         try:
             id = ObjectId(self.seller.seller_id)
         except:
@@ -137,6 +194,14 @@ class SellerDB:
 
     # route del seller (get_properties_on_sale) CONSISTENT
     def get_properties_on_sale(self) -> int:
+        """
+        Retrieve properties on sale for the seller.
+
+        Returns:
+            int: 200 if properties are found,
+                 404 if properties are not found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -148,7 +213,6 @@ class SellerDB:
             return 500
         if not result or "properties_on_sale" not in result or len(result["properties_on_sale"]) == 0:
             return 404
-        # change the name of the key "_id" to "property_on_sale_id"
         for property_on_sale in result["properties_on_sale"]:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
         self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in result["properties_on_sale"]]
@@ -157,6 +221,14 @@ class SellerDB:
     
     #route del seller (get_sold_properties) CONSISTENT
     def get_sold_properties(self) -> int:
+        """
+        Retrieve sold properties for the seller, sorted by sell_date descending.
+
+        Returns:
+            int: 200 if sold properties are found,
+                 404 if sold properties are not found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -169,9 +241,8 @@ class SellerDB:
         if not result or "sold_properties" not in result or len(result["sold_properties"]) == 0:
             return 404
         
-        # order the sold properties by sell_date
+        # Order the sold properties by sell_date
         result["sold_properties"] = sorted(result["sold_properties"], key=lambda x: x["sell_date"], reverse=True)
-        # change the name of the key "_id" to "sold_property_id"
         for sold_property in result["sold_properties"]:
             sold_property["sold_property_id"] = str(sold_property.pop("_id"))
         self.seller.sold_properties = [SoldProperty(**sold_property) for sold_property in result["sold_properties"]]
@@ -180,6 +251,19 @@ class SellerDB:
 
     #route del seller (get_property_on_sale_filtered) CONSISTENT
     def get_property_on_sale_filtered(self, city: str, neighbourhood: str, address: str) -> int:
+        """
+        Retrieve properties on sale for the seller filtered by city, neighbourhood, and address.
+
+        Args:
+            city (str): The city to filter by.
+            neighbourhood (str): The neighbourhood to filter by.
+            address (str): The address to filter by.
+        
+        Returns:
+            int: 200 if properties matching the filter are found,
+                 404 if no properties match,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -208,11 +292,10 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error retrieving filtered properties for seller {self.seller.seller_id}: {e}")
             return 500
-        # extract the properties_on_sale array from the result
+        # Extract the properties_on_sale array from the result
         properties = list(result)[0].get("properties_on_sale", [])
         if not properties:
             return 404
-        # change the name of the key "_id" to "property_on_sale_id"
         for property_on_sale in properties:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
         self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in properties]
@@ -225,6 +308,17 @@ class SellerDB:
 
     # route del seller (create_property_on_sale) CONSISTENT
     def insert_property_on_sale(self, property_on_sale : SellerPropertyOnSale) -> int:
+        """
+        Insert a new property on sale into the seller's document.
+
+        Args:
+            property_on_sale (SellerPropertyOnSale): The property data to insert.
+        
+        Returns:
+            int: 200 if the property is inserted successfully,
+                 404 if the seller is not found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
@@ -244,10 +338,21 @@ class SellerDB:
     
     # route del seller (update_property_on_sale) CONSISTENT
     def update_property_on_sale(self, property_on_sale : SellerPropertyOnSale) -> int:
+        """
+        Update an existing property on sale in the seller's document.
+
+        Args:
+            property_on_sale (SellerPropertyOnSale): The property data with updated fields.
+        
+        Returns:
+            int: 200 if the property is updated successfully,
+                 404 if the property is not found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
-        # data preparation 
+        # Data preparation 
         a=(property_on_sale.city is not None or property_on_sale.neighbourhood is not None or property_on_sale.address is not None or property_on_sale.price is not None or property_on_sale.thumbnail is not None)
         b=(property_on_sale.disponibility is not None)
         if a: 
@@ -291,6 +396,17 @@ class SellerDB:
     
     # route del seller (delete_property_on_sale) CONSISTENT
     def delete_embedded(self, property_on_sale_id : str) -> int:
+        """
+        Delete an embedded property on sale from the seller's document.
+
+        Args:
+            property_on_sale_id (str): The id of the property to delete.
+        
+        Returns:
+            int: 200 if the property is deleted successfully,
+                 404 if the property is not found or not modified,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
@@ -308,6 +424,16 @@ class SellerDB:
     
     # route del seller (sell_property) CONSISTENT
     def sell_property(self, property: SoldProperty) -> int:
+        """
+        Move a property from properties_on_sale to sold_properties.
+
+        Args:
+            property (SoldProperty): The property being sold.
+        
+        Returns:
+            int: 200 if the property is sold successfully,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             return 500
@@ -331,6 +457,17 @@ class SellerDB:
 
     # route del seller (sell_property) CONSISTENT
     def check_property_on_sale(self, property_on_sale_id: str) -> int:
+        """
+        Check whether a property on sale exists for the seller.
+
+        Args:
+            property_on_sale_id (str): The id of the property to check.
+        
+        Returns:
+            int: 200 if the property exists,
+                 500 if a database error occurs,
+                 404 if the property is not found.
+        """
         id_p = ObjectId(property_on_sale_id)
         id_s = ObjectId(self.seller.seller_id)
         mongo_client = get_default_mongo_db()
@@ -349,17 +486,28 @@ class SellerDB:
         return 200
     
     
-    def get_analytics_2(self, input:Analytics2Input) -> int:
+    def get_sold_properties_statistics(self, input:Analytics2Input) -> int:
+        """
+        Retrieve sold properties statistics (houses sold and revenue) grouped by neighbourhood.
+
+        Args:
+            input (Analytics2Input): Input parameters including date range and city.
+        
+        Returns:
+            int: 200 if statistics are retrieved successfully,
+                 400 if the date range is invalid,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
             return 500
         
-        #convert input dates into datetime objects
+        # Convert input dates into datetime objects
         start = datetime.strptime(input.start_date, "%Y-%m-%d")
         end = datetime.strptime(input.end_date, "%Y-%m-%d")
 
-        #check if the start date is before the end date
+        # Check if the start date is before the end date
         if start > end:
             return 400
         
@@ -401,7 +549,17 @@ class SellerDB:
         return 200
         
     
-    def get_analytics_3(self, input:Analytics3Input) -> int:
+    def get_avg_time_to_sell(self, input:Analytics3Input) -> int:
+        """
+        Calculate the average time to sell properties grouped by neighbourhood.
+
+        Args:
+            input (Analytics3Input): Input parameters including start date and city.
+        
+        Returns:
+            int: 200 if the average time is calculated successfully,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")

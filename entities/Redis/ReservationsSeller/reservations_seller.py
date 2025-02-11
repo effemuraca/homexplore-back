@@ -40,6 +40,13 @@ def convert_to_seconds(day: str, time: str) -> Optional[int]:
     """
     Convert a day and a time interval (e.g. "10:00 AM - 11:00 AM") to seconds from now,
     using only the end time of the interval.
+
+    Args:
+        day: str: the day of the week (e.g. "Monday")
+        time: str: the time interval (e.g. "10:00 AM - 11:00 AM")
+
+    Returns:
+        int: the number of seconds from now to the end of the time interval
     """
     try:
         if not day or not time:
@@ -76,6 +83,15 @@ def convert_to_seconds(day: str, time: str) -> Optional[int]:
         return None
 
 def next_weekday(target_day: str) -> Optional[str]:
+    """
+    Return the next date for a given day of the week.
+
+    Args:
+        target_day: str: the day of the week (e.g. "Monday")
+
+    Returns:
+        str: the next date for the given day of the week (e.g. "2025-02-17")
+    """
     days = {
         "monday": 0,
         "tuesday": 1,

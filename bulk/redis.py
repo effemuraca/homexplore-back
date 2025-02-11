@@ -6,6 +6,12 @@ seller_csv_path ='bulk/files/Redis/reservations_seller.csv'
 buyer_csv_path = 'bulk/files/Redis/reservations_buyer.csv'
 
 def populate_redis_db():
+    """
+    Populates Redis with reservation data from CSV files.
+
+    Returns:
+        None
+    """
     r = get_redis_client()
 
     # Load data from CSV files
@@ -27,6 +33,12 @@ def populate_redis_db():
     print("Database populated successfully.")
 
 def reset_redis_db():
+    """
+    Deletes reservation-related keys from Redis.
+
+    Returns:
+        None
+    """
     r = get_redis_client()
 
     # Remove all keys related to reservations
@@ -37,6 +49,12 @@ def reset_redis_db():
     print("Database cleared successfully.")
 
 def verify_redis_data():
+    """
+    Verifies that Redis contains reservation data.
+
+    Returns:
+        None
+    """
     r = get_redis_client()
 
     # Verify a few random keys to ensure data is present
