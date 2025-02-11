@@ -24,7 +24,7 @@ class UpdateBuyer(BaseModel):
 class CreateReservationBuyer(BaseModel):
     property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     day : str = Field(example="Monday")
-    time: str = Field(example="10:00-11:00 AM")
+    time: str = Field(example="10:00 AM - 11:00 AM")
     thumbnail: str = Field(example="https://www.example.com/image.png")
     address: str = Field(example="1234 Example St.")
     max_attendees : int = Field(example=10)
@@ -43,7 +43,8 @@ class CreateReservationBuyer(BaseModel):
     
     @field_validator('time')
     def validate_time(cls, v):
-        if not re.match(r"^(0?[1-9]|1[0-2]):[0-5][0-9]-(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$", v):
+        pattern = r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM) - (0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+        if not re.match(pattern, v):
             raise ValueError('Invalid time')
         return v
     
@@ -65,7 +66,7 @@ class UpdateReservationBuyer(BaseModel):
     property_on_sale_id: str = Field(example="615c44fdf641be001f0c1111")
     buyer_id: str = Field(example="615c44fdf641be001f0c1111")
     date: str = Field(example="2021-09-01")
-    time: str = Field(example="10:00-11:00 AM")
+    time: str = Field(example="10:00 AM - 11:00 AM")
     thumbnail: str = Field(example="https://www.example.com/image.png")
     address: str = Field(example="1234 Example St.")
     
@@ -87,12 +88,12 @@ class UpdateReservationBuyer(BaseModel):
             raise ValueError('Invalid date format')
         return v
     
-    @field_validator("time")
-    def validate_time(cls, value):
-        time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
-        if not time_pattern.match(value):
-            raise ValueError("Invalid time format. Expected format: HH:MM AM/PM")
-        return value
+    @field_validator('time')
+    def validate_time(cls, v):
+        pattern = r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM) - (0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+        if not re.match(pattern, v):
+            raise ValueError('Invalid time')
+        return v
     
     @field_validator('thumbnail')
     def check_url(cls, v: str) -> str:

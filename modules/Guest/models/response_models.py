@@ -36,7 +36,7 @@ GetFilteredPropertiesOnSaleResponses = {
                         "photos": ["https://www.example.com/photo1.jpg"],
                         "disponibility": {
                             "day": "Monday",
-                            "time": "10:00-11:00 AM",
+                            "time": "10:00 AM - 11:00 AM",
                             "max_attendees": 5
                         }
                     }
@@ -91,7 +91,7 @@ GetRandomPropertiesOnSaleResponses = {
                         "photos": ["https://www.example.com/photo1.jpg"],
                         "disponibility": {
                             "day": "Monday",
-                            "time": "10:00-11:00 AM",
+                            "time": "10:00 AM - 11:00 AM",
                             "max_attendees": 5
                         }
                     }
@@ -146,7 +146,7 @@ GetPropertyOnSaleResponses = {
                     "photos": ["https://www.example.com/photo1.jpg", "https://www.example.com/photo2.jpg"],
                     "disponibility": {
                         "day": "Monday",
-                        "time": "10:00-11:00 AM",
+                        "time": "10:00 AM - 11:00 AM",
                         "max_attendees": 5
                     }
                 }

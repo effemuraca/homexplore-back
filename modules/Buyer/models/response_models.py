@@ -251,7 +251,7 @@ GetReservationsBuyerResponses = {
                     {
                         "property_on_sale_id": "615c44fdf641be001f0c1111",
                         "date": "2021-09-01",
-                        "time": "10:00-11:00 AM",
+                        "time": "10:00 AM - 11:00 AM",
                         "thumbnail": "https://www.example.com/image.jpg",
                         "address": "1234 Example St."
                     }

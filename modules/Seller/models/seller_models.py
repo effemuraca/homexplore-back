@@ -16,7 +16,7 @@ class UpdateSeller(BaseModel):
 #CONSISTENT
 class CreateDisponibility(BaseModel):
     day: str = Field(..., example="Monday")
-    time: str = Field(..., example="10:00-11:00 AM")
+    time: str = Field(..., example="10:00 AM - 11:00 AM")
     max_attendees: int = Field(..., example=5)
 
     @field_validator("day")
@@ -26,12 +26,12 @@ class CreateDisponibility(BaseModel):
             raise ValueError("Invalid day. Must be one of: " + ", ".join(valid_days))
         return value
 
-    @field_validator("time")
-    def validate_time(cls, value):
-        time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9]-(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
-        if not time_pattern.match(value):
-            raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
-        return value
+    @field_validator('time')
+    def validate_time(cls, v):
+        pattern = r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM) - (0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+        if not re.match(pattern, v):
+            raise ValueError('Invalid time')
+        return v
     
     @field_validator('max_attendees')
     def validate_max_attendees(cls, v):
@@ -51,7 +51,7 @@ class CreatePropertyOnSale(BaseModel):
     bath_number: Optional[int] = Field(None, example=2) 
     description: Optional[str] = Field(None, example="Beautiful home") 
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
-    disponibility: Optional[CreateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00-11:00 AM", "max_attendees": 5})   
+    disponibility: Optional[CreateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00 AM - 11:00 AM", "max_attendees": 5})   
     
     @field_validator("price")
     def validate_price(cls, value):
@@ -98,7 +98,7 @@ class CreatePropertyOnSale(BaseModel):
 #CONSISTENT
 class UpdateDisponibility(BaseModel):
     day: Optional[str] = Field(None, example="Monday")
-    time: Optional[str] = Field(None, example="10:00-11:00 AM")
+    time: Optional[str] = Field(None, example="10:00 AM - 11:00 AM")
     max_attendees: Optional[int] = Field(None, example=5)
 
     @field_validator("day")
@@ -108,12 +108,12 @@ class UpdateDisponibility(BaseModel):
             raise ValueError("Invalid day. Must be one of: " + ", ".join(valid_days))
         return value
 
-    @field_validator("time")
-    def validate_time(cls, value):
-        time_pattern = re.compile(r"^(0[1-9]|1[0-2]):[0-5][0-9]-(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$")
-        if not time_pattern.match(value):
-            raise ValueError("Invalid time format. Expected format: HH:MM-HH:MM AM/PM")
-        return value
+    @field_validator('time')
+    def validate_time(cls, v):
+        pattern = r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM) - (0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+        if not re.match(pattern, v):
+            raise ValueError('Invalid time')
+        return v
     
     @field_validator('max_attendees')
     def validate_max_attendees(cls, v):
@@ -134,7 +134,7 @@ class UpdatePropertyOnSale(BaseModel):
     bath_number: Optional[int] = Field(None, example=2) 
     description: Optional[str] = Field(None, example="Beautiful home") 
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
-    disponibility: Optional[UpdateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00-11:00 AM", "max_attendees": 5})   
+    disponibility: Optional[UpdateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00 AM - 11:00 AM", "max_attendees": 5})   
 
     #create validator for property_on_sale_id to be a valid ObjectId
     @field_validator("property_on_sale_id")

@@ -38,7 +38,7 @@ class ReservationsSeller(BaseModel):
 
 def convert_to_seconds(day: str, time: str) -> Optional[int]:
     """
-    Convert a day and a time interval (e.g. "10:00-11:00 AM") to seconds from now,
+    Convert a day and a time interval (e.g. "10:00 AM - 11:00 AM") to seconds from now,
     using only the end time of the interval.
     """
     try:
