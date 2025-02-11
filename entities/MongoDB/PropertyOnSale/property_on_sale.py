@@ -4,8 +4,6 @@ from datetime import datetime
 from bson import ObjectId
 import re
 
-
-
 class Disponibility(BaseModel):
     day: Optional[str] = None
     time: Optional[str] = None
@@ -81,6 +79,12 @@ class PropertyOnSale(BaseModel):
     def convert_to_seller_property(self) -> Dict[str, Any]:
         """
         Converts the PropertyOnSale object to a dictionary with the same fields
+
+        Args:
+            None
+        
+        Returns:
+            Dict[str, Any]: The dictionary with the same fields as the PropertyOnSale object
         """
         data = {
             "_id": ObjectId(self.property_on_sale_id),

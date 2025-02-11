@@ -5,7 +5,7 @@ from entities.MongoDB.Buyer.buyer import Buyer, FavouriteProperty
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 import logging
 
-# Configura il logger
+# Configure logger
 logger = logging.getLogger(__name__)
 
 class BuyerDB:
