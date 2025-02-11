@@ -13,6 +13,15 @@ class BuyerDB:
         self.buyer = buyer
     
     def get_profile_info(self) -> int:
+        """
+        Retrieve the profile information for the buyer, excluding favourites.
+
+        Returns:
+            int: 200 if retrieval is successful,
+                 400 if buyer is not provided,
+                 404 if buyer is not found,
+                 500 if a database error occurs.
+        """
         if not self.buyer or not self.buyer.buyer_id:
             return 400
         mongo_client = get_default_mongo_db()
@@ -31,6 +40,18 @@ class BuyerDB:
         return 200
     
     def get_buyer_by_email(self, email: str) -> int:
+        """
+        Retrieve buyer information by email.
+
+        Args:
+            email (str): The buyer's email.
+
+        Returns:
+            int: 200 if buyer is found,
+                 400 if email is not provided,
+                 404 if buyer is not found,
+                 500 if a database error occurs.
+        """
         if not email:
             return 400
         mongo_client = get_default_mongo_db()
@@ -52,6 +73,14 @@ class BuyerDB:
         return 200
 
     def create_buyer(self) -> int:
+        """
+        Create a new buyer in the database.
+
+        Returns:
+            int: 201 if creation is successful,
+                 400 if buyer is not provided,
+                 500 if a database error occurs.
+        """
         if not self.buyer:
             return 400
         mongo_client = get_default_mongo_db()
@@ -69,6 +98,17 @@ class BuyerDB:
         return 500
     
     def update_buyer(self, buyer: Buyer) -> int:
+        """
+        Update an existing buyer's information.
+
+        Args:
+            buyer (Buyer): The updated buyer information.
+
+        Returns:
+            int: 200 if update is successful,
+                 400 if buyer is not provided,
+                 500 if a database error occurs.
+        """
         if not self.buyer or not self.buyer.buyer_id:
             return 400
         mongo_client = get_default_mongo_db()
@@ -86,6 +126,18 @@ class BuyerDB:
         return 500
     
     def delete_buyer_by_id(self, buyer_id: str) -> int:
+        """
+        Delete a buyer from the database by buyer_id.
+
+        Args:
+            buyer_id (str): The buyer's id.
+
+        Returns:
+            int: 200 if deletion is successful,
+                 400 if id is not provided,
+                 404 if buyer is not found,
+                 500 if a database error occurs.
+        """
         if not buyer_id:
             return 400
         mongo_client = get_default_mongo_db()
@@ -100,6 +152,14 @@ class BuyerDB:
             return 404
     
     def get_favourites(self) -> int:
+        """
+        Retrieve the list of favourite properties for the buyer.
+
+        Returns:
+            int: 200 if favourites are retrieved successfully,
+                 404 if favourites are not found,
+                 500 if a database error occurs.
+        """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -121,6 +181,18 @@ class BuyerDB:
         return 200
     
     def add_favourite(self, buyer_id: str, favourite: FavouriteProperty) -> int:
+        """
+        Add a favourite property to the buyer's list.
+
+        Args:
+            buyer_id (str): The id of the buyer.
+            favourite (FavouriteProperty): The favourite property to add.
+
+        Returns:
+            int: 200 if addition is successful,
+                 400 if buyer_id is not provided,
+                 500 if a database error occurs.
+        """
         if not buyer_id:
             return 400
         mongo_client = get_default_mongo_db()
@@ -142,6 +214,19 @@ class BuyerDB:
         return 500
 
     def update_favourite(self, buyer_id: str, property_on_sale_id: str, updated_data: dict) -> int:
+        """
+        Update an existing favourite property.
+
+        Args:
+            buyer_id (str): The buyer's id.
+            property_on_sale_id (str): The property on sale id to update.
+            updated_data (dict): The updated favourite data.
+
+        Returns:
+            int: 200 if update is successful,
+                 400 if required parameters are missing,
+                 500 if a database error occurs.
+        """
         if not buyer_id or not property_on_sale_id:
             return 400
         mongo_client = get_default_mongo_db()
@@ -159,6 +244,18 @@ class BuyerDB:
         return 500
     
     def delete_favourite(self, buyer_id: str, property_on_sale_id: str) -> int:
+        """
+        Delete a favourite property from the buyer's list.
+
+        Args:
+            buyer_id (str): The buyer's id.
+            property_on_sale_id (str): The property on sale id to delete.
+
+        Returns:
+            int: 200 if deletion is successful,
+                 400 if required parameters are missing,
+                 500 if a database error occurs.
+        """
         if not buyer_id or not property_on_sale_id:
             return 400
         mongo_client = get_default_mongo_db()

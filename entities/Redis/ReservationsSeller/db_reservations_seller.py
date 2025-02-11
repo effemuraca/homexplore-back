@@ -15,6 +15,21 @@ class ReservationsSellerDB:
         self.reservations_seller = reservations_seller
 
     def create_reservation_seller(self, day: str, time: str, buyer_id :str, max_attendees : int) -> int:
+        """
+        Create a new reservation for this property_on_sale_id, associating it to a buyer.
+
+        Args:
+            day (str): The day of the reservation.
+            time (str): The time of the reservation.
+            buyer_id (str): The ID of the buyer creating this reservation.
+            max_attendees (int): The maximum number of reservations allowed
+
+        Returns:
+            int: 200 if the reservation was created successfully, 
+                 409 if the buyer already has a reservation, 
+                 400 if max_attendees has been reached,
+                 500 if there's an internal error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -52,6 +67,14 @@ class ReservationsSellerDB:
             return 500
 
     def get_reservation_seller(self) -> int:
+        """
+        Retrieve the reservation data for this property_on_sale_id from Redis.
+
+        Returns:
+            int: 200 if the data is retrieved successfully,
+                 404 if no data is found,
+                 500 if there is an internal error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -72,6 +95,18 @@ class ReservationsSellerDB:
             return 500
 
     def update_reservation_seller(self, buyer_id: str, updated_data: dict) -> int:
+        """
+        Update an existing reservation for a specific buyer on this property_on_sale_id.
+
+        Args:
+            buyer_id (str): The buyer's ID whose reservation needs to be updated.
+            updated_data (dict): The data to update.
+
+        Returns:
+            int: 200 if the reservation is updated successfully, 
+                 404 if the reservation or buyer is not found,
+                 500 if there is an internal error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -96,6 +131,17 @@ class ReservationsSellerDB:
             return 500
 
     def delete_reservation_seller_by_buyer_id(self, buyer_id: str) -> int:
+        """
+        Delete a reservation for a specific buyer from this property_on_sale_id.
+
+        Args:
+            buyer_id (str): The buyer's ID whose reservation needs to be deleted.
+
+        Returns:
+            int: 200 if the reservation is deleted,
+                 404 if the reservation or buyer is not found,
+                 500 if there is an internal error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -115,6 +161,13 @@ class ReservationsSellerDB:
             return 500
 
     def delete_entire_reservation_seller(self) -> int:
+        """
+        Delete all reservation data for this property_on_sale_id.
+
+        Returns:
+            int: 200 if the reservation data is deleted successfully,
+                 500 if there is an internal error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -128,6 +181,18 @@ class ReservationsSellerDB:
             return 500
         
     def update_day_and_time(self, day: str, time: str) -> int:
+        """
+        Update the TTL (day and time) of the seller's reservation data for this property_on_sale_id.
+
+        Args:
+            day (str): The new day of the reservation.
+            time (str): The new time of the reservation.
+
+        Returns:
+            int: 200 if the TTL is updated successfully,
+                 404 if no data is found,
+                 500 if there is an internal error.
+        """
         redis_client = get_redis_client()
         if redis_client is None:
             logger.error("Failed to connect to Redis.")
@@ -146,8 +211,21 @@ class ReservationsSellerDB:
         
     def handle_book_now_transaction(self, reservation: ReservationS, day: str, time: str, buyer_id: str, max_attendees: int) -> int:
         """
-        This function is called when a new reservation_buyer is created to handle the reservation_seller side of the operation.
-        This part is handled as a transaction, to avoid concurrency issues.
+        Handle a new reservation in a transactional way to avoid concurrency issues,
+        linking it to this property_on_sale_id.
+
+        Args:
+            reservation (ReservationS): The reservation details to store.
+            day (str): The day of the reservation.
+            time (str): The time of the reservation.
+            buyer_id (str): The ID of the buyer making the reservation.
+            max_attendees (int): The max number of allowed reservations.
+
+        Returns:
+            int: 200 if the transaction succeeds, 
+                 400 if max_attendees is reached or day/time is invalid, 
+                 409 if the buyer already has a reservation,
+                 500 if there's a concurrency or Redis error.
         """
         redis_client = get_redis_client()
         if redis_client is None:
@@ -158,9 +236,6 @@ class ReservationsSellerDB:
         if ttl is None:
             return 400
         
-        # I want to do this: get the data, if reservations_seller_db.reservations_seller.reservations is None
-        # then set it to an empty list, append the new reservation, and create the key in redis
-
         with redis_client.pipeline() as pipe:
             try:
                 pipe.watch(key)
