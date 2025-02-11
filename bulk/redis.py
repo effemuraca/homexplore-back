@@ -1,9 +1,11 @@
-import redis
 import json
 import pandas as pd
 from setup.redis_setup.redis_setup import get_redis_client
 
-def populate_redis_db(seller_csv_path ='bulk/files/Redis/reservations_seller.csv', buyer_csv_path = 'bulk/files/Redis/reservations_buyer.csv'):
+seller_csv_path ='bulk/files/Redis/reservations_seller.csv'
+buyer_csv_path = 'bulk/files/Redis/reservations_buyer.csv'
+
+def populate_redis_db():
     r = get_redis_client()
 
     # Load data from CSV files
