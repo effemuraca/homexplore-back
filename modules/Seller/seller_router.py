@@ -763,7 +763,7 @@ def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler(
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     seller_db = SellerDB(Seller(seller_id=seller_id))
-    status = seller_db.get_analytics_2(input)
+    status = seller_db.get_sold_properties_statistics(input)
     aggregation_result = seller_db.analytics_2_result
     if status == 500:
         raise HTTPException(status_code=500, detail="Error in fetching data.")
@@ -799,7 +799,7 @@ def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler(
     
     seller_db = SellerDB(Seller(seller_id=seller_id))
     
-    status = seller_db.get_analytics_3(input)
+    status = seller_db.get_avg_time_to_sell(input)
     aggregation_result = seller_db.analytics_3_result
     if status == 500:
         raise HTTPException(status_code=500, detail="Internal server error")

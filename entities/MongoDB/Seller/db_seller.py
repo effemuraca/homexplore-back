@@ -349,7 +349,7 @@ class SellerDB:
         return 200
     
     
-    def get_analytics_2(self, input:Analytics2Input) -> int:
+    def get_sold_properties_statistics(self, input:Analytics2Input) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
@@ -401,7 +401,7 @@ class SellerDB:
         return 200
         
     
-    def get_analytics_3(self, input:Analytics3Input) -> int:
+    def get_avg_time_to_sell(self, input:Analytics3Input) -> int:
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
