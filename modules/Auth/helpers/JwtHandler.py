@@ -8,8 +8,9 @@ from os import environ
 from config.config import settings
 
 class JWTHandler(HTTPBearer):
-    """This class is a helper class for the creation and verification of JWT tokens.
-       It supports multiple user types with separate secret keys.
+    """
+    This class is a helper class for the creation and verification of JWT tokens.
+    It supports multiple user types with separate secret keys.
     """
 
     secret_seller = environ.get('JWT_SECRET_KEY_SELLER', settings.jwt_secret_key_seller)
@@ -21,8 +22,12 @@ class JWTHandler(HTTPBearer):
     def get_secret_by_user_type(user_type: str) -> str:
         """
         Returns the appropriate secret key based on the user type.
-        :param user_type: The type of user (seller or buyer)
-        :return: The secret key for the user type
+        
+        Args:
+            user_type (str): The type of user (seller or buyer)
+
+        Returns:
+            str: The secret key
         """
         if user_type == "seller":
             return JWTHandler.secret_seller
@@ -35,11 +40,15 @@ class JWTHandler(HTTPBearer):
     def createAccessToken(subject: Union[str, Any], user_type: str, expires_delta: Union[int, None] = None, tokenType: str = "access") -> str:
         """
         Creates a JWT token with the given subject, user type, and expiration time.
-        :param subject: The subject of the token (e.g. user ID)
-        :param user_type: The type of user (seller or buyer)
-        :param expires_delta: The expiration time in minutes
-        :param tokenType: The type of token (access or refresh)
-        :return: The JWT token
+        
+        Args:
+            subject (Union[str, Any]): The subject of the token
+            user_type (str): The type of user (seller or buyer)
+            expires_delta (Union[int, None], optional): The expiration time in minutes. Defaults to None.
+            tokenType (str, optional): The type of token (access or refresh). Defaults to "access".
+        
+        Returns:
+            str: The JWT token
         """
         if expires_delta is not None:
             expires = datetime.utcnow() + timedelta(minutes=expires_delta)
@@ -53,14 +62,29 @@ class JWTHandler(HTTPBearer):
 
     @staticmethod
     def createRefreshToken(subject: Union[str, Any], user_type: str, expires_delta: Union[int, None] = None) -> str:
+        """
+        Creates a refresh token with the given subject, user type, and expiration time.
+
+        Args:
+            subject (Union[str, Any]): The subject of the token
+            user_type (str): The type of user (seller or buyer)
+            expires_delta (Union[int, None], optional): The expiration time in minutes. Defaults to None.
+
+        Returns:
+            str: The JWT token
+        """
         return JWTHandler.createAccessToken(subject, user_type, expires_delta, "refresh")
 
     @staticmethod
     def verifyAccessToken(token: str) -> Union[tuple[str, str], None]:
         """
-        Verifies the given token and returns its subject and user type if the token is valid, otherwise None.
-        :param token: The JWT token to verify
-        :return: The subject and user type of the token if valid, otherwise None
+        Verifies the given token and returns its subject and user type if the token is valid, otherwise None.   
+
+        Args:
+            token (str): The JWT token to verify
+
+        Returns:
+            Union[tuple[str, str], None]: The subject and user type of the token if valid, otherwise None
         """
         try:
             # Use get_unverified_claims to extract the payload without verifying the signature.
@@ -81,8 +105,12 @@ class JWTHandler(HTTPBearer):
     def verifyRefreshToken(token: str) -> Union[str, None]:
         """
         Verifies the given token and returns its subject and user type if the token is valid, otherwise None.
-        :param token: The JWT token to verify
-        :return: The subject and user type of the token if valid, otherwise None
+        
+        Args:
+            token (str): The JWT token to verify
+
+        Returns:
+            Union[str, None]: The subject and user type of the token if valid, otherwise None
         """
         try:
             unverified_payload = jwt.get_unverified_claims(token)
@@ -103,11 +131,12 @@ class JWTHandler(HTTPBearer):
     async def __call__(self, request: Request) -> Union[str, None]:
         """
         Verifies the token in the Authorization header of the request and returns the token if it is valid.
-        :param request: The request object
-        :return: The token if valid, otherwise None
 
-        Raises:
-            HTTPException: If the token is missing, invalid, or expired
+        Args:
+            request (Request): The request object
+
+        Returns:
+            Union[str, None]: The token if it is valid, otherwise None
         """
         try:
             credentials: Union[HTTPAuthorizationCredentials, None] = await super(JWTHandler, self).__call__(request)

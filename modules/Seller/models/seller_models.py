@@ -91,10 +91,6 @@ class CreatePropertyOnSale(BaseModel):
         return value
         
 
-
-
-
-
 #CONSISTENT
 class UpdateDisponibility(BaseModel):
     day: Optional[str] = Field(None, example="Monday")
@@ -136,7 +132,6 @@ class UpdatePropertyOnSale(BaseModel):
     photos: Optional[List[str]] = Field(None, example=["http://example.com/photo1.jpg"]) 
     disponibility: Optional[UpdateDisponibility] = Field(None, example={"day": "Monday", "time": "10:00 AM - 11:00 AM", "max_attendees": 5})   
 
-    #create validator for property_on_sale_id to be a valid ObjectId
     @field_validator("property_on_sale_id")
     def validate_property_on_sale_id(cls, value):
         if not ObjectId.is_valid(value):
@@ -189,7 +184,6 @@ class Analytics2Input(BaseModel):
     start_date: str = Field(..., example="2021-01-01")
     end_date: str = Field(..., example="2021-12-31")
 
-    #create validator for date
     @field_validator("start_date")
     def validate_start_date(cls, value):
         date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -208,7 +202,6 @@ class Analytics3Input(BaseModel):
     city: str = Field(..., example="New York")
     start_date: str = Field(..., example="2021-01-01")
 
-    #create validator for date
     @field_validator("start_date")
     def validate_start_date(cls, value):
         date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")

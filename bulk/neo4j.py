@@ -9,9 +9,13 @@ def create_nodes(tx, query, parameters):
 def parse_coordinates(latitude: str, longitude: str) -> dict:
     """
     Parse latitude and longitude strings into a dictionary.
-    :param latitude: The latitude as a string.
-    :param longitude: The longitude as a string.
-    :return: A dictionary with the latitude and longitude as floats.
+    
+    Args:
+        latitude (str): The latitude string
+        longitude (str): The longitude string
+    
+    Returns:
+        dict: A dictionary with 'latitude' and 'longitude' keys as floats.
     """
     return {"latitude": float(latitude), "longitude": float(longitude)}
 
@@ -148,6 +152,12 @@ def create_near_relationships():
     """
     Create NEAR relationships between PropertyOnSale and POI nodes in Neo4j.
     Relationships are created only if the distance between a property and a POI is ≤ 500 meters.
+
+    Args:
+        None
+    
+    Returns:
+        bool: True if the relationships are successfully created, False otherwise.
     """
     neo4j_driver = get_neo4j_driver()
     with neo4j_driver.session() as session:
@@ -189,10 +199,13 @@ def calculate_livability_score(poi_weights, distances, counts):
       - Count default: 0
       - Distance default: 500 meters
       
-    :param poi_weights: A dictionary where keys are POI types and values are their respective weights.
-    :param distances: A dictionary where keys are POI types and values are the minimum distance (in meters).
-    :param counts: A dictionary where keys are POI types and values are the counts.
-    :return: The final livability score as a float.
+    Args:
+        poi_weights (dict): A dictionary of POI types and their corresponding weights.
+        distances (dict): A dictionary of POI types and their minimum distances from the property.
+        counts (dict): A dictionary of POI types and their counts near the property.
+
+    Returns:
+        float: The calculated livability score.
     """
     # For every expected POI type, set default values if missing.
     for poi in poi_weights.keys():
@@ -279,6 +292,9 @@ def update_livability_scores():
 def reset_neo4j_db():
     """
     Reset the Neo4j database by deleting all nodes and relationships.
+
+    Returns:
+        dict: A dictionary with the status of the operation.
     """
     try:
         neo4j_driver = get_neo4j_driver()
