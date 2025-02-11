@@ -22,15 +22,15 @@ def populate_neo4j_db():
     It also establishes relationships between the nodes based on proximity.
     """
     
-    cities_df = pd.read_csv('bulk/files/cities.csv')
-    neighbourhoods_df = pd.read_csv('bulk/files/neighbourhoods.csv')
+    cities_df = pd.read_csv('bulk/files/Neo4J/cities.csv')
+    neighbourhoods_df = pd.read_csv('bulk/files/Neo4J/neighbourhoods.csv')
     # Remove neighbourhood rows with name "Unknown"
     neighbourhoods_df = neighbourhoods_df[neighbourhoods_df["name"] != "Unknown"]
 
-    properties_df = pd.read_csv('bulk/files/properties_on_sale_neo4j.csv', dtype={"coordinates": str})
+    properties_df = pd.read_csv('bulk/files/Neo4J/properties_on_sale_neo4j.csv', dtype={"coordinates": str})
     properties_df = properties_df.drop_duplicates(subset=["property_on_sale_id"])
     
-    pois_df = pd.read_csv('bulk/files/pois.csv')
+    pois_df = pd.read_csv('bulk/files/Neo4J/pois.csv')
     # Remove POI rows with name "Unknown"
     pois_df = pois_df[pois_df["name"] != "Unknown"]
 
