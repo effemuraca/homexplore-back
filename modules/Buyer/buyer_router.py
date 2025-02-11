@@ -175,7 +175,6 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
 
 @buyer_router.delete("/favourite/{property_on_sale_id}", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteFavouriteResponseModelResponses)
 def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
-def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
     Delete a favourite property from a buyer's list.
 
