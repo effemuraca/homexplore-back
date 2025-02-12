@@ -17,26 +17,30 @@ class PropertyOnSaleDB:
         self.analytics_4_result = None
         self.analytics_5_result = None
 
-    #guest route (filtered_search) CONSISTENT
-    def filtered_search(self, input : FilteredSearchInput) -> int:
+    def filtered_search(self, input: FilteredSearchInput, page: int = 1, page_size: int = 10) -> int:
         """
-        Search properties on sale based on provided filters.
+        Search properties on sale based on provided filters and apply pagination.
 
         Args:
-            input (FilteredSearchInput): Filter criteria for search.
+            input (FilteredSearchInput): Filter criteria for the search.
+            page (int): Current page number (default is 1).
+            page_size (int): Number of results per page (default is 10).
 
         Returns:
             int: 200 if properties are found,
-                 404 if no properties match,
-                 500 if a database error occurs.
+                404 if no properties match the criteria,
+                500 if a database error occurs.
         """
         mongo_client = get_default_mongo_db()
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
             return 500
+
         query = {}
         if input.city:
             query["city"] = input.city
+        if input.address:
+            query["address"] = {"$regex": input.address, "$options": "i"}
         if input.max_price:
             query["price"] = {"$lte": input.max_price}
         if input.neighbourhood:
@@ -49,21 +53,27 @@ class PropertyOnSaleDB:
             query["bed_number"] = {"$gte": input.min_bed_number}
         if input.min_bath_number:
             query["bath_number"] = {"$gte": input.min_bath_number}
+
         try:
-            results = mongo_client.PropertyOnSale.find(query)
+            # Initialize the cursor with the query
+            results_cursor = mongo_client.PropertyOnSale.find(query)
+            # Apply pagination using skip and limit
+            skip = (page - 1) * page_size
+            results_cursor = results_cursor.skip(skip).limit(page_size)
+            results_list = list(results_cursor)
         except Exception as e:
-            logger.error("Error while searching: %s", e)
+            logger.error("Error during search: %s", e)
             return 500
-        results_list = list(results)
+
         if not results_list:
             return 404
+
         self.property_on_sale_list = []
         for result in results_list:
             result["property_on_sale_id"] = str(result["_id"])
             self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
-    
-    #guest route (get_10_random_properties) CONSISTENT
+
     def get_10_random_properties(self) -> int:
         """
         Retrieve 10 random properties on sale.
@@ -91,44 +101,6 @@ class PropertyOnSaleDB:
             self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
     
-    #guest route (get_property_on_sale_by_address) CONSISTENT
-    def get_property_on_sale_by_address(self, city: str, address: str) -> int:
-        """
-        Retrieve properties based on city and address search pattern.
-
-        Args:
-            city (str): City to filter.
-            address (str): Address keyword (regex search).
-
-        Returns:
-            int: 200 if properties are found,
-                 404 if none match,
-                 500 if a database error occurs.
-        """
-        mongo_client = get_default_mongo_db()
-        if mongo_client is None:
-            logger.error("Mongo client not initialized.")
-            return 500
-        try:
-            result = mongo_client.PropertyOnSale.find({"city": city, "address": {"$regex": address, "$options": "i"}})
-        except Exception as e:
-            logger.error("Error while searching property by address: %s", e)
-            return 500
-        if not result:
-            return 404
-        results_list = list(result)
-        if not results_list:
-            return 404
-        self.property_on_sale_list = []
-        for result in results_list:
-            result["property_on_sale_id"] = str(result["_id"])
-            if result["disponibility"]:
-                # Remove disponibility from the result
-                result["disponibility"] = None
-            self.property_on_sale_list.append(PropertyOnSale(**result))
-        return 200
-    
-    #route del seller (delete_property_on_sale) CONSISTENT
     def delete_property_on_sale_by_id(self, property_on_sale_id:str) -> int:
         """
         Delete a property on sale by its ID.
@@ -159,7 +131,6 @@ class PropertyOnSaleDB:
             return 404
         return 200
     
-    #route del seller (create_property_on_sale) CONSISTENT
     def create_property_on_sale(self) -> int:
         """
         Create a new property on sale.

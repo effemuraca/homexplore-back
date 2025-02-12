@@ -180,6 +180,51 @@ GetPropertyOnSaleResponses = {
 
 # Map
 
+
+GetPropertyOnSaleNeo4JResponses = {
+    200: {
+        "model": PropertyOnSaleNeo4J,
+        "description": "Property found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "property_on_sale_id": "60d5ec49f8d2e30b8c8b4567",
+                    "coordinates": {
+                        "latitude": 40.7128,
+                        "longitude": -74.0060
+                    },
+                    "price": 500000,
+                    "type": "House",
+                    "thumbnail": "https://www.example.com/thumbnail.jpg",
+                    "score": 67.89,
+                }
+            }
+        }
+    },
+    400: {
+        "model": ErrorModel,
+        "description": "Invalid property id.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Invalid property id."
+                }
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "Property not found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Property not found."
+                }
+            }
+        }
+    }
+}
+
 class CityAndNeighbourhood(BaseModel):
     city: City
     neighbourhood: Neighbourhood

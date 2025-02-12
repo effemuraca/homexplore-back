@@ -19,7 +19,7 @@
 
 - GET /guest/properties_on_sale/random
 - GET /guest/properties_on_sale/search
-- GET /guest/property_on_sale
+- GET /guest/property_on_sale/{propery_on_sale_id}
 
 ## REGISTERED USER
 

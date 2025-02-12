@@ -4,6 +4,7 @@ from typing import Optional
 
 class FilteredSearchInput(BaseModel):
     city: Optional[str] = Field(None, example="New York")
+    address : Optional[str] = Field(None, example="123 Main St")
     neighbourhood: Optional[str] = Field(None, example="Brooklyn")
     max_price: Optional[int] = Field(None, example=500000)
     type: Optional[str] = Field(None, example="House")

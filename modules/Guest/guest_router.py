@@ -20,22 +20,24 @@ from modules.Guest.models.guest_models import FilteredSearchInput
 guest_router = APIRouter(prefix="/guest", tags=["Guest"])
 
 @guest_router.post("/properties_on_sale/search", response_model=List[PropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
-def filtered_search(input : FilteredSearchInput):
+def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 10):
     """
-    Search for properties on sale based on the input parameters.
+    Search for properties on sale based on input parameters with pagination support.
 
     Args:
-        input (FilteredSearchInput): The input parameters for the filtered search.
+        input (FilteredSearchInput): Filter criteria for the search.
+        page (int): Current page number (default is 1).
+        page_size (int): Number of results per page (default is 10).
 
     Raises:
         HTTPException: 500 if there is an internal server error.
                        404 if no properties match the search criteria.
 
     Returns:
-        List[PropertyOnSale]: The list of properties on sale that match the input parameters.
+        List[PropertyOnSale]: The list of properties on sale that match the search criteria.
     """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
-    result_code = db_property_on_sale.filtered_search(input)
+    result_code = db_property_on_sale.filtered_search(input, page, page_size)
     if result_code == 500:
         raise HTTPException(status_code=500, detail="Internal server error.")
     if result_code == 404:
@@ -62,27 +64,32 @@ def get_10_random_properties():
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-@guest_router.get("/properties_on_sale/{address}", response_model=List[PropertyOnSale], responses=ResponseModels.GetPropertyOnSaleResponses)
-def search_by_address(city: str, address: str):
+@guest_router.get("/property_on_sale/{property_on_sale_id}", response_model=PropertyOnSale, responses=ResponseModels.GetPropertyOnSaleResponses)
+def get_property_on_sale(property_on_sale_id:str):
     """
-    Search for properties on sale based on the city and address.
+    Get the property on sale with the given ID.
 
     Args:
-        city (str): The city of the property on sale.
-        address (str): The address of the property on sale.
+        property_on_sale_id (str): The ID of the property on sale.
 
     Raises:
-        HTTPException: 404 if no properties match the search criteria.
+        HTTPException: 400 if the ID is invalid.
+                       404 if the property is not found.
+                       500 if there is an internal server error.
 
     Returns:
-        List[PropertyOnSale]: The list of properties on sale that match the city and address.
+        PropertyOnSale: The property on sale with the given ID.
     """
-    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
-    response = db_property_on_sale.get_property_on_sale_by_address(city, address)
+    if not ObjectId.is_valid(property_on_sale_id):
+        raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
+    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale(property_on_sale_id=property_on_sale_id))
+    response = db_property_on_sale.get_property_on_sale_by_id(property_on_sale_id)
     if response == 404:
         raise HTTPException(status_code=response, detail="Property not found.")
-    return db_property_on_sale.property_on_sale_list
-
+    if response == 500:
+        raise HTTPException(status_code=response, detail="Internal server error.")
+    
+    return db_property_on_sale.property_on_sale
 
 # Map
 
