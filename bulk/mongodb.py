@@ -103,13 +103,15 @@ def populate_mongodb():
 
     # Convert nested JSON fields in sellers_data.
     if 'property_on_sale' in sellers_data.columns:
-        sellers_data['property_on_sale'] = sellers_data['property_on_sale'].apply(
+        sellers_data['properties_on_sale'] = sellers_data['property_on_sale'].apply(
             lambda x: json.loads(x) if pd.notna(x) else x
         )
+        del sellers_data['property_on_sale']
     if 'sold_property' in sellers_data.columns:
-        sellers_data['sold_property'] = sellers_data['sold_property'].apply(
+        sellers_data['sold_properties'] = sellers_data['sold_property'].apply(
             lambda x: json.loads(x) if pd.notna(x) else x
         )
+        del sellers_data['sold_property']
 
     # Remove unnecessary columns from properties_data (e.g., latitude and longitude).
     properties_data = properties_data.drop(['latitude', 'longitude'], axis=1, errors='ignore')
