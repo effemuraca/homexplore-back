@@ -17,7 +17,7 @@ class Disponibility(BaseModel):
     
     @field_validator('time')
     def validate_time(cls, v):
-        pattern = r"^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM) - (0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+        pattern = r"^(0|0?[1-9]|1[0-2]|13):[0-5][0-9] (AM|PM) - (0|0?[1-9]|1[0-2]|13):[0-5][0-9] (AM|PM)$"
         if not re.match(pattern, v):
             raise ValueError('Invalid time')
         return v

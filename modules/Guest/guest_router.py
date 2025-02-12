@@ -82,7 +82,7 @@ def get_property_on_sale(property_on_sale_id:str):
     """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")
-    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale(property_on_sale_id=property_on_sale_id))
+    db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     response = db_property_on_sale.get_property_on_sale_by_id(property_on_sale_id)
     if response == 404:
         raise HTTPException(status_code=response, detail="Property not found.")
