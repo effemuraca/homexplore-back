@@ -38,10 +38,7 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
         Buyer: The buyer's data.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     temp_buyer = Buyer(buyer_id=buyer_id)
@@ -75,10 +72,7 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
         JSONResponse: A success message if the update is successful.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     buyer_old = Buyer(buyer_id=buyer_id)
@@ -123,10 +117,7 @@ def delete_buyer(access_token: str = Depends(JWTHandler())):
         JSONResponse: A success message if the deletion is successful.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     buyer = Buyer(buyer_id=buyer_id)
@@ -169,10 +160,7 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
         List[FavouriteProperty]: The list of favourite properties.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     temp_buyer = Buyer(buyer_id=buyer_id)
@@ -202,10 +190,7 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
         JSONResponse: A success message if the favourite is added.
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     buyer_db = BuyerDB()
@@ -237,10 +222,7 @@ def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHa
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid input.")
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     buyer_db = BuyerDB()
@@ -277,10 +259,7 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
     """
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
@@ -317,10 +296,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     Returns:
         JSONResponse: A success message if the reservation is created.
     """
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     buyer = Buyer(buyer_id=buyer_id)
@@ -409,10 +385,7 @@ def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_to
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id")
     
     buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if buyer_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "buyer":
+    if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
 
     reservations_buyer = ReservationsBuyer(buyer_id=buyer_id)
