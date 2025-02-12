@@ -105,6 +105,50 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=result, detail="Failed to update buyer.")
     elif result == 200:
         return JSONResponse(status_code=result, content={"detail": "Buyer updated successfully."})
+    
+@buyer_router.delete("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeleteBuyerResponseModelResponses)
+def delete_buyer(access_token: str = Depends(JWTHandler())):
+    """
+    Delete an existing buyer.
+
+    Args:
+        access_token (str): The JWT access token for authentication.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a buyer.
+                       404 if the buyer is not found.
+                       500 if there is an error deleting the buyer.
+
+    Returns:
+        JSONResponse: A success message if the deletion is successful.
+    """
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if buyer_id is None:
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    if user_type != "buyer":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    buyer = Buyer(buyer_id=buyer_id)
+    buyer_db = BuyerDB(buyer)
+    result = buyer_db.delete_buyer_by_id(buyer_id)
+    if result == 404:
+        raise HTTPException(status_code=result, detail="Buyer not found.")
+    elif result == 500:
+        raise HTTPException(status_code=result, detail="Failed to delete buyer.")
+    
+    reservation_buyer = ReservationsBuyer(buyer_id=buyer_id)
+    reservation_buyer_db = ReservationsBuyerDB(reservation_buyer)
+
+    reservation_buyer_db.delete_reservations_buyer()
+    if result == 500:
+        raise HTTPException(status_code=result, detail="Failed to delete buyer reservations.")
+    if result == 404:
+        raise HTTPException(status_code=result, detail="No reservations found for buyer.")
+    
+    # Reservations seller are not deleted, we still give the buyer the possibility to participate in the OpenHouseEvent
+    return JSONResponse(status_code=result, content={"detail": "Buyer deleted successfully."})
+
 
 # Favourites
 
