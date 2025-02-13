@@ -491,8 +491,6 @@ def handleReservations(property_on_sale_id: str) -> int:
     reservation_seller = ReservationsSeller(property_on_sale_id=property_on_sale_id)
     reservation_seller_db = ReservationsSellerDB(reservation_seller)
     status = reservation_seller_db.get_reservation_seller()
-    if status == 404:
-        return 404
     if status == 500:
         return 500
     buyer_ids = [reservation.buyer_id for reservation in reservation_seller_db.reservations_seller.reservations]
@@ -572,15 +570,25 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
         result=db_property_on_sale.insert_property()
         raise HTTPException(status_code=500, detail=detail)
 
-    
-    # Call the function that handles the reservations
-    status = handleReservations(property_to_sell_id)
-    
     # Delete in Neo4j
     property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_to_sell_id)
     property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
-    property_on_sale_neo4j_db.delete_property_on_sale_neo4j()      
-      
+    property_on_sale_neo4j_db.delete_property_on_sale_neo4j()   
+
+
+
+    # Call the function that handles the reservations
+    status = handleReservations(property_to_sell_id)
+    if status == 500:
+        # Schedule the deletion of the reservations when the load is low
+        run_date = datetime.now() + timedelta(minutes=5)
+        scheduler.add_job(
+            handleReservations,
+            'date',
+            run_date=run_date,
+            args=[property_to_sell_id]
+        )
+        raise HTTPException(status_code=500, detail="Failed to handle reservations")
     return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
     
 
@@ -673,14 +681,23 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
             response=db_seller.insert_property_on_sale(embedded_property_on_sale)
         raise HTTPException(status_code=response, detail="Failed to delete property.")
     
+    # Delete in Neo4j
+    property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_on_sale_id)
+    property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
+    property_on_sale_neo4j_db.delete_property_on_sale_neo4j()  
+
     # Call the function that handles the reservations
     status = handleReservations(property_on_sale_id)
-    
-    # Delete in Neo4j
-    property_on_sale_neo4j = PropertyOnSaleNeo4J(property_on_sale_id=property_to_sell_id)
-    property_on_sale_neo4j_db = PropertyOnSaleNeo4JDB(property_on_sale_neo4j)
-    property_on_sale_neo4j_db.delete_property_on_sale_neo4j()   
-    
+    if status == 500:
+        # Schedule the deletion of the reservations when the load is low
+        run_date = datetime.now() + timedelta(minutes=5)
+        scheduler.add_job(
+            handleReservations,
+            'date',
+            run_date=run_date,
+            args=[property_on_sale_id]
+        )
+        raise HTTPException(status_code=500, detail="Failed to handle reservations")
     return JSONResponse(status_code=200, content={"detail": "Property deleted successfully."})
 
 # ReservationsSeller
