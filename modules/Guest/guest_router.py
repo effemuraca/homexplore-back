@@ -45,19 +45,19 @@ def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 
     return db_property_on_sale.property_on_sale_list
 
 @guest_router.get("/properties_on_sale/random_properties", response_model=List[PropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
-def get_10_random_properties():
+def get_6_random_properties():
     """
-    Get 10 random properties on sale.
+    Get 6 random properties on sale.
 
     Raises:
         HTTPException: 500 if there is an internal server error.
                        404 if no properties are found.
 
     Returns:
-        List[PropertyOnSale]: The list of 10 random properties on sale.
+        List[PropertyOnSale]: The list of 6 random properties on sale.
     """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
-    result_code = db_property_on_sale.get_10_random_properties()
+    result_code = db_property_on_sale.get_6_random_properties()
     if result_code == 500:
         raise HTTPException(status_code=500, detail="Internal server error.")
     if result_code == 404:
