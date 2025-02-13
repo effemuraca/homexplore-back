@@ -214,6 +214,7 @@ class Analytics2Input(BaseModel):
 class Analytics3Input(BaseModel):
     city: str = Field(..., example="New York")
     start_date: str = Field(..., example="2021-01-01")
+    end_date: str = Field(..., example="2021-12-31")
 
     @field_validator("start_date")
     def validate_start_date(cls, value):

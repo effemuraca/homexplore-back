@@ -625,11 +625,12 @@ class SellerDB:
             logger.error("Mongo client not initialized.")
             return 500
         
-        start=datetime.strptime(input.start_date, "%Y-%m-%d")
+        start = datetime.strptime(input.start_date, "%Y-%m-%d")
+        end = datetime.strptime(input.end_date, "%Y-%m-%d")
         pipeline = [
                 {"$match": {"_id": ObjectId(self.seller.seller_id)}},
                 {"$unwind": "$sold_properties"},
-                {"$match": {"sold_properties.city": input.city, "sold_properties.registration_date": {"$gte": start}}},
+                {"$match": {"sold_properties.city": input.city, "sold_properties.sell_date": {"$gte": start, "$lte": end}}},
                 {"$project": {
                     "time_to_sell": {
                         "$divide": [{"$subtract": ["$sold_properties.sell_date", "$sold_properties.registration_date"]},86400000 ]
