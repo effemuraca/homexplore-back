@@ -3,6 +3,7 @@ from bson import ObjectId
 from typing import Optional, List
 import re
 from datetime import datetime
+import math
 
 # Seller
 class UpdateSeller(BaseModel):
@@ -65,10 +66,16 @@ class CreatePropertyOnSale(BaseModel):
             raise ValueError("Invalid URL format")
         return value
     
-    @field_validator("area")
+    @field_validator('area', mode='before')
+    def parse_nan_to_zero(cls, value):
+        if isinstance(value, float) and math.isnan(value):
+            return 0
+        return value
+    
+    @field_validator('area')
     def validate_area(cls, value):
         if value < 0:
-            raise ValueError("Area must be positive")
+            raise ValueError('Area must be positive.')
         return value
     
     @field_validator("bed_number")
@@ -150,10 +157,16 @@ class UpdatePropertyOnSale(BaseModel):
             raise ValueError("Invalid URL format")
         return value
     
-    @field_validator("area")
+    @field_validator('area', mode='before')
+    def parse_nan_to_zero(cls, value):
+        if isinstance(value, float) and math.isnan(value):
+            return 0
+        return value
+    
+    @field_validator('area')
     def validate_area(cls, value):
         if value < 0:
-            raise ValueError("Area must be positive")
+            raise ValueError('Area must be positive.')
         return value
     
     @field_validator("bed_number")

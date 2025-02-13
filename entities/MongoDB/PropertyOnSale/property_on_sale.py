@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any, Set
 from datetime import datetime
 from bson import ObjectId
 import re
+import math
 
 class Disponibility(BaseModel):
     day: Optional[str] = None
@@ -63,11 +64,17 @@ class PropertyOnSale(BaseModel):
             raise ValueError('Price must be positive.')
         return v
     
+    @field_validator('area', mode='before')
+    def parse_nan_to_zero(cls, value):
+        if isinstance(value, float) and math.isnan(value):
+            return 0
+        return value
+    
     @field_validator('area')
-    def validate_area(cls, v: int) -> int:
-        if v < 0:
+    def validate_area(cls, value):
+        if value < 0:
             raise ValueError('Area must be positive.')
-        return v
+        return value
     
     @field_validator("photos")
     def validate_photos(cls, v):

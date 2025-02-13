@@ -4,6 +4,7 @@ from datetime import datetime
 from entities.MongoDB.PropertyOnSale.property_on_sale import Disponibility
 from bson import ObjectId
 import re
+import math
 
 class SoldProperty(BaseModel):
     sold_property_id: Optional[str] = None
@@ -34,11 +35,17 @@ class SoldProperty(BaseModel):
             raise ValueError('Price must be positive.')
         return v
     
+    @field_validator('area', mode='before')
+    def parse_nan_to_zero(cls, value):
+        if isinstance(value, float) and math.isnan(value):
+            return 0
+        return value
+    
     @field_validator('area')
-    def validate_area(cls, v: int) -> int:
-        if v < 0:
+    def validate_area(cls, value):
+        if value < 0:
             raise ValueError('Area must be positive.')
-        return v
+        return value
 
 class SellerPropertyOnSale(BaseModel):
     property_on_sale_id: Optional[str] = None

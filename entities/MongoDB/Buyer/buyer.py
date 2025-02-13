@@ -2,6 +2,7 @@ import re
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from bson.objectid import ObjectId
+import math
 
 class FavouriteProperty(BaseModel):
     property_on_sale_id: str
@@ -27,12 +28,19 @@ class FavouriteProperty(BaseModel):
         if value < 0:
             raise ValueError('Price must be positive.')
         return value
+
+    @field_validator('area', mode='before')
+    def parse_nan_to_zero(cls, value):
+        if isinstance(value, float) and math.isnan(value):
+            return 0
+        return value
     
     @field_validator('area')
     def validate_area(cls, value):
         if value < 0:
             raise ValueError('Area must be positive.')
         return value
+
 
 
 
