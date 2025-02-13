@@ -298,11 +298,13 @@ class PropertyOnSaleNeo4JDB:
         
     def get_city_and_neighbourhood(self):
         """
-        Delete a PropertyOnSale node from Neo4j along with its relationships.
+        Retrieve the city and neighbourhood nodes connected to the current PropertyOnSale node.
 
         Returns:
-            int: 200 if deleted successfully,
-                 500 if an error occurs.
+            int: 200 if city and neighbourhood are retrieved successfully,
+                 404 if not found,
+                 500 if an error occurs
+
         """
         neo4j_driver = get_neo4j_driver()
         if neo4j_driver is None:
