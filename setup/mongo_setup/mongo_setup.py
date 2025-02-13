@@ -13,7 +13,7 @@ if MONGO_URL is None or MONGO_URL == '':
 if MONGO_URL is None:
     raise Exception('MONGO_URL environment variable not set')
 
-DEFAULT_MONGO_DB = MONGO_URL.split('/')[-1]
+DEFAULT_MONGO_DB = "HomeXplore"
 
 if MONGO_URL is None:
     raise Exception('MONGO_URL environment variable not set')
