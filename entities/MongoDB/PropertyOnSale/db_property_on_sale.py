@@ -86,9 +86,9 @@ class PropertyOnSaleDB:
             self.property_on_sale_list.append(PropertyOnSale(**result))
         return 200
 
-    def get_10_random_properties(self) -> int:
+    def get_6_random_properties(self) -> int:
         """
-        Retrieve 10 random properties on sale.
+        Retrieve 6 random properties on sale.
 
         Returns:
             int: 200 if properties are retrieved,
@@ -100,7 +100,7 @@ class PropertyOnSaleDB:
             logger.error("Mongo client not initialized.")
             return 500
         try:
-            results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 10}}])
+            results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 6}}])
         except Exception as e:
             logger.error("Error while retrieving random properties: %s", e)
             return 500
