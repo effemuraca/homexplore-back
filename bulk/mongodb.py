@@ -77,66 +77,90 @@ def clean_record(record):
     
     return record
 
+def convert_date_fields(record, fields):
+    """
+    Converts specified fields from string to datetime if present.
+    Assumes ISO format strings (e.g., "2025-02-12T15:27:03.114537").
+    """
+    for field in fields:
+        if field in record and record[field]:
+            if isinstance(record[field], datetime):
+                continue
+            try:
+                record[field] = datetime.fromisoformat(record[field])
+            except Exception as e:
+                print(f"Error converting field {field}: {record[field]} - {e}")
+    return record
+
+def convert_nested_date_fields(record, key, fields):
+    """
+    Converts date fields inside a nested structure (list or dict) identified by 'key'.
+    """
+    if key in record and record[key]:
+        if isinstance(record[key], list):
+            record[key] = [convert_date_fields(item, fields) for item in record[key]]
+        elif isinstance(record[key], dict):
+            record[key] = convert_date_fields(record[key], fields)
+    return record
+
 def populate_mongodb():
+    """
+    Reads CSV files, processes data, and inserts it into MongoDB collections.
+    """
     db = get_default_mongo_db()
 
-    # Load CSV files.
+    # Load CSV files
     buyers_data = pd.read_csv(buyers_csv)
     sellers_data = pd.read_csv(sellers_csv)
     properties_data = pd.read_csv(properties_csv)
 
-    # Convert nested JSON fields in properties_data back to objects.
-    if 'disponibility' in properties_data.columns:
-        properties_data['disponibility'] = properties_data['disponibility'].apply(
-            lambda x: json.loads(x) if pd.notna(x) else x
-        )
-    if 'photos' in properties_data.columns:
-        properties_data['photos'] = properties_data['photos'].apply(
-            lambda x: json.loads(x) if pd.notna(x) else x
-        )
+    # Convert nested JSON fields from CSV
+    for field in ['disponibility', 'photos']:
+        if field in properties_data.columns:
+            properties_data[field] = properties_data[field].apply(lambda x: json.loads(x) if pd.notna(x) else x)
     
-    # Convert nested JSON fields in buyers_data.
     if 'favourites' in buyers_data.columns:
-        buyers_data['favourites'] = buyers_data['favourites'].apply(
-            lambda x: json.loads(x) if pd.notna(x) else x
-        )
-
-    # Convert nested JSON fields in sellers_data.
+        buyers_data['favourites'] = buyers_data['favourites'].apply(lambda x: json.loads(x) if pd.notna(x) else x)
+    
     if 'property_on_sale' in sellers_data.columns:
-        sellers_data['properties_on_sale'] = sellers_data['property_on_sale'].apply(
-            lambda x: json.loads(x) if pd.notna(x) else x
-        )
+        sellers_data['properties_on_sale'] = sellers_data['property_on_sale'].apply(lambda x: json.loads(x) if pd.notna(x) else x)
         del sellers_data['property_on_sale']
+    
     if 'sold_property' in sellers_data.columns:
-        sellers_data['sold_properties'] = sellers_data['sold_property'].apply(
-            lambda x: json.loads(x) if pd.notna(x) else x
-        )
+        sellers_data['sold_properties'] = sellers_data['sold_property'].apply(lambda x: json.loads(x) if pd.notna(x) else x)
         del sellers_data['sold_property']
-
-    # Remove unnecessary columns from properties_data (e.g., latitude and longitude).
+    
+    # Remove unnecessary columns
     properties_data = properties_data.drop(['latitude', 'longitude'], axis=1, errors='ignore')
 
-    # Convert DataFrames to lists of dictionaries.
+    # Convert DataFrames to list of dictionaries
     buyers_records = buyers_data.to_dict(orient='records')
     sellers_records = sellers_data.to_dict(orient='records')
     properties_records = properties_data.to_dict(orient='records')
 
-    # Clean records by removing 'description' fields that are not valid.
+    # Clean records
     buyers_records = [clean_record(record) for record in buyers_records]
     sellers_records = [clean_record(record) for record in sellers_records]
     properties_records = [clean_record(record) for record in properties_records]
 
-    # Convert all _id fields (both top-level and embedded) from strings to ObjectId.
+    # Convert '_id' fields
     buyers_records = [convert_ids(record) for record in buyers_records]
     sellers_records = [convert_ids(record) for record in sellers_records]
     properties_records = [convert_ids(record) for record in properties_records]
 
-    # Insert data into the respective MongoDB collections.
+    # Convert date fields
+    properties_records = [convert_date_fields(record, ['registration_date']) for record in properties_records]
+    
+    for record in sellers_records:
+        record = convert_nested_date_fields(record, 'sold_properties', ['registration_date', 'sell_date'])
+        record = convert_nested_date_fields(record, 'properties_on_sale', ['registration_date'])
+
+    # Insert data into MongoDB
     db[BUYER_COLLECTION].insert_many(buyers_records)
     db[SELLER_COLLECTION].insert_many(sellers_records)
     db[PROPERTY_COLLECTION].insert_many(properties_records)
 
-    print("Data inserted successfully into MongoDB.")
+    print("Data successfully inserted into MongoDB.")
 
 # Function to clear MongoDB collections
 def clear_mongodb():
