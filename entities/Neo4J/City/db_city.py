@@ -113,4 +113,4 @@ class CityDB:
                 return 200
             except Exception as e:
                 logger.error(f"An error occurred in delete_city: {e}")
-                return 500
+                return 500 
