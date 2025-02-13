@@ -737,13 +737,13 @@ Analytics3Responses = {
                     "result": [
                         {
                             "neighbourhood": "Brooklyn",
-                            "house_sold": 10,
-                            "revenue": 5000000
+                            "num_house": 10,
+                            "avg_time_to_sell": 45
                         },
                         {
                             "neighbourhood": "Manhattan",
-                            "house_sold": 5,
-                            "revenue": 3000000
+                            "num_house": 5,
+                            "avg_time_to_sell": 34
                         }
                     ]
                 }

@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 class NeighbourhoodDB:
-    def __init__(self):
+    def __init__(self): 
         self.neighbourhood = None
         
     

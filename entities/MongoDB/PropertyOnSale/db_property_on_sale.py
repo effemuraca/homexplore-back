@@ -55,8 +55,20 @@ class PropertyOnSaleDB:
             query["bath_number"] = {"$gte": input.min_bath_number}
 
         try:
-            # Initialize the cursor with the query
-            results_cursor = mongo_client.PropertyOnSale.find(query)
+            # Initialize the cursor with the query and projection
+            results_cursor = mongo_client.PropertyOnSale.find(
+            query,
+            {
+                "_id": 1,
+                "type": 1,
+                "address": 1,
+                "thumbnail": 1,
+                "price": 1,
+                "registration_date": 1,
+                "city": 1,
+                "neighbourhood": 1
+            }
+            )
             # Apply pagination using skip and limit
             skip = (page - 1) * page_size
             results_cursor = results_cursor.skip(skip).limit(page_size)
@@ -348,7 +360,7 @@ class PropertyOnSaleDB:
                  404 if no data is found,
                  500 if a database error occurs.
         """
-        mongo_client = get_default_mongo_db()
+        mongo_client = get_default_mongo_db() 
         if mongo_client is None:
             logger.error("Mongo client not initialized.")
             return 500
