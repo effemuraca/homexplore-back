@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from entities.MongoDB.Seller.seller import Seller, SoldProperty, SellerPropertyOnSale
 from modules.Seller.models.seller_models import Analytics2Input, Analytics3Input
+from modules.Seller.models.response_models import OpenHouseOccurrence
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 class SellerDB:
     def __init__(self, seller: Optional[Seller] = None):
         self.seller = seller
+        self.current_open_house_events = None
         self.analytics_2_result = None
         self.analytics_3_result = None
     
@@ -217,39 +219,7 @@ class SellerDB:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
         self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in result["properties_on_sale"]]
         return 200
-
     
-    #route del seller (get_sold_properties) CONSISTENT
-    def get_sold_properties(self) -> int:
-        """
-        Retrieve sold properties for the seller, sorted by sell_date descending.
-
-        Returns:
-            int: 200 if sold properties are found,
-                 404 if sold properties are not found,
-                 500 if a database error occurs.
-        """
-        mongo_client = get_default_mongo_db()
-        if mongo_client is None:
-            logger.error("Mongo client not initialized.")
-            return 500
-        try:
-            result = mongo_client.Seller.find_one({"_id": ObjectId(self.seller.seller_id)}, {"sold_properties": 1})
-        except Exception as e:
-            logger.error(f"Error retrieving sold properties for seller {self.seller.seller_id}: {e}")
-            return 500
-        if not result or "sold_properties" not in result or len(result["sold_properties"]) == 0:
-            return 404
-        
-        # Order the sold properties by sell_date
-        result["sold_properties"] = sorted(result["sold_properties"], key=lambda x: x["sell_date"], reverse=True)
-        for sold_property in result["sold_properties"]:
-            sold_property["sold_property_id"] = str(sold_property.pop("_id"))
-        self.seller.sold_properties = [SoldProperty(**sold_property) for sold_property in result["sold_properties"]]
-        return 200
-    
-
-    #route del seller (get_property_on_sale_filtered) CONSISTENT
     def get_property_on_sale_filtered(self, city: str, neighbourhood: str, address: str) -> int:
         """
         Retrieve properties on sale for the seller filtered by city, neighbourhood, and address.
@@ -300,13 +270,54 @@ class SellerDB:
             property_on_sale["property_on_sale_id"] = str(property_on_sale.pop("_id"))
         self.seller.properties_on_sale = [SellerPropertyOnSale(**property_on_sale) for property_on_sale in properties]
         return 200
+    
+    def get_sold_properties_filtered(self, city: str, neighbourhood: str) -> int:
+        """
+        Retrieve sold properties for the seller, sorted by sell_date descending.
+
+        Returns:
+            int: 200 if sold properties are found,
+                 404 if sold properties are not found,
+                 500 if a database error occurs.
+        """
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        pipeline = [
+            { "$match": { "_id": ObjectId(self.seller.seller_id) } },
+            { "$project": {
+                "_id": 0,
+                "sold_properties": {
+                    "$filter": {
+                        "input": "$sold_properties",
+                        "as": "property",
+                        "cond": {
+                            "$and": [
+                                { "$eq": ["$$property.city", city] } if city else {},
+                                { "$eq": ["$$property.neighbourhood", neighbourhood] } if neighbourhood else {}
+                            ]
+                        }
+                    }
+                }
+            }}
+        ]
+        try:
+            result = mongo_client.Seller.aggregate(pipeline)
+        except Exception as e:
+            logger.error(f"Error retrieving sold properties for seller {self.seller.seller_id}: {e}")
+            return 500
+        sold_properties = list(result)[0].get("sold_properties", [])
+        if not sold_properties:
+            return 404
+        
+        # Order the sold properties by sell_date
+        sold_properties.sort(key=lambda x: x["sell_date"], reverse=True)
+        for sold_property in sold_properties:
+            sold_property["sold_property_id"] = str(sold_property.pop("_id"))
+        self.seller.sold_properties = [SoldProperty(**sold_property) for sold_property in sold_properties]
+        return 200
       
-      
-
-
-
-
-    # route del seller (create_property_on_sale) CONSISTENT
     def insert_property_on_sale(self, property_on_sale : SellerPropertyOnSale) -> int:
         """
         Insert a new property on sale into the seller's document.
@@ -485,6 +496,55 @@ class SellerDB:
             return 404
         return 200
     
+    def get_open_house_today(self) -> int:
+        """
+        Retrieve open house events for the current day for the seller.
+        
+        The function queries the seller's document, iterates through the embedded 
+        properties_on_sale list, and filters events whose 'disponibility.day' matches today's day.
+        
+        Returns:
+            int: 200 if events are found,
+                 404 if no events are found,
+                 500 if a database error occurs.
+        """
+        mongo_client = get_default_mongo_db()
+        if mongo_client is None:
+            logger.error("Mongo client not initialized.")
+            return 500
+        try:
+            # Query the seller document for the properties on sale
+            result = mongo_client.Seller.find_one(
+                {"_id": ObjectId(self.seller.seller_id)},
+                {"properties_on_sale": 1}
+            )
+        except Exception as e:
+            logger.error(f"Error retrieving properties on sale for seller {self.seller.seller_id}: {e}")
+            return 500
+
+        if not result or "properties_on_sale" not in result or len(result["properties_on_sale"]) == 0:
+            return 404
+
+        # Get the current day name (e.g., Monday, Tuesday, etc.)
+        current_day = datetime.now().strftime("%A")
+        print(current_day)
+        open_house_events = []
+
+        # Iterate over each property on sale and check if an open house event is scheduled for today
+        for prop in result["properties_on_sale"]:
+            disponibility = prop.get("disponibility", {})
+            if disponibility.get("day") == current_day:
+                open_house_events.append({
+                    "city": prop.get("city"),
+                    "address": prop.get("address"),
+                    "time": disponibility.get("time")
+                })
+
+        if not open_house_events:
+            return 404
+
+        self.current_open_house_events = [OpenHouseOccurrence(**event) for event in open_house_events]
+        return 200 
     
     def get_sold_properties_statistics(self, input:Analytics2Input) -> int:
         """

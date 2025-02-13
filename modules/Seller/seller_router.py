@@ -52,10 +52,7 @@ def get_seller(access_token: str = Depends(JWTHandler())):
         Seller: The seller's data.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     temp_seller = Seller(seller_id=seller_id)
@@ -88,10 +85,7 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
         JSONResponse: A success message if the update succeeds.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     seller_old = Seller(seller_id=seller_id)
@@ -121,69 +115,6 @@ def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler()
         return JSONResponse(status_code=result, content={"detail": "Seller updated successfully."})
 
 @seller_router.get("/properties_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
-def get_properties_on_sale(access_token: str = Depends(JWTHandler())):
-    """
-    Get all properties on sale associated with the seller.
-
-    Args:
-        access_token (str): The JWT access token.
-
-    Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       404 if the seller or properties are not found.
-                       500 if there is an error retrieving properties.
-
-    Returns:
-        List[SellerPropertyOnSale]: The seller's properties on sale.
-    """
-    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    temp_seller = Seller(seller_id=seller_id)
-    db_seller = SellerDB(temp_seller)
-    result = db_seller.get_properties_on_sale()
-    if result == 404:
-        raise HTTPException(status_code=404, detail="Seller or properties not found.")
-    if result== 500:
-        raise HTTPException(status_code=500, detail="Failed to retrieve properties on sale.")
-    return db_seller.seller.properties_on_sale
-
-@seller_router.get("/sold_properties", response_model=List[SoldProperty], responses=ResponseModels.GetSoldPropertiesResponses)
-def get_sold_properties(access_token: str = Depends(JWTHandler())):
-    """
-    Get the seller's sold properties.
-
-    Args:
-        access_token (str): The JWT access token.
-
-    Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       404 if the seller or properties are not found.
-                       500 if there is an error retrieving properties.
-
-    Returns:
-        List[SoldProperty]: The list of sold properties by the seller.
-    """
-    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    temp_seller = Seller(seller_id=seller_id)
-    db_seller = SellerDB(temp_seller)
-    result=db_seller.get_sold_properties()
-    if result == 404:
-        raise HTTPException(status_code=404, detail="Seller or properties not found.")
-    if result== 500:
-        raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
-    return db_seller.seller.sold_properties
-
-
-@seller_router.get("/property_on_sale", response_model=List[SellerPropertyOnSale], responses=ResponseModels.GetPropertiesOnSaleResponses)
 def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Optional[str] = None, address: Optional[str] = None, access_token: str = Depends(JWTHandler())):
     """
     Get the seller's properties on sale filtered by city, neighbourhood, or address.
@@ -204,13 +135,8 @@ def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Opt
         List[SellerPropertyOnSale]: The filtered list of the seller's properties on sale.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if not city and not neighbourhood and not address:
-        raise HTTPException(status_code=400, detail="City or neighbourhood or address is required.")
     
     temp_seller = Seller(seller_id=seller_id)
     db_seller = SellerDB(temp_seller)
@@ -220,6 +146,38 @@ def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Opt
     if result == 500:
         raise HTTPException(status_code=500, detail="Failed to fetch property.")
     return db_seller.seller.properties_on_sale
+
+@seller_router.get("/sold_properties", response_model=List[SoldProperty], responses=ResponseModels.GetSoldPropertiesResponses)
+def get_sold_properties_filtered(city: Optional[str] = None, neighbourhood: Optional[str] = None, access_token: str = Depends(JWTHandler())):
+    """
+    Get the seller's sold properties.
+
+    Args:
+        access_token (str): The JWT access token.
+
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       404 if the seller or properties are not found.
+                       500 if there is an error retrieving properties.
+
+    Returns:
+        List[SoldProperty]: The list of sold properties by the seller.
+    """
+    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if seller_id is None or user_type != "seller":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    temp_seller = Seller(seller_id=seller_id)
+    db_seller = SellerDB(temp_seller)
+    result=db_seller.get_sold_properties_filtered(city, neighbourhood)
+    if result == 404:
+        raise HTTPException(status_code=404, detail="Seller or properties not found.")
+    if result== 500:
+        raise HTTPException(status_code=500, detail="Failed to retrieve sold properties.")
+    return db_seller.seller.sold_properties
+
+
+
 
 
 # Properties on sale
@@ -244,11 +202,9 @@ def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access
         JSONResponse: A success message with the new property_on_sale_id if creation succeeds.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
+
     
     geolocator = Nominatim(user_agent="homexplore")
     address = input_property_on_sale.address  
@@ -422,9 +378,7 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
         JSONResponse: A success message if the update succeeds.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    if user_type != "seller":
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     if input_property_on_sale.address is not None:
@@ -582,9 +536,7 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
         JSONResponse: A success message if the property is sold.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    if user_type != "seller":
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     if ObjectId.is_valid(property_to_sell_id) is False:
@@ -631,7 +583,45 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
       
     return JSONResponse(status_code=200, content={"detail": "Property sold successfully."})
     
+
+@seller_router.get(
+    "/current_open_house_events",
+    response_model=List[ResponseModels.OpenHouseOccurrence],
+    responses=ResponseModels.GetOpenHouseEventsResponses
+)
+def get_open_house_events(access_token: str = Depends(JWTHandler())):
+    """
+    Get all open house events for today associated with the seller.
     
+    This endpoint retrieves the seller's properties on sale from the database and filters
+    for open house events scheduled for the current day based on the 'disponibility.day' field.
+    
+    Args:
+        access_token (str): The JWT access token.
+    
+    Raises:
+        HTTPException: 401 if the token is invalid or the user is not a seller.
+                       404 if no open house events are found.
+                       500 if there is an error retrieving the events.
+    
+    Returns:
+        List[SellerOpenHouseEvent]: The seller's open house events for today.
+    """
+    seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
+    if seller_id is None or user_type != "seller":
+        raise HTTPException(status_code=401, detail="Invalid access token")
+    
+    temp_seller = Seller(seller_id=seller_id)
+    db_seller = SellerDB(temp_seller)
+    result = db_seller.get_open_house_today()
+    if result == 404:
+        raise HTTPException(status_code=404, detail="No open house events found for today.")
+    if result == 500:
+        raise HTTPException(status_code=500, detail="Failed to retrieve open house events.")
+    
+    return db_seller.current_open_house_events
+
+
 @seller_router.delete("/property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.DeletePropertyOnSaleResponses)
 def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
@@ -651,9 +641,7 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
         JSONResponse: A success message if the property is deleted.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    if user_type != "seller":
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     if ObjectId.is_valid(property_on_sale_id) is False:
@@ -698,7 +686,7 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
 # ReservationsSeller
 
 @seller_router.get(
-    "/reservations",
+    "/property_on_sale/reservations",
     response_model=ReservationsSeller,
     responses=ResponseModels.GetReservationsSellerResponseModelResponses
 )
@@ -720,11 +708,9 @@ def get_reservations_seller(property_on_sale_id: str, access_token: str = Depend
         ReservationsSeller: The reservations associated with the property on sale.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
+
     
     if not property_on_sale_id:
         raise HTTPException(status_code=400, detail="Property on sale ID is required.")
@@ -757,9 +743,7 @@ def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler(
         JSONResponse: The analytics result.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
-        raise HTTPException(status_code=401, detail="Invalid access token")
-    if user_type != "seller":
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     seller_db = SellerDB(Seller(seller_id=seller_id))
@@ -791,11 +775,9 @@ def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler(
         JSONResponse: The analytics result.
     """
     seller_id, user_type = JWTHandler.verifyAccessToken(access_token)
-    if seller_id is None:
+    if seller_id is None or user_type != "seller":
         raise HTTPException(status_code=401, detail="Invalid access token")
-    
-    if user_type != "seller":
-        raise HTTPException(status_code=401, detail="Invalid access token")
+
     
     seller_db = SellerDB(Seller(seller_id=seller_id))
     

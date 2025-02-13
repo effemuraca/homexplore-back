@@ -403,6 +403,54 @@ DeleteReservationsSellerResponseModelResponses: Dict[int, Dict[str, Any]] = {
 }
 
 
+class OpenHouseOccurrence(BaseModel):
+    city: str
+    address: str
+    time: str
+    
+
+GetOpenHouseEventsResponses = {
+    200: {
+        "model": List[OpenHouseOccurrence],
+        "description": "Open house events retrieved successfully.",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "city": "New York",
+                        "address": "1234 Brooklyn St.",
+                        "time": "10:00-11:00 AM"
+                    }
+                ]
+            }
+        }
+    },
+    404: {
+        "model": ErrorModel,
+        "description": "No open house events found.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "No open house events found."
+                }
+            }
+        }
+    },
+    500: {
+        "model": ErrorModel,
+        "description": "Failed to fetch open house events.",
+        "content": {
+            "application/json": {
+                "example": {
+                    "detail": "Failed to fetch open house events."
+                }
+            }
+        }
+    }
+}
+
+
+
 # PropertyOnSale
 
 class CreatePropertyOnSaleResponseModel(BaseModel):
