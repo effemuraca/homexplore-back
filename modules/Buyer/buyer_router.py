@@ -320,6 +320,19 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
         raise HTTPException(status_code=500, detail="Error decoding reservations data")
     if status == 400:
         raise HTTPException(status_code=400, detail="Invalid input data")
+    
+    date = next_weekday(book_now_info.day)
+
+    reservations_buyer_db.reservations_buyer.reservations = [
+        ReservationB(
+            property_on_sale_id = book_now_info.property_on_sale_id, 
+            date = date, 
+            time = book_now_info.time, 
+            thumbnail = book_now_info.thumbnail, 
+            address = book_now_info.address
+        )
+    ]
+    status = reservations_buyer_db.create_reservation_buyer()
 
     reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
@@ -338,20 +351,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
         raise HTTPException(status_code=409, detail="Reservation already exists")
     if status == 500:
         raise HTTPException(status_code=500, detail="Error creating reservation")
-    
-    date = next_weekday(book_now_info.day)
-
-    reservations_buyer_db.reservations_buyer.reservations = [
-        ReservationB(
-            property_on_sale_id = book_now_info.property_on_sale_id, 
-            date = date, 
-            time = book_now_info.time, 
-            thumbnail = book_now_info.thumbnail, 
-            address = book_now_info.address
-        )
-    ]
-    status = reservations_buyer_db.create_reservation_buyer()
-    
+        
     # If error occurs, rollback the reservation
     if status != 201:
         reservations_seller_db.delete_reservation_seller_by_buyer_id(buyer_id)
