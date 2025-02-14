@@ -397,10 +397,10 @@ class PropertyOnSaleNeo4JDB:
                 MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})
                 OPTIONAL MATCH (p)-[:NEAR_PROPERTY]->(p2:PropertyOnSale)
                 OPTIONAL MATCH (p2)-[:NEAR_PROPERTY]->(p3:PropertyOnSale)
-                WITH [p] + collect(DISTINCT p2) + collect(DISTINCT p3) AS allNodes
-                UNWIND allNodes AS node
-                WITH DISTINCT node AS uniqueNode
-                RETURN collect(uniqueNode) AS uniqueNodes
+                WITH collect(p) AS pList, collect(DISTINCT p2) AS level1, collect(DISTINCT p3) AS level2
+                WITH pList + level1 + level2 AS allNodes
+                UNWIND allNodes AS n
+                RETURN collect(DISTINCT n) AS uniqueNodes
                 """
                 result = session.run(query, property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id)
             except Exception as e:
