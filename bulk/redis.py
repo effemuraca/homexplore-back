@@ -8,9 +8,6 @@ buyer_csv_path = 'bulk/files/Redis/reservations_buyer.csv'
 def populate_redis_db():
     """
     Populates Redis with reservation data from CSV files.
-
-    Returns:
-        None
     """
     r = get_redis_client()
 
@@ -18,18 +15,23 @@ def populate_redis_db():
     seller_data = pd.read_csv(seller_csv_path)
     buyer_data = pd.read_csv(buyer_csv_path)
 
+    # Create a pipeline
+    pipe = r.pipeline(transaction=False)
+
     # Populate seller-side reservations
     for _, row in seller_data.iterrows():
         key = row['redis_key']
         reservations = json.loads(row['reservations'])
-        r.set(key, json.dumps(reservations))
+        pipe.set(key, json.dumps(reservations))
 
     # Populate buyer-side reservations
     for _, row in buyer_data.iterrows():
         key = row['redis_key']
         reservations = json.loads(row['reservations'])
-        r.set(key, json.dumps(reservations))
+        pipe.set(key, json.dumps(reservations))
 
+    # Execute all commands in batch
+    pipe.execute()
     print("Database populated successfully.")
 
 def reset_redis_db():
@@ -64,7 +66,7 @@ def verify_redis_data():
 
     if not seller_keys or not buyer_keys:
         print("Verification failed: no data found.")
-        return
+        raise Exception("No data found in Redis.")
 
     # Check sample keys for data integrity
     seller_sample = r.get(seller_keys[0])

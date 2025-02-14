@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from bulk.neo4j import populate_neo4j_db, update_livability_scores, reset_neo4j_db
 from bulk.redis import populate_redis_db, reset_redis_db, verify_redis_data
 from bulk.mongodb import populate_mongodb, clear_mongodb, verify_mongodb_data
@@ -22,7 +22,7 @@ def populate_neo4j():
         print(os.curdir)
         update_livability_scores()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e)) 
     return {"message": "Graph populated successfully!"}
 
 @bulk_router.put("/neo4j/score")
@@ -39,7 +39,7 @@ def update_score():
     try:
         update_livability_scores()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Livability scores updated successfully!"}
 
 @bulk_router.delete("/neo4j")
@@ -56,7 +56,7 @@ def delete_neo4j():
     try:
         reset_neo4j_db()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Graph deleted successfully!"}
 
 @bulk_router.post("/redis")
@@ -73,7 +73,7 @@ def populate_redis():
     try:
         populate_redis_db()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Database populated successfully!"}
 
 @bulk_router.delete("/redis")
@@ -90,7 +90,7 @@ def delete_redis():
     try:
         reset_redis_db()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Database cleared successfully!"}
 
 @bulk_router.get("/redis/verify")
@@ -107,7 +107,7 @@ def verify_redis():
     try:
         verify_redis_data()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Data verified successfully!"}
 
 @bulk_router.post("/mongodb")
@@ -118,7 +118,7 @@ def populate_mongodb_data():
     try:
         populate_mongodb()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Data inserted successfully into MongoDB."}
 
 @bulk_router.delete("/mongodb")
@@ -129,7 +129,7 @@ def clear_mongodb_data():
     try:
         clear_mongodb()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "All collections cleared successfully."}
 
 @bulk_router.get("/mongodb/verify")
@@ -140,5 +140,5 @@ def verify_mongodb():
     try:
         verify_mongodb_data()
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
     return {"message": "Data verified successfully."}
