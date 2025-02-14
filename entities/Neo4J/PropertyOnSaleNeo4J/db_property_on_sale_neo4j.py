@@ -397,7 +397,10 @@ class PropertyOnSaleNeo4JDB:
                 MATCH (p:PropertyOnSale {property_on_sale_id: $property_on_sale_id})
                 OPTIONAL MATCH (p)-[:NEAR_PROPERTY]->(p2:PropertyOnSale)
                 OPTIONAL MATCH (p2)-[:NEAR_PROPERTY]->(p3:PropertyOnSale)
-                RETURN collect(DISTINCT p2) AS level1, collect(DISTINCT p3) AS level2
+                WITH [p] + collect(DISTINCT p2) + collect(DISTINCT p3) AS allNodes
+                UNWIND allNodes AS node
+                WITH DISTINCT node AS uniqueNode
+                RETURN collect(uniqueNode) AS uniqueNodes
                 """
                 result = session.run(query, property_on_sale_id=self.property_on_sale_neo4j.property_on_sale_id)
             except Exception as e:
@@ -409,21 +412,24 @@ class PropertyOnSaleNeo4JDB:
             if record is None:
                 return 404
 
-            # Extract the two levels from the returned record. If none, default to empty lists
-            level1_nodes = record.get("level1", [])
-            level2_nodes = record.get("level2", [])
-            
+            # Retrieve the unique nodes from the query result (returned as "uniqueNodes")
+            unique_nodes = record.get("uniqueNodes", [])
 
-            # Extract the properties from the nodes and store them in the corresponding lists
             self.near_properties = []
-            for node in level1_nodes:
+            for node in unique_nodes:
+                # Create a Neo4jPoint object from the node's coordinates
                 coordinates = Neo4jPoint(latitude=node["coordinates"].latitude, longitude=node["coordinates"].longitude)
-                self.near_properties.append(PropertyOnSaleNeo4J(**{k: v for k, v in dict(node).items() if k != 'coordinates'}, coordinates=coordinates.model_dump()))
-            for node in level2_nodes:
-                coordinates = Neo4jPoint(latitude=node["coordinates"].latitude, longitude=node["coordinates"].longitude)
-                self.near_properties.append(PropertyOnSaleNeo4J(**{k: v for k, v in dict(node).items() if k != 'coordinates'}, coordinates=coordinates.model_dump()))
+                # Build the PropertyOnSaleNeo4J object, excluding the 'coordinates' property from the node dictionary,
+                # and adding the serialized coordinates.
+                self.near_properties.append(
+                    PropertyOnSaleNeo4J(
+                        **{k: v for k, v in dict(node).items() if k != "coordinates"},
+                        coordinates=coordinates.model_dump()
+                    )
+                )
 
             return 200
+
     
     def update_livability_score(self):
         """
