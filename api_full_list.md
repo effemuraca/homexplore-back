@@ -7,7 +7,6 @@
 - GET /guest/properties_on_sale/random_properties
 - GET /guest/property_on_sale/{property_on_sale_id}
 
-- GET /guest/map/property_on_sale/{property_on_sale_id}
 - GET /guest/map/city_and_neighborhood
 - GET /guest/map/pois_near_property
 - GET /guest/map/properties_near_property

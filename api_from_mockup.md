@@ -5,7 +5,7 @@
 ### map.html
 
 - Vedere il quartiere e la città di una casa: GET /guest/map/city_and_neighborhood
-- Vedere tutte le case in un'area collegate a quella di partenza: GET /guest/map/properties_near_property
+- Vedere tutte le case in un'area collegate a quella di partenza, compresa sé stessa: GET /guest/map/properties_near_property
 - Vedere i POI collegati a una casa: GET /guest/map/pois_near_property
 
 ### main.html
