@@ -341,10 +341,12 @@ class PropertyOnSaleDB:
             logger.error("Error during analytics_1: %s", e)
             return 500
         
-        if not aggregation_result:
+        aggregation_list = list(aggregation_result)
+        
+        if not aggregation_list or len(aggregation_list) == 0:
             return 404
         
-        self.analytics_1_result = list(aggregation_result)
+        self.analytics_1_result = aggregation_list
         return 200
     
     
@@ -375,9 +377,12 @@ class PropertyOnSaleDB:
         except Exception as e:
             logger.error("Error during analytics_4: %s", e)
             return 500
-        if not aggregation_result:
+        
+        aggregation_list = list(aggregation_result)
+        if not aggregation_list or len(aggregation_list) == 0:
             return 404
-        self.analytics_4_result = list(aggregation_result)
+        
+        self.analytics_4_result = aggregation_list
         return 200
         
     def get_statistics_by_city_and_neighbourhood(self, city: str, neighbourhood: str) -> int:
@@ -409,8 +414,10 @@ class PropertyOnSaleDB:
         except Exception as e:
             logger.error("Error during analytics_5: %s", e)
             return 500
-        if not aggregation_result:
+        
+        aggregation_list = list(aggregation_result)
+        if not aggregation_list or len(aggregation_list) == 0:
             return 404
-        self.analytics_5_result = list(aggregation_result)
+        self.analytics_5_result = aggregation_list
         return 200
         
