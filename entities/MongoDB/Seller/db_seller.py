@@ -637,7 +637,7 @@ class SellerDB:
         pipeline = [
                 {"$match": {"_id": ObjectId(self.seller.seller_id)}},
                 {"$unwind": "$sold_properties"},
-                {"$match": {"sold_properties.city": input.city, "sold_properties.sell_date": {"$gte": start, "$lte": end}, "sold_properties.registration_date": {"gte": start,  "$lte": end}}},
+                {"$match": {"sold_properties.city": input.city, "sold_properties.sell_date": {"$gte": start, "$lte": end}, "sold_properties.registration_date": {"$gte": start, "$lte": end}}},
                 {"$project": {
                     "time_to_sell": {
                         "$divide": [{"$subtract": ["$sold_properties.sell_date", "$sold_properties.registration_date"]},86400000 ]
