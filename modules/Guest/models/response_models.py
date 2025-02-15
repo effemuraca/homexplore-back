@@ -5,6 +5,8 @@ from entities.Neo4J.Neighbourhood.neighbourhood import Neighbourhood
 from entities.Neo4J.POI.poi import POI
 from entities.Neo4J.PropertyOnSaleNeo4J.property_on_sale_neo4j import PropertyOnSaleNeo4J
 from typing import List, Dict, Any
+from typing import Optional
+from modules.Guest.models.guest_models import SummaryPropertyOnSale
 
 class SuccessModel(BaseModel):
     detail: str
@@ -13,9 +15,11 @@ class ErrorModel(BaseModel):
     detail: str
 
 
+
+
 GetFilteredPropertiesOnSaleResponses = {
     200: {
-        "model": List[PropertyOnSale],
+        "model": List[SummaryPropertyOnSale],
         "description": "Filtered properties retrieved successfully.",
         "content": {
             "application/json": {
@@ -30,15 +34,6 @@ GetFilteredPropertiesOnSaleResponses = {
                         "type": "House",
                         "area": 2000,
                         "registration_date": "2021-06-25T12:00:00",
-                        "bed_number": 3,
-                        "bath_number": 2,
-                        "description": "Beautiful house in Brooklyn.",
-                        "photos": ["https://www.example.com/photo1.jpg"],
-                        "disponibility": {
-                            "day": "Monday",
-                            "time": "10:00 AM - 11:00 AM",
-                            "max_attendees": 5
-                        }
                     }
                 ]
             }

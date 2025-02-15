@@ -59,12 +59,6 @@ class Buyer(BaseModel):
             raise ValueError('Invalid ObjectId string')
         return v
     
-    @field_validator('phone_number')
-    def validate_phone_number(cls, value):
-        if value:
-            phone_pattern = re.compile(r'^\+\d{1,3}\s?\d{7,14}$')
-            if not phone_pattern.match(value):
-                raise ValueError('Invalid phone number format.')
-        return value
+    
 
 
