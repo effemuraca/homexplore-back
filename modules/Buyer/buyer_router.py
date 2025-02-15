@@ -277,7 +277,6 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
     responses=ResponseModels.CreateReservationBuyerResponses
 )
 def create_reservation(book_now_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
-    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     """
     Create a new reservation for a buyer.
 
@@ -296,6 +295,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     Returns:
         JSONResponse: A success message if the reservation is created.
     """
+    buyer_id, user_type = JWTHandler.verifyAccessToken(access_token)
     if buyer_id is None or user_type != "buyer":
         raise HTTPException(status_code=401, detail="Invalid access token")
     
