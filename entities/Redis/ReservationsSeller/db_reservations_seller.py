@@ -46,7 +46,7 @@ class ReservationsSellerDB:
             
             if existing_data:
                 data = json.loads(existing_data)
-                reservations_list = data.get("reservations", [])
+                reservations_list = data
                 # Check if this buyer already has a reservation
                 for reservation in reservations_list:
                     if reservation.get("buyer_id") == new_reservation_dict.get("buyer_id"):
@@ -55,11 +55,11 @@ class ReservationsSellerDB:
                 if len(reservations_list) >= max_attendees:
                     return 400
                 reservations_list.append(new_reservation_dict)
-                data["reservations"] = reservations_list
+                data = reservations_list
             else:
                 # No existing data: use current data from self.reservations_seller
                 data = self.reservations_seller.model_dump()
-                data["reservations"] = [new_reservation_dict]
+                data = [new_reservation_dict]
             redis_client.setex(key, ttl, json.dumps(data))
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
@@ -86,8 +86,8 @@ class ReservationsSellerDB:
         try:
             data = json.loads(raw_data)
             self.reservations_seller = ReservationsSeller(
-                property_on_sale_id=data.get("property_on_sale_id"),
-                reservations=[ReservationS(**item) for item in data.get("reservations", [])]
+                property_on_sale_id=self.reservations_seller.property_on_sale_id,
+                reservations=[ReservationS(**item) for item in data]
             )
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError, TypeError) as e:
@@ -118,9 +118,9 @@ class ReservationsSellerDB:
         try:
             data = json.loads(raw_data)
             updated = False
-            for i, item in enumerate(data.get("reservations", [])):
+            for i, item in enumerate(data):
                 if item.get("buyer_id") == buyer_id:
-                    data["reservations"][i].update(updated_data)
+                    data[i].update(updated_data)
                     updated = True
                     break
             if not updated:
@@ -152,8 +152,8 @@ class ReservationsSellerDB:
             return 404
         try:
             data = json.loads(raw_data)
-            new_list = [item for item in data.get("reservations", []) if item.get("buyer_id") != buyer_id]
-            data["reservations"] = new_list
+            new_list = [item for item in data if item.get("buyer_id") != buyer_id]
+            data = new_list
             redis_client.set(key, json.dumps(data))
             return 200
         except (json.JSONDecodeError, TypeError, redis.exceptions.RedisError) as e:
@@ -245,17 +245,17 @@ class ReservationsSellerDB:
 
                 if raw_data:
                     data = json.loads(raw_data)
-                    reservations_list = data.get("reservations", [])
+                    reservations_list = data
                     for rsv in reservations_list:
                         if rsv.get("buyer_id") == reservation.buyer_id:
                             return 409
                     if len(reservations_list) >= max_attendees:
                         return 400
                     reservations_list.append(reservation.model_dump())
-                    data["reservations"] = reservations_list
+                    data = reservations_list
                 else:
                     data = self.reservations_seller.model_dump()
-                    data["reservations"] = [reservation.model_dump()]
+                    data = [reservation.model_dump()]
 
                 pipe.multi()
                 pipe.setex(key, ttl, json.dumps(data))

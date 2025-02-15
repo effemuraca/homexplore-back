@@ -16,10 +16,11 @@ from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
 
 from modules.Guest.models.guest_models import FilteredSearchInput
+from modules.Guest.models.guest_models import SummaryPropertyOnSale
 
 guest_router = APIRouter(prefix="/guest", tags=["Guest"])
 
-@guest_router.post("/properties_on_sale/search", response_model=List[PropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
+@guest_router.post("/properties_on_sale/search", response_model=List[SummaryPropertyOnSale], responses=ResponseModels.GetFilteredPropertiesOnSaleResponses)
 def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 10):
     """
     Search for properties on sale based on input parameters with pagination support.
@@ -34,7 +35,7 @@ def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 
                        404 if no properties match the search criteria.
 
     Returns:
-        List[PropertyOnSale]: The list of properties on sale that match the search criteria.
+        List[SummaryPropertyOnSale]: The list of properties on sale that match the search criteria, with a summary of each property.
     """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     result_code = db_property_on_sale.filtered_search(input, page, page_size)

@@ -556,6 +556,7 @@ class SellerDB:
         Returns:
             int: 200 if statistics are retrieved successfully,
                  400 if the date range is invalid,
+                 404 if no data is found,
                  500 if a database error occurs.
         """
         mongo_client = get_default_mongo_db()
@@ -605,7 +606,11 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error retrieving analytics 2: {e}")
             return 500
-        self.analytics_2_result = list(aggregation_result)
+        
+        aggregation_list = list(aggregation_result)
+        if not aggregation_list or len(aggregation_list) == 0:
+            return 404
+        self.analytics_2_result = aggregation_list
         return 200
         
     
@@ -618,6 +623,8 @@ class SellerDB:
         
         Returns:
             int: 200 if the average time is calculated successfully,
+                 400 if the date range is invalid,
+                 404 if no data is found,
                  500 if a database error occurs.
         """
         mongo_client = get_default_mongo_db()
@@ -630,7 +637,7 @@ class SellerDB:
         pipeline = [
                 {"$match": {"_id": ObjectId(self.seller.seller_id)}},
                 {"$unwind": "$sold_properties"},
-                {"$match": {"sold_properties.city": input.city, "sold_properties.sell_date": {"$gte": start, "$lte": end}, "sold_properties.registration_date": {"gte": start,  "$lte": end}}},
+                {"$match": {"sold_properties.city": input.city, "sold_properties.sell_date": {"$gte": start, "$lte": end}, "sold_properties.registration_date": {"$gte": start, "$lte": end}}},
                 {"$project": {
                     "time_to_sell": {
                         "$divide": [{"$subtract": ["$sold_properties.sell_date", "$sold_properties.registration_date"]},86400000 ]
@@ -659,5 +666,9 @@ class SellerDB:
         except Exception as e:
             logger.error(f"Error retrieving analytics 3: {e}")
             return 500
-        self.analytics_3_result = list(aggregation_result)
+        
+        aggregation_list = list(aggregation_result)
+        if not aggregation_list or len(aggregation_list) == 0:
+            return 404
+        self.analytics_3_result = aggregation_list
         return 200

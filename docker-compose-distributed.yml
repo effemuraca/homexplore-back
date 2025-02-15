@@ -1,0 +1,177 @@
+services:
+  # Web service container
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000"
+    volumes:
+      - .:/app
+    environment:
+      - MONGO_URL=mongodb://mongo_machine1:27017,mongo_machine2:27017,mongo_machine3:27017/?replicaSet=lsmdb
+      - NEO4J_URL=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=neo4jpass
+      - REDIS_URL=redis://redis_machine1:6379
+      - REDIS_PASSWORD=redis
+      - REDIS_DB=0
+    depends_on:
+      - mongo_setup
+      - redis_machine1
+      - neo4j
+    networks:
+      - mynet
+
+  # MongoDB instance 1 with replica set
+  mongo_machine1:
+    image: mongo:4.2
+    command: ["mongod", "--replSet", "lsmdb"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data1:/data/db
+    networks:
+      - mynet
+
+  # MongoDB instance 2 with replica set
+  mongo_machine2:
+    image: mongo:4.2
+    command: ["mongod", "--replSet", "lsmdb"]
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data2:/data/db
+    networks:
+      - mynet
+
+  # MongoDB instance 3 with replica set
+  mongo_machine3:
+    image: mongo:4.2
+    command: ["mongod", "--replSet", "lsmdb"]
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo-data3:/data/db
+    networks:
+      - mynet
+
+  # Container to initialize the MongoDB replica set
+  mongo_setup:
+    image: mongo:4.2
+    depends_on:
+      - mongo_machine1
+      - mongo_machine2
+      - mongo_machine3
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["sleep 10 && mongo --host mongo_machine1:27017 /init_mongo.js"]
+    volumes:
+      - ./init_mongo.js:/init_mongo.js
+    networks:
+      - mynet
+
+  # Redis instance 1 (Master) with custom configuration
+  redis_machine1:
+    container_name: redis_machine1
+    image: redis:7.4.2
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      mynet:
+        aliases:
+          - redis_machine1
+    
+
+  # Redis instance 2 (Slave) with custom configuration
+  redis_machine2:
+    image: redis:7.4.2
+    ports:
+      - "6380:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--slaveof", "redis_machine1", "6379"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    depends_on:
+      - redis_machine1
+    networks:
+      - mynet
+
+  # Redis instance 3 (Slave) with custom configuration
+  redis_machine3:
+    image: redis:7.4.2
+    ports:
+      - "6381:6379"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--slaveof", "redis_machine1", "6379"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    depends_on:
+      - redis_machine1
+    networks:
+      - mynet
+
+  # Redis Sentinel instance 1
+  redis_sentinel1:
+    image: redis:7.4.2
+    ports:
+      - "26379:26379"
+    command: ["sh", "-c", "sleep 10; exec redis-sentinel /usr/local/etc/redis/sentinel.conf"]
+
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis_machine1
+    networks:
+      - mynet
+
+  # Redis Sentinel instance 2
+  redis_sentinel2:
+    image: redis:7.4.2
+    ports:
+      - "26380:26379"
+    command: ["sh", "-c", "sleep 10; exec redis-sentinel /usr/local/etc/redis/sentinel.conf"]
+
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis_machine1
+    networks:
+      - mynet
+
+  # Redis Sentinel instance 3
+  redis_sentinel3:
+    image: redis:7.4.2
+    ports:
+      - "26381:26379"
+    command: ["sh", "-c", "sleep 10; exec redis-sentinel /usr/local/etc/redis/sentinel.conf"]
+
+    volumes:
+      - ./sentinel.conf:/usr/local/etc/redis/sentinel.conf
+    depends_on:
+      - redis_machine1
+    networks:
+      - mynet
+
+  # Neo4j service container
+  neo4j:
+    image: neo4j:5.26.0
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/neo4jpass
+    volumes:
+      - neo4j-data:/data
+    networks:
+      - mynet
+
+volumes:
+  mongo-data1: {}
+  mongo-data2: {}
+  mongo-data3: {}
+  neo4j-data: {}
+
+networks:
+  mynet:
+    driver: bridge

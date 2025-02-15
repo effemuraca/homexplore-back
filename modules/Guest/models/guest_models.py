@@ -1,10 +1,11 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
+from datetime import datetime
 
 
 class FilteredSearchInput(BaseModel):
     city: Optional[str] = Field(None, example="New York")
-    address : Optional[str] = Field(None, example="123 Main St")
+    address: Optional[str] = Field(None, example="123 Main St", min_length=5)
     neighbourhood: Optional[str] = Field(None, example="Brooklyn")
     max_price: Optional[int] = Field(None, example=500000)
     type: Optional[str] = Field(None, example="House")
@@ -35,3 +36,15 @@ class FilteredSearchInput(BaseModel):
         if value and value < 0:
             raise ValueError('Bath number must be positive.')
         return value
+    
+
+class SummaryPropertyOnSale(BaseModel):
+    property_on_sale_id: Optional[str] = None
+    city: Optional[str] = None
+    neighbourhood: Optional[str] = None
+    address: Optional[str] = None
+    price: Optional[int] = None
+    type: Optional[str] = None
+    area: Optional[int] = None
+    thumbnail: Optional[str] = None
+    registration_date: Optional[datetime] = None

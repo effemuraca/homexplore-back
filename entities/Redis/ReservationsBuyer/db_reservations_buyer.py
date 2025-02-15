@@ -188,11 +188,10 @@ class ReservationsBuyerDB:
         try:
             data = json.loads(raw_data)
             new_data = [res for res in data if not ReservationB(**res).check_reservation_expired()]
-
             # The update is performed only if there are expired reservations
             if len(new_data) != len(data):
                 redis_client.set(key, json.dumps(new_data))
-                self.reservations_buyer.reservations = new_data
+            self.reservations_buyer.reservations = new_data
             return 200
         except (json.JSONDecodeError, TypeError) as e:
             logger.error(f"Error updating expired reservations for buyer_id={self.reservations_buyer.buyer_id}: {e}")
