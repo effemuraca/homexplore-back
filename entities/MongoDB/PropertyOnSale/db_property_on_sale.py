@@ -330,7 +330,7 @@ class PropertyOnSaleDB:
             return 500
         try:
             pipeline = [
-                {"$match": input.model_dump(exclude_none=True, exclude={"order_by"})},
+                {"$match": {**input.model_dump(exclude_none=True, exclude={"order_by"}), "area": {"$gt": 1}}},
                 {"$project": {"neighbourhood": 1, "price_per_square_meter": {"$divide": ["$price", "$area"]}}},
                 {"$group": {"_id": "$neighbourhood", "avg_price": {"$avg": "$price_per_square_meter"}}},
                 {"$project": {"neighbourhood": "$_id", "avg_price": 1, "_id": 0}},
@@ -348,7 +348,7 @@ class PropertyOnSaleDB:
         return 200
     
     
-    def get_avg_price_per_square_meter(self, city: str) -> int:
+    def get_avg_price_per_square_meter_by_city(self, city: str) -> int:
         """
         Calculate the average price per square meter and count of properties grouped by type for a given city.
 
@@ -366,7 +366,7 @@ class PropertyOnSaleDB:
             return 500
         try:
             pipeline = [
-                {"$match": {"city": city}},
+                {"$match": {"city": city, "area": {"$gt": 1}}},
                 {"$project": {"type": 1, "price": 1}},
                 {"$group": {"_id": "$type", "avg_price": {"$avg": "$price"}, "count": {"$sum": 1}}},
                 {"$project": {"type": "$_id", "avg_price": 1, "_id": 0, "count": 1}}

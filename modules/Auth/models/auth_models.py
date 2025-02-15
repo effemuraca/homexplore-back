@@ -5,7 +5,7 @@ import re
 
 class Login(BaseModel):
     email: EmailStr = Field(..., example="email@example.com")
-    password: str = Field(..., min_length=8, max_length=32, example="ThisIsAPassword123!")
+    password: str = Field(...,max_length=32, example="ThisIsAPassword123!")
 
 class CreateSeller(BaseModel):
     agency_name: str = Field(..., example="Agency Name")
