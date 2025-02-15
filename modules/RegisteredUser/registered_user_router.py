@@ -62,7 +62,7 @@ def analytics_4(city: str, access_token: str = Depends(JWTHandler())):
         raise HTTPException(status_code=401, detail="Invalid access token")
     
     property_on_sale_db = PropertyOnSaleDB()
-    status = property_on_sale_db.get_avg_price_per_square_meter(city)
+    status = property_on_sale_db.get_avg_price_per_square_meter_by_city(city)
     
     if status == 500:
         raise HTTPException(status_code=500, detail="Internal server error")
