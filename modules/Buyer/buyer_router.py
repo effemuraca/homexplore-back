@@ -325,20 +325,7 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
         for res in reservations_buyer_db.reservations_buyer.reservations:
             if res.property_on_sale_id == book_now_info.property_on_sale_id:
                 raise HTTPException(status_code=409, detail="Reservation already exists")
-    
-    date = next_weekday(book_now_info.day)
-
-    reservations_buyer_db.reservations_buyer.reservations = [
-        ReservationB(
-            property_on_sale_id = book_now_info.property_on_sale_id, 
-            date = date, 
-            time = book_now_info.time, 
-            thumbnail = book_now_info.thumbnail, 
-            address = book_now_info.address
-        )
-    ]
-    status = reservations_buyer_db.create_reservation_buyer()
-
+            
     reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
 
