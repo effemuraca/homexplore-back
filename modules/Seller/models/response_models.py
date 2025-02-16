@@ -135,12 +135,6 @@ GetSoldPropertiesResponses = {
         "content": {
             "application/json": {
                 "example": {
-                    "seller_id": "507f1f77bcf86cd799439011",
-                    "agency_name": "HomeXplore",
-                    "email": "john@example.com",
-                    "phone_number": "123-456-7890",
-                    "properties_on_sale": [],
-                    "sold_properties": [
                         {
                             "sold_property_id": "507f1f77bcf86cd799439012",
                             "city": "New York",
@@ -152,7 +146,6 @@ GetSoldPropertiesResponses = {
                             "registration_date": "2021-01-01T00:00:00",
                             "sell_date": "2021-06-01T00:00:00"
                         }
-                    ]
                 }
             }
         }
