@@ -96,10 +96,10 @@ class JWTHandler(HTTPBearer):
             payload = jwt.decode(token, secret, algorithms=[JWTHandler.algo])
 
             if datetime.fromtimestamp(payload["exp"]) < datetime.utcnow() or payload["type"] != "access":
-                return None
+                return None, None
             return payload["sub"], payload["user_type"]
         except (JWTError, ValueError) as e:
-            return None
+            return None, None
 
     @staticmethod
     def verifyRefreshToken(token: str) -> Union[str, None]:
@@ -120,10 +120,10 @@ class JWTHandler(HTTPBearer):
             payload = jwt.decode(token, secret, algorithms=[JWTHandler.algo])
             
             if datetime.fromtimestamp(payload["exp"]) < datetime.utcnow() or payload["type"] != "refresh":
-                return None
+                return None, None
             return payload["sub"], payload["user_type"]
         except (JWTError, ValueError):
-            return None
+            return None, None
 
     def __init__(self, auto_error: bool = True):
         super(JWTHandler, self).__init__(auto_error=auto_error)

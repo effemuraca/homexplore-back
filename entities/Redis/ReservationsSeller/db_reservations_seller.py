@@ -87,7 +87,10 @@ class ReservationsSellerDB:
             data = json.loads(raw_data)
             self.reservations_seller = ReservationsSeller(
                 property_on_sale_id=self.reservations_seller.property_on_sale_id,
-                reservations=[ReservationS(**item) for item in data]
+                reservations=[
+                    ReservationS(**{k: v for k, v in item.items() if k != "buyer_id"})
+                    for item in data
+                ]
             )
             return 200
         except (redis.exceptions.RedisError, json.JSONDecodeError, TypeError) as e:
@@ -235,36 +238,32 @@ class ReservationsSellerDB:
         ttl = convert_to_seconds(day, time)
         if ttl is None:
             return 400
-        
-        with redis_client.pipeline() as pipe:
-            try:
+
+        try:
+            with redis_client.pipeline() as pipe:
+                # Watch the key to detect concurrent modifications
                 pipe.watch(key)
+
+                # Retrieve the data BEFORE starting the transaction
                 raw_data = pipe.get(key)
-                initial_data = pipe.execute()  
-                raw_data = initial_data
+                reservations_list = json.loads(raw_data) if raw_data else []
 
-                if raw_data:
-                    data = json.loads(raw_data)
-                    reservations_list = data
-                    for rsv in reservations_list:
-                        if rsv.get("buyer_id") == reservation.buyer_id:
-                            return 409
-                    if len(reservations_list) >= max_attendees:
-                        return 400
-                    reservations_list.append(reservation.model_dump())
-                    data = reservations_list
-                else:
-                    data = self.reservations_seller.model_dump()
-                    data = [reservation.model_dump()]
+                # Check max attendees
+                if len(reservations_list) >= max_attendees:
+                    pipe.unwatch()
+                    return 400
 
+                # Append new reservation
+                reservations_list.append(reservation.model_dump())
+
+                # Start transaction
                 pipe.multi()
-                pipe.setex(key, ttl, json.dumps(data))
+                pipe.setex(key, ttl, json.dumps(reservations_list))
                 pipe.execute()
                 return 200
-
-            except redis.exceptions.WatchError:
-                logger.error(f"Transaction conflict on key={key}.")
-                return 500
-            except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
-                logger.error(f"Error in handle_book_now_transaction: {e}")
-                return 500
+        except redis.exceptions.WatchError:
+            logger.error(f"Transaction conflict on key={key}.")
+            return 500
+        except (redis.exceptions.RedisError, json.JSONDecodeError) as e:
+            logger.error(f"Error in handle_book_now_transaction: {e}")
+            return 500
