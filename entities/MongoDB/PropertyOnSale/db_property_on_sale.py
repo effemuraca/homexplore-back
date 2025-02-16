@@ -105,14 +105,9 @@ class PropertyOnSaleDB:
                 {"$sample": {"size": 6}},
                 {"$project": {
                    "_id": 1,
-                    "type": 1,
                     "address": 1,
                     "thumbnail": 1,
                     "price": 1,
-                    "registration_date": 1,
-                    "city": 1,
-                    "neighbourhood": 1,
-                    "area" : 1
                 }}
             ])
         except Exception as e:

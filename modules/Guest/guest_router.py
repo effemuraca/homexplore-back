@@ -16,7 +16,7 @@ from setup.mongo_setup.mongo_setup import get_default_mongo_db
 from datetime import datetime
 
 from modules.Guest.models.guest_models import FilteredSearchInput
-from modules.Guest.models.guest_models import SummaryPropertyOnSale
+from modules.Guest.models.guest_models import SummaryPropertyOnSale, RandomPropertyOnSale
 
 guest_router = APIRouter(prefix="/guest", tags=["Guest"])
 
@@ -45,7 +45,7 @@ def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-@guest_router.get("/properties_on_sale/random_properties", response_model=List[SummaryPropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
+@guest_router.get("/properties_on_sale/random_properties", response_model=List[RandomPropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
 def get_6_random_properties():
     """
     Get 6 random properties on sale.

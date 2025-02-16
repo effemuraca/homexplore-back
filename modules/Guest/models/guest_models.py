@@ -48,3 +48,9 @@ class SummaryPropertyOnSale(BaseModel):
     area: Optional[int] = None
     thumbnail: Optional[str] = None
     registration_date: Optional[datetime] = None
+    
+class RandomPropertyOnSale(BaseModel):
+    property_on_sale_id: Optional[str] = None
+    address: Optional[str] = None
+    price: Optional[int] = None
+    thumbnail: Optional[str] = None
