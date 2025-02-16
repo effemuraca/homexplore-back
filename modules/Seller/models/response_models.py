@@ -134,7 +134,7 @@ GetSoldPropertiesResponses = {
         "description": "Sold properties retrieved successfully.",
         "content": {
             "application/json": {
-                "example": {
+                "example": [
                         {
                             "sold_property_id": "507f1f77bcf86cd799439012",
                             "city": "New York",
@@ -146,7 +146,8 @@ GetSoldPropertiesResponses = {
                             "registration_date": "2021-01-01T00:00:00",
                             "sell_date": "2021-06-01T00:00:00"
                         }
-                }
+                ]
+                
             }
         }
     },
