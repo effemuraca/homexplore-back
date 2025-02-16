@@ -88,7 +88,7 @@ class ReservationsSellerDB:
             self.reservations_seller = ReservationsSeller(
                 property_on_sale_id=self.reservations_seller.property_on_sale_id,
                 reservations=[
-                    ReservationS(**{k: v for k, v in item.items() if k != "buyer_id"})
+                    ReservationS(**item)
                     for item in data
                 ]
             )
