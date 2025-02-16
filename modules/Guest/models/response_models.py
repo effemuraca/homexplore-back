@@ -65,7 +65,7 @@ GetFilteredPropertiesOnSaleResponses = {
 
 GetRandomPropertiesOnSaleResponses = {
     200: {
-        "model": List[PropertyOnSale],
+        "model": List[SummaryPropertyOnSale],
         "description": "Random properties retrieved successfully.",
         "content": {
             "application/json": {

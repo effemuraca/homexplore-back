@@ -25,7 +25,7 @@ def get_buyer(access_token: str = Depends(JWTHandler())):
     """
     Retrieve the buyer's profile info.
 
-    Args:
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:
@@ -57,9 +57,10 @@ def update_buyer(buyer: UpdateBuyer, access_token: str = Depends(JWTHandler())):
     """
     Update an existing buyer.
 
-    Args:
-        buyer (UpdateBuyer): The new buyer data to update.
+    Authorization:
         access_token (str): The JWT access token for authentication.
+    
+    Body: (UpdateBuyer): The new buyer data to update.
 
     Raises:
         HTTPException: 401 if the token is invalid or the user is not a buyer.
@@ -105,7 +106,7 @@ def delete_buyer(access_token: str = Depends(JWTHandler())):
     """
     Delete an existing buyer.
 
-    Args:
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:
@@ -148,7 +149,7 @@ def get_favourites(access_token: str = Depends(JWTHandler())):
     """
     Retrieve the list of a buyer's favourite properties.
 
-    Args:
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:
@@ -177,8 +178,10 @@ def add_favourite(favourite: FavouriteProperty, access_token: str = Depends(JWTH
     """
     Add a favourite property for a buyer.
 
-    Args:
-        favourite (FavouriteProperty): The property to add.
+    Body:
+        (FavouriteProperty): The property to add.
+    
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:
@@ -209,6 +212,8 @@ def delete_favourite(property_on_sale_id: str, access_token: str = Depends(JWTHa
 
     Args:
         property_on_sale_id (str): The ID of the property to remove.
+    
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:
@@ -246,7 +251,7 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
     """
     Retrieve and update expired reservations for a buyer.
 
-    Args:
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:
@@ -278,11 +283,13 @@ def get_reservations(access_token: str = Depends(JWTHandler())):
 )
 def create_reservation(book_now_info: CreateReservationBuyer, access_token: str = Depends(JWTHandler())):
     """
-    Create a new reservation for a buyer.
+    Create a new reservation updating the buyer's reservations list and the seller's reservations list. It checks if the buyer already has a reservation for the same property and if number of attendees is not exceeded.
 
-    Args:
-        book_now_info (CreateReservationBuyer): The reservation details.
+    Authorization:
         access_token (str): The JWT access token for authentication.
+    
+    Body:
+        (CreateReservationBuyer): The data necessary to create.
 
     Raises:
         HTTPException: 401 if the token is invalid or the user is not a buyer.
@@ -369,10 +376,12 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
 )
 def delete_reservation_by_buyer_and_property(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Delete a reservation for a given buyer and property.
+    Delete a reservation for a given buyer and property, updating the buyer's reservations list and the seller's reservations list ensuring data consistency.
 
     Args:
         property_on_sale_id (str): The ID of the property for which to delete the reservation.
+    
+    Authorization:
         access_token (str): The JWT access token for authentication.
 
     Raises:

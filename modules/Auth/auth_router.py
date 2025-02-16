@@ -15,11 +15,12 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 @auth_router.post("/login", response_model=ResponseModels.LoginResponseModel, responses= ResponseModels.LoginResponseModelResponses)
 def login(login_info: AuthModels.Login, user_type: str):
     """
-    Log in a user and return the access and refresh tokens.
+    Log in a user and return the access and refresh tokens, access token can be used on the padlock to unlock reserved features.
 
     Args:
-        login_info (AuthModels.Login): The login credentials.
         user_type (str): The type of user logging in ("buyer" or "seller").
+    
+    Body: (AuthModels.Login): The login credentials.
 
     Raises:
         HTTPException: 400 if the user type is invalid or the email is missing.
@@ -66,9 +67,6 @@ def refreshAccToken(refresh_token: str = Depends(JWTHandler())):
     """
     Refresh the access token using a refresh token.
 
-    Args:
-        refresh_token (str): The refresh token.
-
     Raises:
         HTTPException: 401 if the refresh token is invalid.
 
@@ -91,8 +89,8 @@ def register_buyer(user_info: AuthModels.CreateBuyer):
     """
     Register a buyer.
 
-    Args:
-        user_info (AuthModels.CreateBuyer): The buyer information.
+    Body:
+        (AuthModels.CreateBuyer): The buyer information.
 
     Raises:
         HTTPException: 409 if the email already exists.
@@ -131,8 +129,8 @@ def register_seller(user_info: AuthModels.CreateSeller):
     """
     Register a seller.
 
-    Args:
-        user_info (AuthModels.CreateSeller): The seller information.
+    Body:
+       (AuthModels.CreateSeller): The seller information.
 
     Raises:
         HTTPException: 409 if the email already exists.

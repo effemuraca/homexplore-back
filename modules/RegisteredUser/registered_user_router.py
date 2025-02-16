@@ -12,11 +12,13 @@ registered_user_router = APIRouter(prefix="/registered-user", tags=["RegisteredU
 @registered_user_router.post("/analytics_1", response_model=ResponseModels.Analytics1ResponseModel, responses=ResponseModels.Analytics1Responses)
 def analytics_1(input: Analytics1Input, access_token: str = Depends(JWTHandler())):
     """
-    Given the input parameters, return the average price per square meter for each neighbourhood in the city.
+    Given the input parameters, return the average price per square meter for each neighbourhood in the city, if "type" is specified filters the results by the property type, if "order_by" is specified orders the results consequently.
 
-    Args:
-        input (Analytics1Input): The input parameters for the analytics.
+    Authorization: 
         access_token (str): The JWT access token for authentication.
+    
+    Body:
+        (Analytics1Input): The input parameters for the analytics.
 
     Raises:
         HTTPException: 401 if the access token is invalid.
@@ -43,11 +45,12 @@ def analytics_1(input: Analytics1Input, access_token: str = Depends(JWTHandler()
 @registered_user_router.post("/analytics_4", response_model=ResponseModels.Analytics4ResponseModel, responses=ResponseModels.Analytics4Responses)
 def analytics_4(city: str, access_token: str = Depends(JWTHandler())):
     """
-    Given the city, return the average price of each type of property in the city.
+    Given the city, return the average price per square meter and the number of properties for each property type.
 
     Args:
         city (str): The city to analyze.
-        access_token (str): The JWT access token for authentication.
+
+    Authorization: access_token (str): The JWT access token for authentication.
 
     Raises:
         HTTPException: 401 if the access token is invalid.
@@ -77,9 +80,10 @@ def analytics_5(city: str, neighbourhood: str, access_token: str = Depends(JWTHa
     Given the city and neighbourhood, return the average bed_number, bath_number, and area for each property type.
 
     Args:
-        city (str): The city to analyze.
-        neighbourhood (str): The neighbourhood to analyze.
-        access_token (str): The JWT access token for authentication.
+        city (str): The city to analyze.    
+        neighbourhood (str): The neighbourhood to analyze.  
+
+    Authorization: access_token (str): The JWT access token for authentication.
 
     Raises:
         HTTPException: 401 if the access token is invalid.

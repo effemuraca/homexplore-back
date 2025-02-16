@@ -26,12 +26,14 @@ def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 
     Search for properties on sale based on input parameters with pagination support.
 
     Args:
-        input (FilteredSearchInput): Filter criteria for the search.
-        page (int): Current page number (default is 1).
-        page_size (int): Number of results per page (default is 10).
+        page (int): Current page number (default is 1).     
+        page_size (int): Number of results per page (default is 10).    
+    
+    Body: 
+        (FilteredSearchInput): Filter criteria for the search, ignores invalid argouments.
 
     Raises:
-        HTTPException: 500 if there is an internal server error.
+        HTTPException: 500 if there is an internal server error.          
                        404 if no properties match the search criteria.
 
     Returns:
@@ -55,7 +57,7 @@ def get_6_random_properties():
                        404 if no properties are found.
 
     Returns:
-        List[SummaryPropertyOnSale]: The list of 6 random properties on sale.
+        List[SummaryPropertyOnSale]: The list of the summary informations about 6 random properties on sale.
     """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     result_code = db_property_on_sale.get_6_random_properties()
@@ -68,7 +70,7 @@ def get_6_random_properties():
 @guest_router.get("/property_on_sale/{property_on_sale_id}", response_model=PropertyOnSale, responses=ResponseModels.GetPropertyOnSaleResponses)
 def get_property_on_sale(property_on_sale_id:str):
     """
-    Get the property on sale with the given ID.
+    Get all the property on sale's informations, that has the given ID.
 
     Args:
         property_on_sale_id (str): The ID of the property on sale.
@@ -152,7 +154,7 @@ def get_pois(property_on_sale_id:str):
 @guest_router.get("/map/properties_near_property", response_model=List[PropertyOnSaleNeo4J], responses=ResponseModels.GetNearPropertiesResponses)
 def get_near_properties(property_on_sale_id:str):
     """
-    Get the properties near the property on sale with the given ID.
+    Get the properties near the property on sale with the given ID and the property itself with summary informations (in particoulare the liveability score).
 
     Args:
         property_on_sale_id (str): The ID of the property on sale.
@@ -163,7 +165,7 @@ def get_near_properties(property_on_sale_id:str):
                        500 if there is an internal server error.
 
     Returns:
-        List[PropertyOnSaleNeo4J]: The properties near the property on sale.
+        List[PropertyOnSaleNeo4J]: The properties near the property on sale including the property itself.
     """
     if not ObjectId.is_valid(property_on_sale_id):
         raise HTTPException(status_code=400, detail="Invalid property_on_sale_id.")

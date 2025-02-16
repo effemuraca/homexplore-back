@@ -40,7 +40,7 @@ def get_seller(access_token: str = Depends(JWTHandler())):
     """
     Get the profile info of the seller.
 
-    Args:
+    Authorization: 
         access_token (str): The JWT access token.
 
     Raises:
@@ -68,15 +68,17 @@ def get_seller(access_token: str = Depends(JWTHandler())):
 @seller_router.put("/", response_model=ResponseModels.SuccessModel, responses=ResponseModels.UpdateSellerResponses)
 def update_seller(seller: UpdateSeller, access_token: str = Depends(JWTHandler())):
     """
-    Update an existing seller.
+    Update profile info of the seller.
 
-    Args:
-        seller (UpdateSeller): The updated seller data.
+    Authorization:
         access_token (str): The JWT access token.
+    
+    Body:
+        (UpdateSeller): The updated seller details.
 
     Raises:
         HTTPException: 401 if the token is invalid or the user is not a seller.
-                       409 if the email already exists.
+                       409 if the new email already exists.
                        400 if the seller ID is missing.
                        404 if the seller is not found.
                        500 if there is an error updating the seller.
@@ -120,16 +122,18 @@ def get_property_on_sale_filtered(city: Optional[str] = None, neighbourhood: Opt
     Get the seller's properties on sale filtered by city, neighbourhood, or address.
 
     Args:
-        city (str, optional): The city to filter by.
-        neighbourhood (str, optional): The neighbourhood to filter by.
-        address (str, optional): The address to filter by.
+        city (str, optional): The city to filter by.    
+        neighbourhood (str, optional): The neighbourhood to filter by.      
+        address (str, optional): The address to filter by.      
+    
+    Authorization:
         access_token (str): The JWT access token.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       400 if none of the filtering parameters are provided.
-                       404 if the seller or properties are not found.
-                       500 if there is an error retrieving properties.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       400 if none of the filtering parameters are provided.    
+                       404 if the seller or properties are not found.   
+                       500 if there is an error retrieving properties.      
 
     Returns:
         List[SellerPropertyOnSale]: The filtered list of the seller's properties on sale.
@@ -153,11 +157,15 @@ def get_sold_properties_filtered(city: Optional[str] = None, neighbourhood: Opti
     Get the seller's sold properties.
 
     Args:
+        city (str, optional): The city to filter by.    
+        neighbourhood (str, optional): The neighbourhood to filter by.
+    
+    Authorization:
         access_token (str): The JWT access token.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       404 if the seller or properties are not found.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       404 if the seller or properties are not found.   
                        500 if there is an error retrieving properties.
 
     Returns:
@@ -186,16 +194,18 @@ def get_sold_properties_filtered(city: Optional[str] = None, neighbourhood: Opti
 @seller_router.post("/property_on_sale", response_model=ResponseModels.CreatePropertyOnSaleResponseModel, responses=ResponseModels.CreatePropertyOnSaleResponses)
 def create_property_on_sale(input_property_on_sale: CreatePropertyOnSale, access_token: str = Depends(JWTHandler())):
     """
-    Create a new property on sale for the seller.
+    Create a new property on sale for the seller inserting it in the property_on_sale collection, in the seller collection and in Neo4j. In Neo4j are also created the relationships with the neighbourhood, near properties, near POIs and the score is updated.
 
-    Args:
-        input_property_on_sale (CreatePropertyOnSale): The property details.
+    Authorization:
         access_token (str): The JWT access token.
+    
+    Body:
+        (CreatePropertyOnSale): The new property details.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       400 for invalid address or missing data.
-                       404 if the seller is not found.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       400 for invalid address or missing data.     
+                       404 if the seller is not found.      
                        500 if there is an error creating the property.
 
     Returns:
@@ -364,14 +374,16 @@ def update_property_on_sale(input_property_on_sale: UpdatePropertyOnSale, access
     """
     Update an existing property on sale for the seller.
 
-    Args:
-        input_property_on_sale (UpdatePropertyOnSale): The updated property details.
+    Authorization:
         access_token (str): The JWT access token.
+    
+    Body:
+        (UpdatePropertyOnSale): The updated property details.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       400 for invalid address or missing data.
-                       404 if the property or seller is not found.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       400 for invalid address or missing data.     
+                       404 if the property or seller is not found.      
                        500 if there is an error updating the property.
 
     Returns:
@@ -518,17 +530,17 @@ def handleReservations(property_on_sale_id: str) -> int:
 @seller_router.post("/sell_property_on_sale", response_model=ResponseModels.SuccessModel, responses=ResponseModels.SellPropertyOnSaleResponses)
 def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Sell a property on sale.
+    Sell a property on sale eliminating it from the property_on_sale collection, inserting it in the sold_properties list embedded in the seller collection and deleting it from Neo4j. The reservations are handled when the load is low.
 
     Args:
         property_to_sell_id (str): The ID of the property to sell.
         access_token (str): The JWT access token.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       400 if the provided ID is invalid.
-                       404 if the seller or property is not found.
-                       500 if there is an error selling the property.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       400 if the provided ID is invalid.        
+                       404 if the seller or property is not found.      
+                       500 if there is an error selling the property.       
 
     Returns:
         JSONResponse: A success message if the property is sold.
@@ -599,12 +611,12 @@ def sell_property_on_sale(property_to_sell_id: str, access_token: str = Depends(
 )
 def get_open_house_events(access_token: str = Depends(JWTHandler())):
     """
-    Get all open house events for today associated with the seller.
+    Get all open house events for today associated with the seller, for every open house event is retrieved the address, the time and the city.
     
     This endpoint retrieves the seller's properties on sale from the database and filters
     for open house events scheduled for the current day based on the 'disponibility.day' field.
     
-    Args:
+    Authorization:
         access_token (str): The JWT access token.
     
     Raises:
@@ -634,9 +646,11 @@ def get_open_house_events(access_token: str = Depends(JWTHandler())):
 def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
     Delete a property on sale.
-
+    
     Args:
-        property_on_sale_id (str): The ID of the property to delete.
+        property_on_sale_id (str): The ID of the property on sale.
+    
+    Authorization:
         access_token (str): The JWT access token.
 
     Raises:
@@ -709,17 +723,19 @@ def delete_property_on_sale(property_on_sale_id: str, access_token: str = Depend
 )
 def get_reservations_seller(property_on_sale_id: str, access_token: str = Depends(JWTHandler())):
     """
-    Get the reservations for a specific property on sale.
+    Get the reservations list for a specific property on sale, on the list there are the contact details of the buyers.
 
     Args:
         property_on_sale_id (str): The ID of the property on sale.
+    
+    Authorization:
         access_token (str): The JWT access token.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       400 if the property_on_sale_id is invalid.
-                       404 if reservations or property are not found.
-                       500 if there is an error retrieving reservations.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       400 if the property_on_sale_id is invalid.       
+                       404 if reservations or property are not found.       
+                       500 if there is an error retrieving reservations.        
 
     Returns:
         ReservationsSeller: The reservations associated with the property on sale.
@@ -745,17 +761,19 @@ def get_reservations_seller(property_on_sale_id: str, access_token: str = Depend
 @seller_router.post("/analytics/analytics_2", response_model=ResponseModels.Analytics2ResponseModel, responses=ResponseModels.Analytics2Responses)
 def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler())):
     """
-    Perform analytics query #2 for the seller.
+    Given a city, and a range of dates, return the number of properties sold in that city in that range of dates and the total amount of money earned from those sales break down by neighbourhood.
 
-    Args:
-        input (Analytics2Input): The input data for the analytics.
+    Body:
+        (Analytics2Input): The input data for the analytics.
+    
+    Authorization:
         access_token (str): The JWT access token.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       404 if the seller or data is not found.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       404 if the seller or data is not found.      
                        500 if there is an error performing analytics.
-
+                       
     Returns:
         JSONResponse: The analytics result.
     """
@@ -777,16 +795,18 @@ def analytics_2(input : Analytics2Input, access_token: str = Depends(JWTHandler(
 @seller_router.post("/analytics/analytics_3", response_model=ResponseModels.Analytics3ResponseModel, responses=ResponseModels.Analytics3Responses)
 def analytics_3(input : Analytics3Input, access_token: str = Depends(JWTHandler())):
     """
-    Perform analytics query #3 for the seller.
+    Given a city and a range of dates, return the average time to sell a property in days in that city in that range of dates break down by neighbourhood.
 
-    Args:
+    Body:
         input (Analytics3Input): The input data for the analytics.
+    
+    Authorization:
         access_token (str): The JWT access token.
 
     Raises:
-        HTTPException: 401 if the token is invalid or the user is not a seller.
-                       404 if the seller or data is not found.
-                       500 if there is an error performing analytics.
+        HTTPException: 401 if the token is invalid or the user is not a seller.     
+                       404 if the seller or data is not found.      
+                       500 if there is an error performing analytics.       
 
     Returns:
         JSONResponse: The analytics result.
