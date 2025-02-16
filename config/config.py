@@ -2,8 +2,8 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     mongo_url: str
-    redis_host: str
-    redis_port: int
+    sentinel_hosts: str
+    redis_master_name: str
     redis_db: int
     neo4j_url: str
     neo4j_user: str
