@@ -320,6 +320,11 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
         raise HTTPException(status_code=500, detail="Error decoding reservations data")
     if status == 400:
         raise HTTPException(status_code=400, detail="Invalid input data")
+    #check if the buyer already has a reservation for the same property
+    if reservations_buyer_db.reservations_buyer.reservations:
+        for res in reservations_buyer_db.reservations_buyer.reservations:
+            if res.property_on_sale_id == book_now_info.property_on_sale_id:
+                raise HTTPException(status_code=409, detail="Reservation already exists")
 
     reservations_seller = ReservationsSeller(property_on_sale_id=book_now_info.property_on_sale_id)
     reservations_seller_db = ReservationsSellerDB(reservations_seller)
@@ -334,8 +339,6 @@ def create_reservation(book_now_info: CreateReservationBuyer, access_token: str 
     status = reservations_seller_db.handle_book_now_transaction(new_reservation, book_now_info.day, book_now_info.time, buyer_id, book_now_info.max_attendees)
     if status == 400:
         raise HTTPException(status_code=400, detail="Invalid input data")
-    if status == 409:
-        raise HTTPException(status_code=409, detail="Reservation already exists")
     if status == 500:
         raise HTTPException(status_code=500, detail="Error creating reservation")
     
