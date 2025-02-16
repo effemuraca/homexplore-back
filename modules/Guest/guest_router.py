@@ -45,7 +45,7 @@ def filtered_search(input: FilteredSearchInput, page: int = 1, page_size: int = 
         raise HTTPException(status_code=404, detail="No properties found.")
     return db_property_on_sale.property_on_sale_list
 
-@guest_router.get("/properties_on_sale/random_properties", response_model=List[PropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
+@guest_router.get("/properties_on_sale/random_properties", response_model=List[SummaryPropertyOnSale], responses=ResponseModels.GetRandomPropertiesOnSaleResponses)
 def get_6_random_properties():
     """
     Get 6 random properties on sale.
@@ -55,7 +55,7 @@ def get_6_random_properties():
                        404 if no properties are found.
 
     Returns:
-        List[PropertyOnSale]: The list of 6 random properties on sale.
+        List[SummaryPropertyOnSale]: The list of 6 random properties on sale.
     """
     db_property_on_sale = PropertyOnSaleDB(PropertyOnSale())
     result_code = db_property_on_sale.get_6_random_properties()

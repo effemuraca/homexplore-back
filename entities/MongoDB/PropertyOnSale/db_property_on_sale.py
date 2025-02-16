@@ -66,7 +66,8 @@ class PropertyOnSaleDB:
                 "price": 1,
                 "registration_date": 1,
                 "city": 1,
-                "neighbourhood": 1
+                "neighbourhood": 1,
+                "area" :1
             }
             )
             # Apply pagination using skip and limit
@@ -100,7 +101,20 @@ class PropertyOnSaleDB:
             logger.error("Mongo client not initialized.")
             return 500
         try:
-            results = mongo_client.PropertyOnSale.aggregate([{"$sample": {"size": 6}}])
+            results = mongo_client.PropertyOnSale.aggregate([
+                {"$sample": {"size": 6}},
+                {"$project": {
+                   "_id": 1,
+                    "type": 1,
+                    "address": 1,
+                    "thumbnail": 1,
+                    "price": 1,
+                    "registration_date": 1,
+                    "city": 1,
+                    "neighbourhood": 1,
+                    "area" : 1
+                }}
+            ])
         except Exception as e:
             logger.error("Error while retrieving random properties: %s", e)
             return 500
